@@ -1,0 +1,9 @@
+a[1050]a
+box max = 1050
+
+a contains max
+
+//(a.size.() < max {) a.put.([a.randomInt.()]) (}  {) box z = a.removeFirst.()    }
+
+
+//print.()

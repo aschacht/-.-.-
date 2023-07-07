@@ -1,0 +1,56 @@
+a{ cat = 32.2 }a
+b( car = 99 )b
+a{ cat = 32.2 }a
+b( car = 99 )b
+aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
+car =79.78
+c[ 66 ]c
+a{ cat = 32.2 }a
+b( car = 99 )b
+a{ cat = 32.2 }a
+b( car = 99 )b
+aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
+car =79.78
+c[ 66 ]c
+a{ cat = 32.2 }a
+b( car = 99 )b
+a{ cat = 32.2 }a
+b( car = 99 )b
+aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
+car =79.78
+c[ 66 ]c
+a{ cat = 32.2 }a
+b( car = 99 )b
+a{ cat = 32.2 }a
+b( car = 99 )b
+aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
+car =79.78
+c[ 66 ]c
+a{ cat = 32.2 }a
+b( car = 99 )b
+a{ cat = 32.2 }a
+b( car = 99 )b
+aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
+car =79.78
+c[ 66 ]c
+a{ cat = 32.2 }a
+b( car = 99 )b
+a{ cat = 32.2 }a
+b( car = 99 )b
+aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
+car =79.78
+c[ 66 ]c
+a{ cat = 32.2 }a
+b( car = 99 )b
+a{ cat = 32.2 }a
+b( car = 99 )b
+aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
+car =79.78
+c[ 66 ]c
+a{ cat = 32.2 }a
+b( car = 99 )b
+a{ cat = 32.2 }a
+b( car = 99 )b
+aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
+car =79.78
+c[ 66 ]c

@@ -1,0 +1,50 @@
+
+				Object evaluate = evaluate(term.value, derive);
+				Object evaluate2 = evaluate(term.value, false);
+				if (evaluate instanceof Variable && evaluate2 instanceof Variable) {
+					Term evalVarLookUp = lookUp(((Variable) evaluate).name);
+					Object varEvaluated = evaluate(evalVarLookUp, derive);
+					Term eval2VarLookUp = lookUp(((Variable) evaluate2).name);
+					Object varEvaluated2 = evaluate(eval2VarLookUp, false);
+					
+					
+					if (varEvaluated instanceof NotDefined && varEvaluated2 instanceof NotDefined) {
+						total = ((NotDefined)varEvaluated).name.lexeme + "*(1/(cos(" + ((NotDefined)varEvaluated2).name.lexeme + "))^2)";
+					}else if(varEvaluated instanceof NotDefined && varEvaluated2 instanceof String) {
+						total = ((NotDefined)varEvaluated).name.lexeme + "*(1/(cos(" + varEvaluated2 + "))^2)";
+					}else if(varEvaluated instanceof String && varEvaluated2 instanceof NotDefined) {
+						total = varEvaluated + "*(1/(cos(" + ((NotDefined)varEvaluated2).name.lexeme + "))^2)";
+					}else if(varEvaluated instanceof String || varEvaluated2 instanceof String) {
+						total = varEvaluated + "*(1/(cos(" + varEvaluated2 + "))^2)";
+					}  else
+						total = ((Double) varEvaluated) * (1/Math.pow(Math.cos(varEvaluated2,2));
+				}else if (evaluate instanceof Variable && evaluate2 instanceof String) {
+					Term evalVarLookUp = lookUp(((Variable) evaluate).name);
+					Object varEvaluated = evaluate(evalVarLookUp, derive);
+					
+					
+					
+					if (varEvaluated instanceof NotDefined ) {
+						total = ((NotDefined)varEvaluated).name.lexeme + "*(1/(cos(" + varEvaluated2 + "))^2)";
+
+					}else  {
+						total = varEvaluated + "*(1/(cos(" + varEvaluated2 + "))^2)";
+					}
+				}else if (evaluate instanceof String && evaluate2 instanceof Variable) {
+					Term eval2VarLookUp = lookUp(((Variable) evaluate2).name);
+					Object varEvaluated2 = evaluate(eval2VarLookUp, false);
+					
+					
+					
+					if (varEvaluated2 instanceof NotDefined ) {
+						total = varEvaluated + "*(1/(cos(" + ((NotDefined)varEvaluated2).name.lexeme + "))^2)";
+
+					}else  {
+						total = varEvaluated + "*(1/(cos(" + varEvaluated2 + "))^2)";
+					}
+				}else if (evaluate instanceof String || evaluate2 instanceof String) {
+					total = evaluate + "*(1/(cos(" + evaluate2 + "))^2)";
+				} else {
+					total = ((Double) evaluate) * (1 / Math.pow(Math.cos(evaluate2, 2));
+				}
+			

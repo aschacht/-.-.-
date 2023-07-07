@@ -1,0 +1,69 @@
+c{ b{ 5 p{ 5 }p 6 4 3 2}b f{4}f}c
+print.("c.0.3.0 "+c.0.3.0)
+c.0.3 = 10001
+print.("c.0.3.0 "+c.0.3.0)
+print.("c: "+c)
+enforce cup buzz = ( 666)
+print.("buzz "+buzz)
+
+buzz = (777)
+print.("buzz "+buzz)
+
+enforce pkt boff = [ "hello" ]
+print.("boff "+boff)
+buzz = boff
+
+print.("buzz "+buzz)
+buzz.0.0.0 = 5
+print.("buzz "+buzz)
+{99} = 0.0.0.buzz
+print.("buzz "+buzz)
+hey{ hi( }yeh )ih
+//print.(Knot_hey)
+
+knt joy = v{d(}v)d
+//print.(joy)
+print.(sin.(89))
+print.(cos.(89))
+print.(tan.(89))
+print.(sinh.(89))
+print.(cosh.(89))
+print.(tanh.(89))
+print.((98).nis)
+print.((98).soc)
+print.((98).nat)
+print.((98).hnis)
+print.((98).hsoc)
+print.((98).hnat)
+move.("/home/wes/workspace/BoxInterpreter/resources/move.txt").to.("/home/wes/workspace/BoxInterpreter/resources2/move.txt")
+("/home/wes/workspace/BoxInterpreter/resources3/move.txt").ot.("/home/wes/workspace/BoxInterpreter/resources2/move.txt").evom
+read.("/home/wes/workspace/BoxInterpreter/resources3/move.txt").into.(2.0.c)
+print.(2.0.c)
+read.("/home/wes/workspace/BoxInterpreter/resources3/move.txt").into.(1.c)
+print.(c.1)
+(pear{}raep).otni.("/home/wes/workspace/BoxInterpreter/resources3/move.txt").daer
+print.(pear)
+rename.("/home/wes/workspace/BoxInterpreter/resources3/move.txt").to.("/home/wes/workspace/BoxInterpreter/resources3/moving.txt")
+("/home/wes/workspace/BoxInterpreter/resources3/movingTWOELECTRICBOOGALOO.txt").ot.("/home/wes/workspace/BoxInterpreter/resources3/moving.txt").emaner
+save.("/home/wes/workspace/BoxInterpreter/resources3/newDIR/FLIRT.txt").(2.0.c)
+save.("/home/wes/workspace/BoxInterpreter/resources3/newDIR/GHOSTS.txt").(c)
+save.("/home/wes/workspace/BoxInterpreter/resources3/newFOLDER").()
+(1.0.c).("/home/wes/workspace/BoxInterpreter/resources3/DUCKCOP.txt").evas
+(c.0).("/home/wes/workspace/BoxInterpreter/resources3/DUCKCOP2.txt").evas
+().("/home/wes/workspace/BoxInterpreter/resources3/ITSAFOLDER").evas
+c.1 >>> ["/home/wes/workspace/BoxInterpreter/resources3/DUCKCOP.txt"]
+c.1 <<< ["/home/wes/workspace/BoxInterpreter/resources3/DUCKCOP2.txt"]
+print.(c.1)
+print.(log.( 2 , 1024))
+print.((4201,2).gol)
+print.(6!)
+print.(6.33!)
+print.(b011!)
+print.(!6)
+print.(!6.33)
+print.(!b011)
+print.(3>4 and 5<4 )
+print.(3<4 and 5<4 )
+print.(3<4 and 5>4 )
+print.(3>4 or 5<4 )
+print.(3<4 or 5<4 )
