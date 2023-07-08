@@ -620,14 +620,15 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		// Object value = evaluate(stmt.expression);
 		// System.out.println(stringify(value));
 		
-		BoxMath.test("x=25 integral from 0 to 25 (x^2)dx");
-		Double x = 25.0;
-		Double numerator = (3*x+5)*Math.sin(x);
-		Double dnominator = Math.pow(Math.cos(x),2);
-		Double other = 3 /Math.cos(x);
-		Double result =  (numerator/dnominator)+other;
-		System.out.println("result: " + result);
-		
+//		BoxMath.test("x=25 integral from 0 to 25 (x^2)dx");
+//		Double x = 25.0;
+//		Double numerator = (3*x+5)*Math.sin(x);
+//		Double dnominator = Math.pow(Math.cos(x),2);
+//		Double other = 3 /Math.cos(x);
+//		Double result =  (numerator/dnominator)+other;
+//		System.out.println("result: " + result);
+		Object value = evaluate(stmt.expression);
+		System.out.println(stringify(value));
 
 		return null;
 	}

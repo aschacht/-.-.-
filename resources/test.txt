@@ -1,56 +1,10 @@
-a{ cat = 32.2 }a
-b( car = 99 )b
-a{ cat = 32.2 }a
-b( car = 99 )b
-aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
-car =79.78
+aa( bb{ cup car = 900 )aa box apple = 65 cc( }bb box cool = 99 )cc
+box carz = 79.78
 c[ 66 ]c
-a{ cat = 32.2 }a
-b( car = 99 )b
-a{ cat = 32.2 }a
-b( car = 99 )b
-aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
-car =79.78
-c[ 66 ]c
-a{ cat = 32.2 }a
-b( car = 99 )b
-a{ cat = 32.2 }a
-b( car = 99 )b
-aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
-car =79.78
-c[ 66 ]c
-a{ cat = 32.2 }a
-b( car = 99 )b
-a{ cat = 32.2 }a
-b( car = 99 )b
-aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
-car =79.78
-c[ 66 ]c
-a{ cat = 32.2 }a
-b( car = 99 )b
-a{ cat = 32.2 }a
-b( car = 99 )b
-aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
-car =79.78
-c[ 66 ]c
-a{ cat = 32.2 }a
-b( car = 99 )b
-a{ cat = 32.2 }a
-b( car = 99 )b
-aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
-car =79.78
-c[ 66 ]c
-a{ cat = 32.2 }a
-b( car = 99 )b
-a{ cat = 32.2 }a
-b( car = 99 )b
-aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
-car =79.78
-c[ 66 ]c
-a{ cat = 32.2 }a
-b( car = 99 )b
-a{ cat = 32.2 }a
-b( car = 99 )b
-aa( bb{ open = 900 )aa apple = 65 cc( }bb cool = 99 )cc
-car =79.78
-c[ 66 ]c
+a{ box cat = 32.2 }a
+b( box car = 99 )b
+a{ box cat = 32.2 }a
+b( box car = 99 )b
+aa( bb{ box pie = 900 )aa cup apple = 65 cc( }bb box cool = 99 )cc
+box car =79.78
+print.(car)

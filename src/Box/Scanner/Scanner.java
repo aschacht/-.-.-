@@ -423,19 +423,18 @@ public class Scanner {
 			advance();
 			while (!isAlpha(peek()) && !anythingOtherThenDigit(peek())) {
 				int newStart = current;
-				while (isDigit(peek()))
-					advance();
-				if (peek() == '.' && isDigit(peekNext())) {
+				if (isDigit(peek())) {
 					int newFinish = current;
 					keys.add(newStart);
 					startsandEnds.put(newStart, newFinish);
 					advance();
-				}
-				if (peek() == '.' && isAlpha(peekNext())) {
+				}else if (isAlpha(peek())) {
 					int newFinish = current;
 					keys.add(newStart);
 					startsandEnds.put(newStart, newFinish);
 					advance();
+				}else {
+					break;
 				}
 			}
 			if ((isAlpha(peek()) || anythingOtherThenDigit(peek())) && previousCurrent() == '.') {
