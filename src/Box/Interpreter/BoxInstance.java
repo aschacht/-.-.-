@@ -166,4 +166,20 @@ public class BoxInstance {
 		
 		return false;
 	}
+
+	public int size() {
+		
+		if (boxClass instanceof BoxClass) {
+			return ((BoxClass) boxClass).size();
+		}
+		if (boxClass instanceof BoxContainerClass) {
+
+			return ((BoxContainerClass) boxClass).size();
+		}
+		
+		return -1;
+		
+		
+		
+	}
 }

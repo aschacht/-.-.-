@@ -181,7 +181,7 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 				}
 			}
 		if (((Expr.Knot) stmt.knotfun0) != null)
-			resolve(((Expr.Knot) stmt.knotfun0).cupsAndPocketsGrouped);
+			resolve(((Expr.Knot) stmt.knotfun0).expression);
 		endScope();
 		currentFunction = enclosingFunction;
 
@@ -201,7 +201,7 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 				}
 			}
 		if (((Expr.Knot) stmt.knotfun1) != null)
-			resolve(((Expr.Knot) stmt.knotfun1).cupsAndPocketsGrouped);
+			resolve(((Expr.Knot) stmt.knotfun1).expression);
 		endScope();
 		currentFunction = enclosingFunction;
 	}
@@ -515,7 +515,7 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		declare(expr.identifier);
 		define(expr.identifier);
 		beginScope();
-		resolve(expr.declaration);
+		resolve(expr.expression);
 		endScope();
 		resolveLocal(expr, expr.identifier);
 
@@ -540,7 +540,7 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Object visitKnotExpr(Knot expr) {
 		beginScope();
-		resolve(expr.cupsAndPocketsGrouped);
+		resolve(expr.expression);
 		endScope();
 		return null;
 	}

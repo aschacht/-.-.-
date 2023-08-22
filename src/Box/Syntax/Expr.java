@@ -298,7 +298,7 @@ public static class Variable extends Expr {
 
 	public final Token name;
 	}
-public static class Pocket extends Expr {
+public static class Pocket extends Expr implements Contain {
 	 public Pocket(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
 	this.identifier = identifier;
 	this.expression = expression;
@@ -324,10 +324,10 @@ public static class Pocket extends Expr {
 	public final Integer amount;
 	public final boolean enforce;
 	}
-public static class Cup extends Expr {
-	 public Cup(Token identifier , List<Stmt> declaration , String lexeme, Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
+public static class Cup extends Expr implements Contain  {
+	 public Cup(Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
 	this.identifier = identifier;
-	this.declaration = declaration;
+	this.expression = expression;
 	this.lexeme = lexeme;
 	this.reifitnedi = reifitnedi;
 	this.typeToEnforce = typeToEnforce;
@@ -342,7 +342,7 @@ public static class Cup extends Expr {
 	}
 
 	public final Token identifier;
-	public final List<Stmt> declaration;
+	public final List<Stmt> expression;
 	public final String lexeme;
 	public final Token reifitnedi;
 	public final Token typeToEnforce;
@@ -350,7 +350,7 @@ public static class Cup extends Expr {
 	public final Integer amount;
 	public final boolean enforce;
 	}
-public static class Boxx extends Expr {
+public static class Boxx extends Expr implements BaseContain  {
 	 public Boxx(Token identifier , List<Expr> primarys , String lexeme, Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
 	this.identifier = identifier;
 	this.primarys = primarys;
@@ -376,10 +376,10 @@ public static class Boxx extends Expr {
 	public final Integer amount;
 	public final boolean enforce;
 	}
-public static class Knot extends Expr {
-	 public Knot(Token identifier , List<Stmt> cupsAndPocketsGrouped , List<Stmt> unGrouped , String lexeme , Token reifitnedi) {
+public static class Knot extends Expr implements Contain {
+	 public Knot(Token identifier , List<Stmt> expression , List<Stmt> unGrouped , String lexeme , Token reifitnedi) {
 	this.identifier = identifier;
-	this.cupsAndPocketsGrouped = cupsAndPocketsGrouped;
+	this.expression = expression;
 	this.unGrouped = unGrouped;
 	this.lexeme = lexeme;
 	this.reifitnedi = reifitnedi;
@@ -391,7 +391,7 @@ public static class Knot extends Expr {
 	}
 
 	public final Token identifier;
-	public final List<Stmt> cupsAndPocketsGrouped;
+	public final List<Stmt> expression;
 	public final List<Stmt> unGrouped;
 	public final String lexeme;
 	public final Token reifitnedi;

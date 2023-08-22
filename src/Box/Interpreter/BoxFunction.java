@@ -66,9 +66,9 @@ public class BoxFunction extends BoxCallable {
 		}
 		try {
 			if (body instanceof Expr.Knot)
-				interpreter.executeBlock(((Expr.Knot) body).cupsAndPocketsGrouped, environment1);
+				interpreter.executeBlock(((Expr.Knot) body).expression, environment1);
 			else if (body instanceof Expr.Cup)
-				interpreter.executeBlock(((Expr.Cup) body).declaration, environment1);
+				interpreter.executeBlock(((Expr.Cup) body).expression, environment1);
 			
 
 		} catch (Returns returnValue) {

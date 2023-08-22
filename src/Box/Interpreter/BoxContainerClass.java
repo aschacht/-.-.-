@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Box.Syntax.Expr;
+import Box.Syntax.Stmt;
 import Box.Syntax.Expr.Literal;
 import Box.Token.TokenType;
 
@@ -18,13 +19,35 @@ public class BoxContainerClass extends BoxCallable{
 	
 	public BoxContainerClass(String name, ArrayList<Object> boxPrimarys,TokenType type,boolean enforce, TypesOfObject typesOfObject) {
 		this.name = name;
-		this.contents = boxPrimarys;
+		this.contents = filterPrimarys(boxPrimarys);
 		this.type = type;
 		this.typesOfObject = typesOfObject;
 		this.setEnforce(enforce);
 		
 	}
 
+	private List<Object> filterPrimarys(ArrayList<Object> boxPrimarys) {
+		ArrayList<Object> filtered = new ArrayList<Object>();
+		for (Object object : boxPrimarys) {
+			
+				if (object instanceof BoxInstance) {
+					filtered.add(object);
+
+				}
+				if(object instanceof Expr && !(object instanceof Expr.Lash)  ) {
+					filtered.add(object);
+					
+				} 
+				if (object instanceof Stmt.Expression) {
+					if(!(((Stmt.Expression)object).expression instanceof Expr.Lash))
+						filtered.add(object);
+				}
+			
+
+		}
+
+		return filtered;
+	}
 	@Override
 	public String toString() {
 		String toStringContents = "";
@@ -109,6 +132,11 @@ public class BoxContainerClass extends BoxCallable{
 	public void setPrimaryAtEnd(String data) {
 		Literal literal = new Expr.Literal(data);
 		contents.add(literal);
+	}
+
+	public int size() {
+		
+		return contents.size();
 	}
 
 

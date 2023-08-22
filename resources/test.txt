@@ -1,10 +1,5 @@
-aa( bb{ cup car = 900 )aa box apple = 65 cc( }bb box cool = 99 )cc
-box carz = 79.78
-c[ 66 ]c
-a{ box cat = 32.2 }a
-b( box car = 99 )b
-a{ box cat = 32.2 }a
-b( box car = 99 )b
-aa( bb{ box pie = 900 )aa cup apple = 65 cc( }bb box cool = 99 )cc
-box car =79.78
-print.(car)
+
+carz{{78.9 , 9} , 97}zrac
+
+car[7 , 14]rac
+print.(car+carz)
