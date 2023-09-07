@@ -125,7 +125,6 @@ public class Box {
 		
 		
 		initialTime = (double) System.currentTimeMillis() / 1000.0;
-		interpreter.start();
 		interpreter.interpret(statements);
 
 		finalTime = (double) System.currentTimeMillis() / 1000.0;
