@@ -654,14 +654,14 @@ public class Scanner {
 		String text = source.substring(start, current);
 
 		column = column - (current - start);
-		tokens.add(new Token(type, text, literal, null, column, line, start, current));
+		tokens.add(new Token(type, text, literal, null,null, column, line, start, current));
 	}
 
 	private void addToken(TokenType type, Object literal, int theStart, int theCurrent, ArrayList<Token> tokens) {
 		String text = source.substring(theStart, theCurrent);
 
 		column = column - (theCurrent - theStart);
-		tokens.add(new Token(type, text, literal, null, column, line, theStart, theCurrent));
+		tokens.add(new Token(type, text, literal, null,null, column, line, theStart, theCurrent));
 	}
 
 	private char advance() {

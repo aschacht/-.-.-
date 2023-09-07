@@ -2,8 +2,9 @@ package Box.Grouper;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-
+import java.util.Iterator;
 import java.util.Random;
 
 import Box.Token.Token;
@@ -117,7 +118,7 @@ public class Grouper {
 		runningTotal += totalTime;
 		System.out.println("	time to run fixSuperclasses " + totalTime);
 
-		tokens.add(new Token(TokenType.EOF, "", null, null, tokens.get(tokens.size() - 1).column + 1,
+		tokens.add(new Token(TokenType.EOF, "", null, null, null, tokens.get(tokens.size() - 1).column + 1,
 				tokens.get(tokens.size() - 1).line, tokens.get(tokens.size() - 1).start + 1,
 				tokens.get(tokens.size() - 1).finish + 1));
 
@@ -136,8 +137,8 @@ public class Grouper {
 					className = split[0];
 				}
 				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, token.column,
-							token.line, token.start, token.finish);
+					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+							token.column, token.line, token.start, token.finish);
 					token.identifierToken.identifierToken = superclassToken;
 					token.identifierToken.lexeme = className;
 					token.lexeme = token.identifierToken.lexeme + "{";
@@ -152,8 +153,8 @@ public class Grouper {
 					className = split[0];
 				}
 				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, token.column,
-							token.line, token.start, token.finish);
+					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+							token.column, token.line, token.start, token.finish);
 					token.identifierToken.identifierToken = superclassToken;
 					token.identifierToken.lexeme = className;
 					token.lexeme = token.identifierToken.lexeme + "(";
@@ -168,8 +169,8 @@ public class Grouper {
 					className = split[0];
 				}
 				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, token.column,
-							token.line, token.start, token.finish);
+					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+							token.column, token.line, token.start, token.finish);
 					token.identifierToken.identifierToken = superclassToken;
 					token.identifierToken.lexeme = className;
 					token.lexeme = token.identifierToken.lexeme + "[";
@@ -184,8 +185,8 @@ public class Grouper {
 					className = split[1];
 				}
 				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, token.column,
-							token.line, token.start, token.finish);
+					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+							token.column, token.line, token.start, token.finish);
 					token.reifitnediToken.reifitnediToken = superclassToken;
 					token.reifitnediToken.lexeme = className;
 					token.lexeme = "}" + token.reifitnediToken.lexeme;
@@ -200,8 +201,8 @@ public class Grouper {
 					className = split[1];
 				}
 				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, token.column,
-							token.line, token.start, token.finish);
+					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+							token.column, token.line, token.start, token.finish);
 					token.reifitnediToken.reifitnediToken = superclassToken;
 					token.reifitnediToken.lexeme = className;
 					token.lexeme = ")" + token.reifitnediToken.lexeme;
@@ -216,8 +217,8 @@ public class Grouper {
 					className = split[1];
 				}
 				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, token.column,
-							token.line, token.start, token.finish);
+					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+							token.column, token.line, token.start, token.finish);
 					token.reifitnediToken.reifitnediToken = superclassToken;
 					token.reifitnediToken.lexeme = className;
 					token.lexeme = "]" + token.reifitnediToken.lexeme;
@@ -307,13 +308,13 @@ public class Grouper {
 					}
 
 					Token reToken = new Token(TokenType.TEMPLID, "|" + tokens.get(i).reifitnediToken.lexeme, null, null,
-							tokens.get(i).column, tokens.get(i).line, tokens.get(i).start + 2,
+							null, tokens.get(i).column, tokens.get(i).line, tokens.get(i).start + 2,
 							tokens.get(i).reifitnediToken.finish);
 
 					if (tokens.get(i).reifitnediToken != null)
 						reToken.reifitnediToken = tokens.get(i).reifitnediToken;
 					Token identToken = new Token(TokenType.TEMPLID, tokens.get(i).identifierToken.lexeme + "|", null,
-							null, tokens.get(i).column, tokens.get(i).line, tokens.get(i).start,
+							null, null, tokens.get(i).column, tokens.get(i).line, tokens.get(i).start,
 							tokens.get(i).finish - 1);
 					if (tokens.get(i).identifierToken != null)
 						identToken.identifierToken = tokens.get(i).identifierToken;
@@ -558,17 +559,17 @@ public class Grouper {
 					}
 					Token identTok = null;
 					if (!finalResultident.isEmpty()) {
-						identTok = new Token(TokenType.IDENTIFIER, finalResultident, null, null, tokens.get(i).column,
-								tokens.get(i).line, tokens.get(i).start, tokens.get(i).finish);
+						identTok = new Token(TokenType.IDENTIFIER, finalResultident, null, null, null,
+								tokens.get(i).column, tokens.get(i).line, tokens.get(i).start, tokens.get(i).finish);
 					}
 					Token reTok = null;
 					if (!finalResultre.isEmpty()) {
-						reTok = new Token(TokenType.IDENTIFIER, finalResultre, null, null, tokens.get(i).column,
+						reTok = new Token(TokenType.IDENTIFIER, finalResultre, null, null, null, tokens.get(i).column,
 								tokens.get(i).line, tokens.get(i).start, tokens.get(i).finish);
 					}
 					Token identTempLid = new Token(TokenType.TEMPLID,
-							finalResultident + tokens.get(i).lexeme + finalResultre, null, null, tokens.get(i).column,
-							tokens.get(i).line, tokens.get(i).start - 1, tokens.get(i).finish);
+							finalResultident + tokens.get(i).lexeme + finalResultre, null, null, null,
+							tokens.get(i).column, tokens.get(i).line, tokens.get(i).start - 1, tokens.get(i).finish);
 					identTempLid.identifierToken = identTok;
 					identTempLid.reifitnediToken = reTok;
 
@@ -592,7 +593,8 @@ public class Grouper {
 					BigInteger result = identifiers.get(cupOpenPointer);
 					cupOpenPointer--;
 
-					Token token = new Token(TokenType.IDENTIFIER, "cup" + result + "cup", null, null, -1, -1, -1, -1);
+					Token token = new Token(TokenType.IDENTIFIER, "cup" + result + "cup", null, null, null, -1, -1, -1,
+							-1);
 					tokens.get(i).identifierToken = token;
 					tokens.get(i).lexeme = token.lexeme + tokens.get(i).lexeme;
 					break;
@@ -600,8 +602,8 @@ public class Grouper {
 					BigInteger result = identifiers.get(pocketOpenPointer);
 					pocketOpenPointer--;
 
-					Token token = new Token(TokenType.IDENTIFIER, "pocket" + result + "pocket", null, null, -1, -1, -1,
-							-1);
+					Token token = new Token(TokenType.IDENTIFIER, "pocket" + result + "pocket", null, null, null, -1,
+							-1, -1, -1);
 					tokens.get(i).identifierToken = token;
 					tokens.get(i).lexeme = token.lexeme + tokens.get(i).lexeme;
 					break;
@@ -610,7 +612,8 @@ public class Grouper {
 					BigInteger result = identifiers.get(boxOpenPointer);
 					boxOpenPointer--;
 
-					Token token = new Token(TokenType.IDENTIFIER, "box" + result + "box", null, null, -1, -1, -1, -1);
+					Token token = new Token(TokenType.IDENTIFIER, "box" + result + "box", null, null, null, -1, -1, -1,
+							-1);
 					tokens.get(i).identifierToken = token;
 					tokens.get(i).lexeme = token.lexeme + tokens.get(i).lexeme;
 					break;
@@ -629,8 +632,8 @@ public class Grouper {
 					StringBuilder sb = new StringBuilder(s);
 
 					String finalResult = sb.reverse().toString();
-					Token token = new Token(TokenType.IDENTIFIER, "puc" + finalResult + "puc", null, null, -1, -1, -1,
-							-1);
+					Token token = new Token(TokenType.IDENTIFIER, "puc" + finalResult + "puc", null, null, null, -1, -1,
+							-1, -1);
 					tokens.get(i).reifitnediToken = token;
 					tokens.get(i).lexeme = tokens.get(i).lexeme + token.lexeme;
 					;
@@ -643,8 +646,8 @@ public class Grouper {
 					StringBuilder sb = new StringBuilder(s);
 
 					String finalResult = sb.reverse().toString();
-					Token token = new Token(TokenType.IDENTIFIER, "tekcop" + finalResult + "tekcop", null, null, -1, -1,
-							-1, -1);
+					Token token = new Token(TokenType.IDENTIFIER, "tekcop" + finalResult + "tekcop", null, null, null,
+							-1, -1, -1, -1);
 					tokens.get(i).reifitnediToken = token;
 					tokens.get(i).lexeme = tokens.get(i).lexeme + token.lexeme;
 					break;
@@ -657,8 +660,8 @@ public class Grouper {
 					StringBuilder sb = new StringBuilder(s);
 
 					String finalResult = sb.reverse().toString();
-					Token token = new Token(TokenType.IDENTIFIER, "xob" + finalResult + "xob", null, null, -1, -1, -1,
-							-1);
+					Token token = new Token(TokenType.IDENTIFIER, "xob" + finalResult + "xob", null, null, null, -1, -1,
+							-1, -1);
 					tokens.get(i).reifitnediToken = token;
 					tokens.get(i).lexeme = tokens.get(i).lexeme + token.lexeme;
 					break;
@@ -678,7 +681,7 @@ public class Grouper {
 				cupClosedPointer--;
 				String s = result.toString();
 
-				Token token = new Token(TokenType.IDENTIFIER, "cup" + s + "cup", null, null, -1, -1, -1, -1);
+				Token token = new Token(TokenType.IDENTIFIER, "cup" + s + "cup", null, null, null, -1, -1, -1, -1);
 				tokens.get(i).identifierToken = token;
 				tokens.get(i).lexeme = token.lexeme + tokens.get(i).lexeme;
 				return true;
@@ -688,7 +691,8 @@ public class Grouper {
 				pocketClosedPointer--;
 				String s = result.toString();
 
-				Token token = new Token(TokenType.IDENTIFIER, "pocket" + s + "pocket", null, null, -1, -1, -1, -1);
+				Token token = new Token(TokenType.IDENTIFIER, "pocket" + s + "pocket", null, null, null, -1, -1, -1,
+						-1);
 				tokens.get(i).identifierToken = token;
 				tokens.get(i).lexeme = token.lexeme + tokens.get(i).lexeme;
 				return true;
@@ -699,7 +703,7 @@ public class Grouper {
 				boxClosedPointer--;
 				String s = result.toString();
 
-				Token token = new Token(TokenType.IDENTIFIER, "box" + s + "box", null, null, -1, -1, -1, -1);
+				Token token = new Token(TokenType.IDENTIFIER, "box" + s + "box", null, null, null, -1, -1, -1, -1);
 				tokens.get(i).identifierToken = token;
 				tokens.get(i).lexeme = token.lexeme + tokens.get(i).lexeme;
 				return true;
@@ -720,7 +724,8 @@ public class Grouper {
 				StringBuilder sb = new StringBuilder(s);
 
 				String finalResult = sb.reverse().toString();
-				Token token = new Token(TokenType.IDENTIFIER, "puc" + finalResult + "puc", null, null, -1, -1, -1, -1);
+				Token token = new Token(TokenType.IDENTIFIER, "puc" + finalResult + "puc", null, null, null, -1, -1, -1,
+						-1);
 				tokens.get(i).reifitnediToken = token;
 				tokens.get(i).lexeme = tokens.get(i).lexeme + token.lexeme;
 				return true;
@@ -733,8 +738,8 @@ public class Grouper {
 				StringBuilder sb = new StringBuilder(s);
 
 				String finalResult = sb.reverse().toString();
-				Token token = new Token(TokenType.IDENTIFIER, "tekcop" + finalResult + "tekcop", null, null, -1, -1, -1,
-						-1);
+				Token token = new Token(TokenType.IDENTIFIER, "tekcop" + finalResult + "tekcop", null, null, null, -1,
+						-1, -1, -1);
 				tokens.get(i).reifitnediToken = token;
 				tokens.get(i).lexeme = tokens.get(i).lexeme + token.lexeme;
 				return true;
@@ -748,7 +753,8 @@ public class Grouper {
 				StringBuilder sb = new StringBuilder(s);
 
 				String finalResult = sb.reverse().toString();
-				Token token = new Token(TokenType.IDENTIFIER, "xob" + finalResult + "xob", null, null, -1, -1, -1, -1);
+				Token token = new Token(TokenType.IDENTIFIER, "xob" + finalResult + "xob", null, null, null, -1, -1, -1,
+						-1);
 				tokens.get(i).reifitnediToken = token;
 				tokens.get(i).lexeme = tokens.get(i).lexeme + token.lexeme;
 				return true;
@@ -1674,14 +1680,17 @@ public class Grouper {
 						knot.add(tokes.get(p));
 					}
 					ArrayList<Token> ungroupedKnot = new ArrayList<Token>(knot);
-					findgroupingIgnoringNonTerminatingContainers(knot);
+					ArrayList<Token> groupedBackwards = new ArrayList<Token>(knot);
+					ArrayList<String> NamesUsed = new ArrayList<String>();
+					findgroupingForward(knot, NamesUsed);
+					findgroupingBackward(groupedBackwards, NamesUsed);
 					String lexeme = "";
 					for (int p = i; p <= j; p++) {
 						lexeme = lexeme + " " + tokes.get(p).lexeme;
 					}
 					lexeme += " ";
-					Token token = new Token(TokenType.KNOTCONTAINER, lexeme, knot, ungroupedKnot, tokes.get(i).column,
-							tokes.get(i).line, tokes.get(i).start, tokes.get(j).finish);
+					Token token = new Token(TokenType.KNOTCONTAINER, lexeme, knot, ungroupedKnot, groupedBackwards,
+							tokes.get(i).column, tokes.get(i).line, tokes.get(i).start, tokes.get(j).finish);
 					for (int p = j; p >= i; p--) {
 						tokes.remove(p);
 					}
@@ -1736,7 +1745,6 @@ public class Grouper {
 
 	}
 
-
 	private boolean checkIfGroup(ArrayList<Token> tokes, int k, TokenIndexAndCount remove) {
 		return matchIdentifierTokenandReifitnediTokenLexeme(remove.getToken(), tokes.get(k))
 				&& isSameGroupWithLids(remove.getToken(), tokes.get(k))
@@ -1756,13 +1764,13 @@ public class Grouper {
 		}
 	}
 
-	private void addToVisitedOpen(ArrayList<Token> tokes, ArrayList<ArrayList<TokenIndexAndCount>> visitedOpen, int count,
-			int k) {
+	private void addToVisitedOpen(ArrayList<Token> tokes, ArrayList<ArrayList<TokenIndexAndCount>> visitedOpen,
+			int count, int k) {
 		addToPushList(tokes, visitedOpen, count, k);
 	}
 
-	private void addToVisitedClosed(ArrayList<Token> tokes, ArrayList<ArrayList<TokenIndexAndCount>> visitedClosed, int count,
-			int k) {
+	private void addToVisitedClosed(ArrayList<Token> tokes, ArrayList<ArrayList<TokenIndexAndCount>> visitedClosed,
+			int count, int k) {
 		addToVisitedOpen(tokes, visitedClosed, count, k);
 	}
 
@@ -2036,7 +2044,7 @@ public class Grouper {
 			lexeme += tokes.get(q).lexeme + " ";
 		}
 		if (i < tokes.size() && j < tokes.size() && group.size() > 0 && i != j) {
-			Token token = new Token(grouptype, lexeme, group, null, tokes.get(j).column, tokes.get(j).line,
+			Token token = new Token(grouptype, lexeme, group, null, null, tokes.get(j).column, tokes.get(j).line,
 					tokes.get(i).start, tokes.get(j).finish);
 			token.identifierToken = group.get(0).identifierToken;
 			token.reifitnediToken = group.get(group.size() - 1).reifitnediToken;
@@ -2060,7 +2068,7 @@ public class Grouper {
 			lexeme += tokes.get(q).lexeme + " ";
 		}
 		if (i < tokes.size() && j < tokes.size() && group.size() > 0) {
-			Token token = new Token(grouptype, lexeme, group, null, tokes.get(j).column, tokes.get(j).line,
+			Token token = new Token(grouptype, lexeme, group, null, null, tokes.get(j).column, tokes.get(j).line,
 					tokes.get(i).start, tokes.get(j).finish);
 			token.identifierToken = group.get(0).identifierToken;
 			token.reifitnediToken = group.get(group.size() - 1).reifitnediToken;
@@ -2101,8 +2109,305 @@ public class Grouper {
 
 	}
 
-	private void findgroupingIgnoringNonTerminatingContainers(ArrayList<Token> tokes) {
+	private void findgroupingForward(ArrayList<Token> tokes, ArrayList<String> NamesUsed) {
 		ArrayList<Token> tok = new ArrayList<Token>();
+		findGroups(tokes, tok);
+		ArrayList<Token> tok2 = new ArrayList<Token>();
+		ArrayList<Token> tok3 = new ArrayList<Token>();
+
+		for (Token token : tok) {
+			findConditionalGroupsForward((ArrayList<Token>) token.literal, tok2, NamesUsed);
+			tok3.add(token);
+			tok3.addAll(tok2);
+			tok2.clear();
+		}
+		tokes.clear();
+
+		tokes.addAll(tok3);
+
+	}
+
+	private void findgroupingBackward(ArrayList<Token> tonk, ArrayList<String> namesUsed) {
+		ArrayList<Token> tok = new ArrayList<Token>();
+		findGroups(tonk, tok);
+		ArrayList<Token> tok2 = new ArrayList<Token>();
+		ArrayList<Token> tok3 = new ArrayList<Token>();
+		for (int i = tok.size() - 1; i >= 0; i--) {
+			findConditionalGroupsBackward((ArrayList<Token>) tok.get(i).literal, tok2, namesUsed);
+			tok3.add(tok.get(i));
+			tok3.addAll(tok2);
+			tok2.clear();
+
+		}
+
+		tonk.clear();
+		tonk.addAll(tok3);
+	}
+
+	private void findConditionalGroupsBackward(ArrayList<Token> tokes, ArrayList<Token> tok2,
+			ArrayList<String> namesUsed) {
+		int end = tokes.size() - 2;
+		int start = tokes.size() - 2;
+		int current = tokes.size() - 2;
+		int second = tokes.size() - 2;
+		boolean isRunning = false;
+		boolean isSecond = false;
+		while (current >= 0) {
+			if (tokes.get(current).type == TokenType.CLOSEDBRACE && !isRunning) {
+				end = current;
+				isRunning = true;
+			} else if (tokes.get(current).type == TokenType.CLOSEDPAREN && !isRunning) {
+				end = current;
+				isRunning = true;
+
+			} else if (tokes.get(current).type == TokenType.TEMPLID && !isRunning) {
+				end = current;
+				isRunning = true;
+			} else if (tokes.get(current).type == TokenType.CLOSEDBRACE && isRunning && !isSecond) {
+				second = current;
+				isSecond = true;
+			} else if (tokes.get(current).type == TokenType.CLOSEDPAREN && isRunning && !isSecond) {
+				second = current;
+				isSecond = true;
+			} else if (tokes.get(current).type == TokenType.TEMPLID && isRunning && !isSecond) {
+				second = current;
+				isSecond = true;
+			}
+
+			boolean skip = false;
+
+			if (tokes.get(current).type == TokenType.OPENBRACE && isRunning) {
+				start = current;
+				if (isSecond) {
+					current = second;
+					skip = true;
+				}
+				isSecond = false;
+				isRunning = false;
+				if (tokes.get(end).type == TokenType.CLOSEDBRACE) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.CUPCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(end).type == TokenType.CLOSEDPAREN) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.COCKETCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(end).type == TokenType.TEMPLID) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.CIDCONTAINER, tokes, namesUsed));
+				}
+
+			} else if (tokes.get(current).type == TokenType.OPENPAREN && isRunning) {
+				start = current;
+				if (isSecond) {
+					current = second;
+					skip = true;
+				}
+				isSecond = false;
+				isRunning = false;
+				if (tokes.get(end).type == TokenType.CLOSEDBRACE) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.PUPCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(end).type == TokenType.CLOSEDPAREN) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.POCKETCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(end).type == TokenType.TEMPLID) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.PIDCONTAINER, tokes, namesUsed));
+				}
+			} else if (tokes.get(current).type == TokenType.TEMPLID && isRunning) {
+				start = current;
+				if (isSecond) {
+					current = second;
+					skip = true;
+				}
+				isSecond = false;
+				isRunning = false;
+				if (tokes.get(end).type == TokenType.CLOSEDBRACE) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.LUPCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(end).type == TokenType.CLOSEDPAREN) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.LOCKETCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(end).type == TokenType.TEMPLID) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.LILCONTAINER, tokes, namesUsed));
+				}
+			}
+
+			if (!skip)
+				current--;
+		}
+	}
+
+	private Collection<? extends Token> buildConditionalGroupingKnot(int i, int j, TokenType grouptype,
+			ArrayList<Token> tokes, ArrayList<String> namesUsed) {
+		ArrayList<Token> group = new ArrayList<Token>();
+		ArrayList<Token> tok = new ArrayList<Token>();
+		for (int p = i; p <= j; p++) {
+			group.add(tokes.get(p).clone());
+		}
+
+		String lexeme = "";
+		renameTransitionalGroups(grouptype, group, namesUsed);
+		for (int q = 0; q < group.size(); q++) {
+			lexeme += group.get(q).lexeme + " ";
+		}
+		if (i < tokes.size() && j < tokes.size() && group.size() > 0) {
+
+			Token token = new Token(grouptype, lexeme, group, null, null, tokes.get(j).column, tokes.get(j).line,
+					tokes.get(i).start, tokes.get(j).finish);
+			token.identifierToken = group.get(0).identifierToken;
+			token.reifitnediToken = group.get(group.size() - 1).reifitnediToken;
+
+			tok.add(token);
+		}
+		return tok;
+	}
+
+	private void renameTransitionalGroups(TokenType grouptype, ArrayList<Token> group, ArrayList<String> namesUsed) {
+		Token token2 = group.get(0);
+		Token token3 = group.get(group.size() - 1);
+		if (grouptype == TokenType.PUPCONTAINER) {
+			String identName = "PUP.";
+			String reifName = ".PUP";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		} else if (grouptype == TokenType.LUPCONTAINER) {
+			String identName = "LUP.";
+			String reifName = ".PUL";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		} else if (grouptype == TokenType.LOCKETCONTAINER) {
+			String identName = "LOCKET.";
+			String reifName = ".TEKCOL";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		} else if (grouptype == TokenType.COCKETCONTAINER) {
+			String identName = "COCKET.";
+			String reifName = ".TEKCOC";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		} else if (grouptype == TokenType.LILCONTAINER) {
+			String identName = "LIL.";
+			String reifName = ".LIL";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		} else if (grouptype == TokenType.PIDCONTAINER) {
+			String identName = "PID.";
+			String reifName = ".DIP";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		} else if (grouptype == TokenType.CIDCONTAINER) {
+			String identName = "CID.";
+			String reifName = ".DIC";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		} else if (grouptype == TokenType.CUPCONTAINER) {
+			String identName = "CUPCOND.";
+			String reifName = ".DNOCPUC";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		} else if (grouptype == TokenType.POCKETCONTAINER) {
+			String identName = "POCKETCOND.";
+			String reifName = ".DNOCTEKCOP";
+			renameAddToGroup(group, token2, token3, identName, reifName, namesUsed);
+		}
+	}
+
+	private void renameAddToGroup(ArrayList<Token> group, Token token2, Token token3, String identName, String reifName,
+			ArrayList<String> namesUsed) {
+		String identString = identName + token2.identifierToken.lexeme;
+		String reifString = token3.reifitnediToken.lexeme + reifName;
+
+		boolean matchedIdent = true;
+		boolean matchedReif = true;
+		int count = 1;
+		while (namesUsed.contains(identString) || namesUsed.contains(reifString)) {
+			count++;
+			identString = identName + count + token2.identifierToken.lexeme;
+			reifString = token3.reifitnediToken.lexeme + count + reifName;
+		}
+		namesUsed.add(identString);
+		namesUsed.add(reifString);
+		
+		token2.identifierToken.lexeme = identString;
+		token2.lexeme = identName + token2.lexeme;
+		token3.reifitnediToken.lexeme = reifString;
+		token3.lexeme = token3.lexeme + reifName;
+		group.remove(0);
+		group.add(0, token2);
+		group.remove(group.size() - 1);
+		group.add(token3);
+	}
+
+	private void findConditionalGroupsForward(ArrayList<Token> tokes, ArrayList<Token> tok2,
+			ArrayList<String> namesUsed) {
+		int start = 1;
+		int end = 1;
+		int current = 1;
+		int second = 1;
+		boolean isRunning = false;
+		boolean isSecond = false;
+		while (current < tokes.size()) {
+			if (tokes.get(current).type == TokenType.OPENBRACE && !isRunning) {
+				start = current;
+				isRunning = true;
+			} else if (tokes.get(current).type == TokenType.OPENPAREN && !isRunning) {
+				start = current;
+				isRunning = true;
+
+			} else if (tokes.get(current).type == TokenType.TEMPLID && !isRunning) {
+				start = current;
+				isRunning = true;
+			} else if (tokes.get(current).type == TokenType.OPENBRACE && isRunning && !isSecond) {
+				second = current;
+				isSecond = true;
+			} else if (tokes.get(current).type == TokenType.OPENPAREN && isRunning && !isSecond) {
+				second = current;
+				isSecond = true;
+			} else if (tokes.get(current).type == TokenType.TEMPLID && isRunning && !isSecond) {
+				second = current;
+				isSecond = true;
+			}
+
+			boolean skip = false;
+
+			if (tokes.get(current).type == TokenType.CLOSEDBRACE && isRunning) {
+				end = current;
+				if (isSecond) {
+					current = second;
+					skip = true;
+				}
+				isSecond = false;
+				isRunning = false;
+				if (tokes.get(start).type == TokenType.OPENBRACE) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.CUPCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(start).type == TokenType.OPENPAREN) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.PUPCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(start).type == TokenType.TEMPLID) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.LUPCONTAINER, tokes, namesUsed));
+				}
+
+			} else if (tokes.get(current).type == TokenType.CLOSEDPAREN && isRunning) {
+				end = current;
+				if (isSecond) {
+					current = second;
+					skip = true;
+				}
+				isSecond = false;
+				isRunning = false;
+				if (tokes.get(start).type == TokenType.OPENBRACE) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.COCKETCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(start).type == TokenType.OPENPAREN) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.POCKETCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(start).type == TokenType.TEMPLID) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.LOCKETCONTAINER, tokes, namesUsed));
+				}
+			} else if (tokes.get(current).type == TokenType.TEMPLID && isRunning) {
+				end = current;
+				if (isSecond) {
+					current = second;
+					skip = true;
+				}
+				isSecond = false;
+				isRunning = false;
+				if (tokes.get(start).type == TokenType.OPENBRACE) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.CIDCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(start).type == TokenType.OPENPAREN) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.PIDCONTAINER, tokes, namesUsed));
+				} else if (tokes.get(start).type == TokenType.TEMPLID) {
+					tok2.addAll(buildConditionalGroupingKnot(start, end, TokenType.LILCONTAINER, tokes, namesUsed));
+				}
+			}
+
+			if (!skip)
+				current++;
+		}
+	}
+
+	private void findGroups(ArrayList<Token> tokes, ArrayList<Token> tok) {
 		int j = 1;
 		for (int i = 0; i < tokes.size(); i++) {
 			if (isOpenIncludeTempLidExcludeSquare(tokes, i)) {
@@ -2174,9 +2479,6 @@ public class Grouper {
 			}
 
 		}
-		tokes.clear();
-		tokes.addAll(tok);
-
 	}
 
 	private boolean matchIdentifiersandReifitnedi(Token identifier, Token reifitnedi) {

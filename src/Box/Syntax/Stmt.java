@@ -41,13 +41,6 @@ public static class Expression extends Stmt {
 	 	return visitor.visitExpressionStmt(this);
 	}
 
-	@Override
-	public String toString() {
-		
-		return expression.toString();
-	}
-	
-	
 	public final Expr expression;
 	}
 public static class If extends Stmt {
@@ -264,12 +257,6 @@ public static class Noisserpxe extends Stmt {
 	 	return visitor.visitNoisserpxeStmt(this);
 	}
 
-	@Override
-	public String toString() {
-		
-		return noisserpex.toString();
-	}
-	
 	public final Expr noisserpex;
 	}
 public static class Fi extends Stmt {
@@ -332,7 +319,7 @@ public static class Evas extends Stmt {
 
 	public final Token keyword;
 	public final Expr filePathFileName;
-	public Expr objecttosave;
+	public final Expr objecttosave;
 	}
 public static class Daer extends Stmt {
 	 public Daer(Token keyword , Expr filePath , Expr objectToReadInto) {

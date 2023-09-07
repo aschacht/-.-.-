@@ -44,7 +44,7 @@ public class BoxFunction extends BoxCallable {
 			bodyString = ((Expr.Cup) body).lexeme;
 		}
 
-		this.type = new Token(TokenType.FUN, name + "( " + paramsString + " )"+bodyString,null,null,-1,-1,-1,-1);
+		this.type = new Token(TokenType.FUN, name + "( " + paramsString + " )"+bodyString,null,null,null,-1,-1,-1,-1);
 		this.closure = closure;
 		this.isInitilizer = isInitilizer;
 

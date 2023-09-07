@@ -1,23 +1,27 @@
 package Box.Token;
 
+import java.util.ArrayList;
+
 public class Token {
 
 	public TokenType type;
 	public String lexeme;
-	public Object literal;
 	public Token identifierToken=null;
 	public Token reifitnediToken=null;
 	public int line;
 	public int column;
 	public int start;
 	public int finish;
+	public Object literal;
 	public Object literalUnGrouped;
+	public Object literalGroupedBackwards;
 
-	public Token(TokenType type, String lexeme, Object literalGrouped,Object literalUnGrouped, int column, int line, int start, int current) {
+	public Token(TokenType type, String lexeme, Object literalGrouped,Object literalUnGrouped, Object literalGroupedBackwards, int column, int line, int start, int current) {
 		this.type = type;
 		this.lexeme = lexeme;
 		this.literal = literalGrouped;
 		this.literalUnGrouped = literalUnGrouped;
+		this.literalGroupedBackwards = literalGroupedBackwards;
 		this.column = column;
 		this.line = line;
 		this.start = start;
@@ -30,4 +34,13 @@ public class Token {
 		return type + " " + lexeme + " " + literal;
 	}
 
+	public Token clone() {
+		
+		Token token = new Token(type, lexeme, literalGroupedBackwards, literalUnGrouped, literalGroupedBackwards, column, line, start, column);
+		if(this.identifierToken!=null)
+		token.identifierToken=this.identifierToken.clone();
+		if(this.reifitnediToken!=null)
+		token.reifitnediToken = this.reifitnediToken.clone();
+		return token;
+	}
 }

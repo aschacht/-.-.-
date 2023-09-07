@@ -18,6 +18,8 @@ import Box.Syntax.Expr.BoxOpenLeft;
 import Box.Syntax.Expr.BoxOpenRight;
 import Box.Syntax.Expr.Boxx;
 import Box.Syntax.Expr.Call;
+import Box.Syntax.Expr.Cid;
+import Box.Syntax.Expr.Cocket;
 import Box.Syntax.Expr.Contains;
 import Box.Syntax.Expr.Cup;
 import Box.Syntax.Expr.CupOpenLeft;
@@ -35,17 +37,22 @@ import Box.Syntax.Expr.Laretil;
 import Box.Syntax.Expr.LaretilChar;
 import Box.Syntax.Expr.Lash;
 import Box.Syntax.Expr.Lid;
+import Box.Syntax.Expr.Lil;
 import Box.Syntax.Expr.Literal;
 import Box.Syntax.Expr.LiteralChar;
 import Box.Syntax.Expr.Llac;
+import Box.Syntax.Expr.Locket;
 import Box.Syntax.Expr.Log;
 import Box.Syntax.Expr.Logical;
+import Box.Syntax.Expr.Lup;
 import Box.Syntax.Expr.Mono;
 import Box.Syntax.Expr.Onom;
 import Box.Syntax.Expr.Parameter;
+import Box.Syntax.Expr.Pid;
 import Box.Syntax.Expr.Pocket;
 import Box.Syntax.Expr.PocketOpenLeft;
 import Box.Syntax.Expr.PocketOpenRight;
+import Box.Syntax.Expr.Pup;
 import Box.Syntax.Expr.Set;
 import Box.Syntax.Expr.SetBoxCupPocket;
 import Box.Syntax.Expr.Sniatnoc;
@@ -759,6 +766,48 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Object visitTesBoxCupPocketExpr(TesBoxCupPocket expr) {
 
+		return null;
+	}
+
+	@Override
+	public Object visitPupExpr(Pup expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitCocketExpr(Cocket expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitLocketExpr(Locket expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitLupExpr(Lup expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitLilExpr(Lil expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitPidExpr(Pid expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitCidExpr(Cid expr) {
+		
 		return null;
 	}
 

@@ -27,6 +27,13 @@ public abstract class Expr {
 	R visitCupExpr(Cup expr);
 	R visitBoxxExpr(Boxx expr);
 	R visitKnotExpr(Knot expr);
+	R visitPupExpr(Pup expr);
+	R visitCocketExpr(Cocket expr);
+	R visitLocketExpr(Locket expr);
+	R visitLupExpr(Lup expr);
+	R visitLilExpr(Lil expr);
+	R visitPidExpr(Pid expr);
+	R visitCidExpr(Cid expr);
 	R visitCupOpenRightExpr(CupOpenRight expr);
 	R visitCupOpenLeftExpr(CupOpenLeft expr);
 	R visitPocketOpenRightExpr(PocketOpenRight expr);
@@ -260,12 +267,6 @@ public static class Literal extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLiteralExpr(this);
 	}
-	
-	@Override
-	public String toString() {
-		
-		return value.toString();
-	}
 
 	public final Object value;
 	}
@@ -278,12 +279,7 @@ public static class LiteralChar extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLiteralCharExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return value+"";
-	}
-	
+
 	public final char value;
 	}
 public static class Variable extends Expr {
@@ -298,7 +294,7 @@ public static class Variable extends Expr {
 
 	public final Token name;
 	}
-public static class Pocket extends Expr implements Contain {
+public static class Pocket extends Expr {
 	 public Pocket(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
 	this.identifier = identifier;
 	this.expression = expression;
@@ -324,7 +320,7 @@ public static class Pocket extends Expr implements Contain {
 	public final Integer amount;
 	public final boolean enforce;
 	}
-public static class Cup extends Expr implements Contain  {
+public static class Cup extends Expr {
 	 public Cup(Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
 	this.identifier = identifier;
 	this.expression = expression;
@@ -350,7 +346,7 @@ public static class Cup extends Expr implements Contain  {
 	public final Integer amount;
 	public final boolean enforce;
 	}
-public static class Boxx extends Expr implements BaseContain  {
+public static class Boxx extends Expr {
 	 public Boxx(Token identifier , List<Expr> primarys , String lexeme, Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
 	this.identifier = identifier;
 	this.primarys = primarys;
@@ -376,7 +372,7 @@ public static class Boxx extends Expr implements BaseContain  {
 	public final Integer amount;
 	public final boolean enforce;
 	}
-public static class Knot extends Expr implements Contain {
+public static class Knot extends Expr {
 	 public Knot(Token identifier , List<Stmt> expression , List<Stmt> unGrouped , String lexeme , Token reifitnedi) {
 	this.identifier = identifier;
 	this.expression = expression;
@@ -396,6 +392,188 @@ public static class Knot extends Expr implements Contain {
 	public final String lexeme;
 	public final Token reifitnedi;
 	}
+public static class Pup extends Expr {
+	 public Pup(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
+	this.identifier = identifier;
+	this.expression = expression;
+	this.lexeme = lexeme;
+	this.reifitnedi = reifitnedi;
+	this.typeToEnforce = typeToEnforce;
+	this.prototype = prototype;
+	this.amount = amount;
+	this.enforce = enforce;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPupExpr(this);
+	}
+
+	public final Token identifier;
+	public final List<Stmt> expression;
+	public final String lexeme;
+	public final Token reifitnedi;
+	public final Token typeToEnforce;
+	public final Expr prototype;
+	public final Integer amount;
+	public final boolean enforce;
+	}
+public static class Cocket extends Expr {
+	 public Cocket(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
+	this.identifier = identifier;
+	this.expression = expression;
+	this.lexeme = lexeme;
+	this.reifitnedi = reifitnedi;
+	this.typeToEnforce = typeToEnforce;
+	this.prototype = prototype;
+	this.amount = amount;
+	this.enforce = enforce;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitCocketExpr(this);
+	}
+
+	public final Token identifier;
+	public final List<Stmt> expression;
+	public final String lexeme;
+	public final Token reifitnedi;
+	public final Token typeToEnforce;
+	public final Expr prototype;
+	public final Integer amount;
+	public final boolean enforce;
+	}
+public static class Locket extends Expr {
+	 public Locket(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
+	this.identifier = identifier;
+	this.expression = expression;
+	this.lexeme = lexeme;
+	this.reifitnedi = reifitnedi;
+	this.typeToEnforce = typeToEnforce;
+	this.prototype = prototype;
+	this.amount = amount;
+	this.enforce = enforce;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitLocketExpr(this);
+	}
+
+	public final Token identifier;
+	public final List<Stmt> expression;
+	public final String lexeme;
+	public final Token reifitnedi;
+	public final Token typeToEnforce;
+	public final Expr prototype;
+	public final Integer amount;
+	public final boolean enforce;
+	}
+public static class Lup extends Expr {
+	 public Lup(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
+	this.identifier = identifier;
+	this.expression = expression;
+	this.lexeme = lexeme;
+	this.reifitnedi = reifitnedi;
+	this.typeToEnforce = typeToEnforce;
+	this.prototype = prototype;
+	this.amount = amount;
+	this.enforce = enforce;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitLupExpr(this);
+	}
+
+	public final Token identifier;
+	public final List<Stmt> expression;
+	public final String lexeme;
+	public final Token reifitnedi;
+	public final Token typeToEnforce;
+	public final Expr prototype;
+	public final Integer amount;
+	public final boolean enforce;
+	}
+public static class Lil extends Expr {
+	 public Lil(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
+	this.identifier = identifier;
+	this.expression = expression;
+	this.lexeme = lexeme;
+	this.reifitnedi = reifitnedi;
+	this.typeToEnforce = typeToEnforce;
+	this.prototype = prototype;
+	this.amount = amount;
+	this.enforce = enforce;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitLilExpr(this);
+	}
+
+	public final Token identifier;
+	public final List<Stmt> expression;
+	public final String lexeme;
+	public final Token reifitnedi;
+	public final Token typeToEnforce;
+	public final Expr prototype;
+	public final Integer amount;
+	public final boolean enforce;
+	}
+public static class Pid extends Expr {
+	 public Pid(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
+	this.identifier = identifier;
+	this.expression = expression;
+	this.lexeme = lexeme;
+	this.reifitnedi = reifitnedi;
+	this.typeToEnforce = typeToEnforce;
+	this.prototype = prototype;
+	this.amount = amount;
+	this.enforce = enforce;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPidExpr(this);
+	}
+
+	public final Token identifier;
+	public final List<Stmt> expression;
+	public final String lexeme;
+	public final Token reifitnedi;
+	public final Token typeToEnforce;
+	public final Expr prototype;
+	public final Integer amount;
+	public final boolean enforce;
+	}
+public static class Cid extends Expr {
+	 public Cid(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
+	this.identifier = identifier;
+	this.expression = expression;
+	this.lexeme = lexeme;
+	this.reifitnedi = reifitnedi;
+	this.typeToEnforce = typeToEnforce;
+	this.prototype = prototype;
+	this.amount = amount;
+	this.enforce = enforce;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitCidExpr(this);
+	}
+
+	public final Token identifier;
+	public final List<Stmt> expression;
+	public final String lexeme;
+	public final Token reifitnedi;
+	public final Token typeToEnforce;
+	public final Expr prototype;
+	public final Integer amount;
+	public final boolean enforce;
+	}
 public static class CupOpenRight extends Expr {
 	 public CupOpenRight(Token Literal) {
 	this.Literal = Literal;
@@ -405,11 +583,7 @@ public static class CupOpenRight extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitCupOpenRightExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return Literal.lexeme;
-	}
+
 	public final Token Literal;
 	}
 public static class CupOpenLeft extends Expr {
@@ -421,11 +595,7 @@ public static class CupOpenLeft extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitCupOpenLeftExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return Literal.lexeme;
-	}
+
 	public final Token Literal;
 	}
 public static class PocketOpenRight extends Expr {
@@ -436,12 +606,6 @@ public static class PocketOpenRight extends Expr {
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitPocketOpenRightExpr(this);
-	}
-	
-	@Override
-	public String toString() {
-		
-		return Literal.lexeme;
 	}
 
 	public final Token Literal;
@@ -455,11 +619,7 @@ public static class PocketOpenLeft extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitPocketOpenLeftExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return Literal.lexeme;
-	}
+
 	public final Token Literal;
 	}
 public static class BoxOpenRight extends Expr {
@@ -471,11 +631,7 @@ public static class BoxOpenRight extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitBoxOpenRightExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return Literal.lexeme;
-	}
+
 	public final Token Literal;
 	}
 public static class BoxOpenLeft extends Expr {
@@ -487,11 +643,7 @@ public static class BoxOpenLeft extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitBoxOpenLeftExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return Literal.lexeme;
-	}
+
 	public final Token Literal;
 	}
 public static class Lash extends Expr {
@@ -503,11 +655,7 @@ public static class Lash extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLashExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return Literal.lexeme;
-	}
+
 	public final Token Literal;
 	}
 public static class Lid extends Expr {
@@ -519,11 +667,7 @@ public static class Lid extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLidExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return Literal.lexeme;
-	}
+
 	public final Token Literal;
 	}
 public static class Type extends Expr {
@@ -615,10 +759,10 @@ public static class Lacigol extends Expr {
 	public final Expr right;
 	}
 public static class Gol extends Expr {
-	 public Gol(Token operator , Expr value, Expr valueBase ) {
+	 public Gol(Token operator  , Expr value , Expr valueBase) {
 	this.operator = operator;
-	this.valueBase = valueBase;
 	this.value = value;
+	this.valueBase = valueBase;
 	}
 
 	@Override
@@ -627,8 +771,8 @@ public static class Gol extends Expr {
 	}
 
 	public final Token operator;
-	public final Expr valueBase;
 	public final Expr value;
+	public final Expr valueBase;
 	}
 public static class Yranu extends Expr {
 	 public Yranu(Token operator , Expr right) {
@@ -729,12 +873,6 @@ public static class Laretil extends Expr {
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLaretilExpr(this);
 	}
-	@Override
-	public String toString() {
-		
-		return value.toString();
-	}
-	
 
 	public final Object value;
 	}
@@ -748,13 +886,6 @@ public static class LaretilChar extends Expr {
 	 	return visitor.visitLaretilCharExpr(this);
 	}
 
-	@Override
-	public String toString() {
-		
-		return value+"";
-	}
-	
-	
 	public final char value;
 	}
 public static class Lairotcaf extends Expr {

@@ -66,10 +66,10 @@ public class Environment {
 				StringBuilder sb = new StringBuilder(name);
 				String reversedName = sb.reverse().toString();
 
-				Token classDefinitionName = new Token(TokenType.IDENTIFIER, name + "_Class_Definition", null, null, -1,
+				Token classDefinitionName = new Token(TokenType.IDENTIFIER, name + "_Class_Definition", null, null,null, -1,
 						-1, -1, -1);
 				Token classDefinitionEman = new Token(TokenType.IDENTIFIER, reversedName + "_Class_Definition", null,
-						null, -1, -1, -1, -1);
+						null,null, -1, -1, -1, -1);
 
 				define(classDefinitionName.lexeme, type, null);
 				define(classDefinitionEman.lexeme, type, null);
@@ -99,9 +99,9 @@ public class Environment {
 				StringBuilder sb = new StringBuilder(name);
 				String reversedName = sb.reverse().toString();
 
-				Token classDefinitionName = new Token(TokenType.IDENTIFIER, name + "_Class_Definition", null, null, -1,
+				Token classDefinitionName = new Token(TokenType.IDENTIFIER, name + "_Class_Definition", null, null,null, -1,
 						-1, -1, -1);
-				Token classDefinitionEman = new Token(TokenType.IDENTIFIER, reversedName + "_Class_Definition", null,
+				Token classDefinitionEman = new Token(TokenType.IDENTIFIER, reversedName + "_Class_Definition", null,null,
 						null, -1, -1, -1, -1);
 
 				define(classDefinitionName.lexeme, type, null);
@@ -132,9 +132,9 @@ public class Environment {
 				StringBuilder sb = new StringBuilder(name);
 				String reversedName = sb.reverse().toString();
 
-				Token classDefinitionName = new Token(TokenType.IDENTIFIER, name + "_Class_Definition", null, null, -1,
+				Token classDefinitionName = new Token(TokenType.IDENTIFIER, name + "_Class_Definition", null, null,null, -1,
 						-1, -1, -1);
-				Token classDefinitionEman = new Token(TokenType.IDENTIFIER, reversedName + "_Class_Definition", null,
+				Token classDefinitionEman = new Token(TokenType.IDENTIFIER, reversedName + "_Class_Definition", null,null,
 						null, -1, -1, -1, -1);
 
 				define(classDefinitionName.lexeme, type, null);
@@ -163,9 +163,9 @@ public class Environment {
 				StringBuilder sb = new StringBuilder(name);
 				String reversedName = sb.reverse().toString();
 
-				Token classDefinitionName = new Token(TokenType.IDENTIFIER, name + "_Class_Definition", null, null, -1,
+				Token classDefinitionName = new Token(TokenType.IDENTIFIER, name + "_Class_Definition", null,null, null, -1,
 						-1, -1, -1);
-				Token classDefinitionEman = new Token(TokenType.IDENTIFIER, reversedName + "_Class_Definition", null,
+				Token classDefinitionEman = new Token(TokenType.IDENTIFIER, reversedName + "_Class_Definition", null,null,
 						null, -1, -1, -1, -1);
 
 				define(classDefinitionName.lexeme, type, null);

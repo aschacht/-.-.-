@@ -23,6 +23,8 @@ import Box.Syntax.Expr.BoxOpenLeft;
 import Box.Syntax.Expr.BoxOpenRight;
 import Box.Syntax.Expr.Boxx;
 import Box.Syntax.Expr.Call;
+import Box.Syntax.Expr.Cid;
+import Box.Syntax.Expr.Cocket;
 import Box.Syntax.Expr.Contains;
 import Box.Syntax.Expr.Cup;
 import Box.Syntax.Expr.CupOpenLeft;
@@ -40,17 +42,22 @@ import Box.Syntax.Expr.Laretil;
 import Box.Syntax.Expr.LaretilChar;
 import Box.Syntax.Expr.Lash;
 import Box.Syntax.Expr.Lid;
+import Box.Syntax.Expr.Lil;
 import Box.Syntax.Expr.Literal;
 import Box.Syntax.Expr.LiteralChar;
 import Box.Syntax.Expr.Llac;
+import Box.Syntax.Expr.Locket;
 import Box.Syntax.Expr.Log;
 import Box.Syntax.Expr.Logical;
+import Box.Syntax.Expr.Lup;
 import Box.Syntax.Expr.Mono;
 import Box.Syntax.Expr.Onom;
 import Box.Syntax.Expr.Parameter;
+import Box.Syntax.Expr.Pid;
 import Box.Syntax.Expr.Pocket;
 import Box.Syntax.Expr.PocketOpenLeft;
 import Box.Syntax.Expr.PocketOpenRight;
+import Box.Syntax.Expr.Pup;
 import Box.Syntax.Expr.Set;
 import Box.Syntax.Expr.SetBoxCupPocket;
 import Box.Syntax.Expr.Sniatnoc;
@@ -2796,7 +2803,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 			Token superclassToken = null;
 			if (theName.identifierToken != null)
-				superclassToken = new Token(theName.type, theName.identifierToken.lexeme + "Class_Definition", null,
+				superclassToken = new Token(theName.type, theName.identifierToken.lexeme + "Class_Definition", null,null,
 						null, theName.column, theName.line, theName.start, theName.finish);
 
 			BoxClass superclassVariable = (BoxClass) lookUpVariableByName(superclassToken);
@@ -2806,14 +2813,14 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			}
 			Token type = null;
 			if (cup != null)
-				type = new Token(TokenType.CUPCONTAINER, "", null, null, -1, -1, -1, -1);
+				type = new Token(TokenType.CUPCONTAINER, "", null,null, null, -1, -1, -1, -1);
 			if (pocket != null)
-				type = new Token(TokenType.POCKETCONTAINER, "", null, null, -1, -1, -1, -1);
+				type = new Token(TokenType.POCKETCONTAINER, "", null,null, null, -1, -1, -1, -1);
 			environment.define(theName.lexeme + "_Class_Definition", type, null);
 			environment.define(theEman.lexeme + "_Class_Definition", type, null);
 			if (superclass != null) {
 				environment = new Environment(environment);
-				Token superclassType = new Token(((BoxClass) superclass).type, "", null, null, -1, -1, -1, -1);
+				Token superclassType = new Token(((BoxClass) superclass).type, "", null,null, null, -1, -1, -1, -1);
 				environment.define("super", superclassType, superclass);
 
 			}
@@ -2873,9 +2880,9 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				environment = environment.enclosing;
 			}
 
-			Token classDefinitionName = new Token(theName.type, theName.lexeme + "_Class_Definition", null, null,
+			Token classDefinitionName = new Token(theName.type, theName.lexeme + "_Class_Definition", null, null,null,
 					theName.column, theName.line, theName.start, theName.finish);
-			Token classDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Class_Definition", null, null,
+			Token classDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Class_Definition", null, null,null,
 					theName.column, theName.line, theName.start, theName.finish);
 			environment.assign(classDefinitionName, type, boxClass);
 			environment.assign(classDefinitionEman, type, boxClass);
@@ -2899,7 +2906,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 		if (lookUpVariable(theName, theNameVariable) == null || lookUpVariable(theName, theNameElbairav) == null) {
 
-			Token type = new Token(TokenType.BOXCONTAINER, "", null, null, -1, -1, -1, -1);
+			Token type = new Token(TokenType.BOXCONTAINER, "", null,null, null, -1, -1, -1, -1);
 			environment.define(theName.lexeme + "_Box_Definition", type, null);
 			environment.define(theEman.lexeme + "_Box_Definition", type, null);
 
@@ -2916,9 +2923,9 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					TokenType.BOXCONTAINER, false,
 					new TypesOfObject(type, RunTimeTypes.getTypeBasedOfToken(type), null));
 
-			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Box_Definition", null, null,
+			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Box_Definition", null,null, null,
 					theName.column, theName.line, theName.start, theName.finish);
-			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Box_Definition", null, null,
+			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Box_Definition", null,null, null,
 					theName.column, theName.line, theName.start, theName.finish);
 			environment.assign(containerDefinitionName, type, boxContainerClass);
 			environment.assign(containerDefinitionEman, type, boxContainerClass);
@@ -3479,9 +3486,9 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	private void buildKnotClass(Knot stmt) {
-		Token theName = new Token(TokenType.IDENTIFIER, stmt.identifier.lexeme, null, null, -1, -1, -1, -1);
+		Token theName = new Token(TokenType.IDENTIFIER, stmt.identifier.lexeme, null,null, null, -1, -1, -1, -1);
 		theName.lexeme = "Knot_" + theName.lexeme;
-		Token theEman = new Token(TokenType.IDENTIFIER, stmt.reifitnedi.lexeme, null, null, -1, -1, -1, -1);
+		Token theEman = new Token(TokenType.IDENTIFIER, stmt.reifitnedi.lexeme, null,null, null, -1, -1, -1, -1);
 		theEman.lexeme = theEman.lexeme + "_Knot";
 
 		Variable theNameVariable = new Expr.Variable(theName);
@@ -3493,7 +3500,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				|| lookUpVariable(theEman, theEmanVariable) == null
 				|| lookUpVariable(theEman, theEmanElbairav) == null) {
 
-			Token type = new Token(TokenType.KNOTCONTAINER, "", null, null, -1, -1, -1, -1);
+			Token type = new Token(TokenType.KNOTCONTAINER, "", null,null, null, -1, -1, -1, -1);
 			environment.define(theName.lexeme + "_Knot_Definition", type, null);
 			environment.define(theEman.lexeme + "_Knot_Definition", type, null);
 
@@ -3566,9 +3573,9 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			BoxKnotClass boxKnotClass = new BoxKnotClass(theName.lexeme, boxPrimarys, TokenType.BOXCONTAINER, false,
 					new TypesOfObject(type, RunTimeTypes.getTypeBasedOfToken(type), null));
 
-			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Knot_Definition", null, null,
+			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Knot_Definition", null,null, null,
 					theName.column, theName.line, theName.start, theName.finish);
-			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Knot_Definition", null, null,
+			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Knot_Definition", null,null, null,
 					theName.column, theName.line, theName.start, theName.finish);
 			environment.assign(containerDefinitionName, type, boxKnotClass);
 			environment.assign(containerDefinitionEman, type, boxKnotClass);
@@ -4998,6 +5005,48 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			evaluated = evaluate(expr.value);
 		}
 		((BoxInstance) boxInstance).setAt(evaluated, 0);
+		return null;
+	}
+
+	@Override
+	public Object visitPupExpr(Pup expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitCocketExpr(Cocket expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitLocketExpr(Locket expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitLupExpr(Lup expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitLilExpr(Lil expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitPidExpr(Pid expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitCidExpr(Cid expr) {
+		
 		return null;
 	}
 
