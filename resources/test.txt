@@ -1,1 +1,2 @@
-a{b(c{ }a)b d{ e(}c }d )e
+
+a{b(c{}a)b d{e(}c}d)e

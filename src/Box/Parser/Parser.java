@@ -34,6 +34,10 @@ public class Parser {
 
 	private int setbackFunctionDeterminationBuild;
 
+	private boolean forward;
+
+	private boolean backward;
+
 	private class TokensToTrack {
 		List<ArrayList<Token>> stack = new ArrayList<ArrayList<Token>>();
 		List<Integer> currentStack = new ArrayList<Integer>();
@@ -95,24 +99,47 @@ public class Parser {
 
 	}
 
-	public Parser(List<Token> tokens) {
+	public Parser(List<Token> tokens, boolean forward, boolean backward) {
 
+		this.forward = forward;
+		this.backward = backward;
 		tracker = new TokensToTrack((ArrayList<Token>) tokens, 0);
 	}
 
 	public List<Stmt> parse() {
 
+		if (forward && backward) {
+			List<Stmt> forwardParse = parseForward();
+			List<Stmt> backwardParse = parseBackward();
+			return forwardParse;
+		} else if (forward && !backward) {
+			List<Stmt> forwardParse = parseForward();
+			return forwardParse;
+		} else if (!forward && backward) {
+			List<Stmt> backwardParse = parseBackward();
+			return backwardParse;
+		} else
+			return null;
+	}
+
+	private List<Stmt> parseForward() {
 		List<Stmt> statements = new ArrayList<>();
 
 		while (!isAtEnd()) {
-			statements.add(declaration());
-			Stmt fixedStmt = fixStatement(statements.get(statements.size() - 1));
-			statements.remove(statements.size() - 1);
-			statements.add(fixedStmt);
+			statements.add(declarationForward());
 		}
 
 		return statements;
+	}
 
+	private List<Stmt> parseBackward() {
+		List<Stmt> statements = new ArrayList<>();
+
+		while (!isAtEnd()) {
+			statements.add(declarationBackward());
+		}
+
+		return statements;
 	}
 
 	private Stmt fixStatement(Stmt stmt) {
@@ -426,7 +453,7 @@ public class Parser {
 		return false;
 	}
 
-	private Stmt declaration() {
+	private Stmt declarationForward() {
 		saveStatement = false;
 
 		try {
@@ -467,35 +494,8 @@ public class Parser {
 				return constructor(previous());
 			}
 			Expr expr = expression();
-			Stmt elbairavDeclaration = null;
-			if (expr instanceof Expr.Assignment || expr instanceof Expr.Tnemngissa)
-				elbairavDeclaration = elbairavDeclaration(expr);
 
-			Stmt rotcurtsnocWEcrofne = null;
-			if (expr instanceof Expr.Parameter) {
-				rotcurtsnocWEcrofne = rotcurtsnocWEcrofne(expr);
-			}
-//			Stmt rotcurtsnocWoEcrofne = null;
-//			if (expr instanceof Expr.Literal || expr instanceof Expr.Laretil) {
-//				rotcurtsnocWoEcrofne = rotcurtsnocWoEcrofne(expr);
-//			}
-
-			Stmt expelStmt = null;
-			if (elbairavDeclaration instanceof Stmt.PassThrough || elbairavDeclaration == null
-					&& (rotcurtsnocWEcrofne instanceof Stmt.PassThrough || rotcurtsnocWEcrofne == null)) {
-				expelStmt = expellorconsumeStatement(expr);
-			} else {
-				if (elbairavDeclaration != null || !(elbairavDeclaration instanceof Stmt.PassThrough))
-					return elbairavDeclaration;
-				else if (rotcurtsnocWEcrofne != null || !(rotcurtsnocWEcrofne instanceof Stmt.PassThrough))
-					return rotcurtsnocWEcrofne;
-			}
-			if (expelStmt instanceof Stmt.PassThrough) {
-
-				return statement(expr);
-
-			} else
-				return expelStmt;
+			return expressionStmt(expr);
 
 		} catch (ParseError error) {
 			synchronize();
@@ -503,15 +503,16 @@ public class Parser {
 		}
 	}
 
+	private Stmt declarationBackward() {
+		Expr expr = noisserpxe();
+		return statement(expr);
+	}
+
 	private Stmt variableDeclaration(Token enforce) {
 		if (match(TokenType.BOX, TokenType.POCKET, TokenType.CUP, TokenType.KNOT)) {
 			Token type = previous();
-			if (check(TokenType.IDENTIFIER) || check(TokenType.REIFITNEDI)) {
-				Token name = null;
-				if (check(TokenType.IDENTIFIER))
-					name = consume(TokenType.IDENTIFIER, "Expect variable name.");
-				else
-					name = consume(TokenType.REIFITNEDI, "Expect variable name.");
+			if (check(TokenType.IDENTIFIER)) {
+				Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
 
 				Expr initializer = null;
 				if (match(TokenType.ASIGNMENTEQUALS)) {
@@ -1661,7 +1662,7 @@ public class Parser {
 			if (identifierMethod1 != null) {
 				ArrayList<Token> tokens0 = new ArrayList<Token>();
 				tokens0.add(identifierMethod1);
-				tokens0.add(new Token(TokenType.EOF, "", null,null, null, tokens0.size(), -1, -1, -1));
+				tokens0.add(new Token(TokenType.EOF, "", null, null, null, tokens0.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens0);
 				ArrayList<Stmt> identifier1 = (ArrayList<Stmt>) parse();
@@ -1678,7 +1679,7 @@ public class Parser {
 			if (method1BinNumber != null) {
 				ArrayList<Token> tokens1 = new ArrayList<Token>();
 				tokens1.add(method1BinNumber);
-				tokens1.add(new Token(TokenType.EOF, "", null,null, null, tokens1.size(), -1, -1, -1));
+				tokens1.add(new Token(TokenType.EOF, "", null, null, null, tokens1.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens1);
 				ArrayList<Stmt> binNumber1 = (ArrayList<Stmt>) parse();
@@ -1694,7 +1695,7 @@ public class Parser {
 			if (method2BinNumber != null) {
 				ArrayList<Token> tokens2 = new ArrayList<Token>();
 				tokens2.add(method2BinNumber);
-				tokens2.add(new Token(TokenType.EOF, "", null,null, null, tokens2.size(), -1, -1, -1));
+				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2);
 				ArrayList<Stmt> binNumber2 = (ArrayList<Stmt>) parse();
@@ -1711,7 +1712,7 @@ public class Parser {
 			if (identifierMethod2 != null) {
 				ArrayList<Token> tokens3 = new ArrayList<Token>();
 				tokens3.add(identifierMethod2);
-				tokens3.add(new Token(TokenType.EOF, "", null,null, null, tokens3.size(), -1, -1, -1));
+				tokens3.add(new Token(TokenType.EOF, "", null, null, null, tokens3.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens3);
 				ArrayList<Stmt> identifier2 = (ArrayList<Stmt>) parse();
@@ -1731,14 +1732,15 @@ public class Parser {
 
 			if (method1Kont != null) {
 				ArrayList<Token> tokens1 = (ArrayList<Token>) method1Kont.literal;
-				tokens1.add(new Token(TokenType.EOF, "", null,null, null, tokens1.size(), -1, -1, -1));
+				tokens1.add(new Token(TokenType.EOF, "", null, null, null, tokens1.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens1);
 				ArrayList<Stmt> cupsAndPockets = (ArrayList<Stmt>) parse();
 				tracker.removeSubTokens();
 
 				ArrayList<Token> tokens1ungrpuped = (ArrayList<Token>) method1Kont.literalUnGrouped;
-				tokens1ungrpuped.add(new Token(TokenType.EOF, "", null,null, null, tokens1ungrpuped.size(), -1, -1, -1));
+				tokens1ungrpuped
+						.add(new Token(TokenType.EOF, "", null, null, null, tokens1ungrpuped.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens1ungrpuped);
 				ArrayList<Stmt> cupsAndPocketsungrouped = (ArrayList<Stmt>) parse();
@@ -1790,14 +1792,15 @@ public class Parser {
 
 			if (method2Knot != null) {
 				ArrayList<Token> tokens2 = (ArrayList<Token>) method2Knot.literal;
-				tokens2.add(new Token(TokenType.EOF, "", null,null, null, tokens2.size(), -1, -1, -1));
+				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2);
 				ArrayList<Stmt> cupsAndPockets = (ArrayList<Stmt>) parse();
 				tracker.removeSubTokens();
 
 				ArrayList<Token> tokens2ungrouped = (ArrayList<Token>) method2Knot.literalUnGrouped;
-				tokens2ungrouped.add(new Token(TokenType.EOF, "", null,null, null, tokens2ungrouped.size(), -1, -1, -1));
+				tokens2ungrouped
+						.add(new Token(TokenType.EOF, "", null, null, null, tokens2ungrouped.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2ungrouped);
 				ArrayList<Stmt> cupsAndPocketsungrouped = (ArrayList<Stmt>) parse();
@@ -1852,7 +1855,7 @@ public class Parser {
 		private void generateParameters() {
 			if (parameterContainer.type == TokenType.POCKETCONTAINER) {
 				ArrayList<Token> tokens2 = (ArrayList<Token>) parameterContainer.literal;
-				tokens2.add(new Token(TokenType.EOF, "", null,null, null, tokens2.size(), -1, -1, -1));
+				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2);
 				ArrayList<Stmt> pockets = (ArrayList<Stmt>) parse();
@@ -1890,7 +1893,7 @@ public class Parser {
 				parameters = parms;
 			} else if (parameterContainer.type == TokenType.KNOTCONTAINER) {
 				ArrayList<Token> tokens2 = (ArrayList<Token>) parameterContainer.literal;
-				tokens2.add(new Token(TokenType.EOF, "", null,null, null, tokens2.size(), -1, -1, -1));
+				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2);
 				ArrayList<Stmt> pockets = (ArrayList<Stmt>) parse();
@@ -2512,7 +2515,7 @@ public class Parser {
 
 			}
 		}
-		return expressionnoisserpxeStmt(expr);
+		return noisserpxeStmt(expr);
 	}
 
 	private Stmt emanerorEvomStatement(Expr expr) {
@@ -2622,24 +2625,26 @@ public class Parser {
 		return new Stmt.Return(keyword, expr);
 	}
 
-	private Stmt expressionnoisserpxeStmt(Expr expr) {
+	private Stmt expressionStmt(Expr expr) {
+
 		return new Stmt.Expression(expr);
 	}
 
+	private Stmt noisserpxeStmt(Expr expr) {
+
+		return new Stmt.Noisserpxe(expr);
+	}
+
 	private Expr expression() {
-		isNoisserpxe = false;
 		return typeExpr();
 	}
 
+	private Expr noisserpxe() {
+		return epytExpr();
+	}
+
 	public Expr typeExpr() {
-		Expr expr = null;
-		if (check(TokenType.EPYT) && checkNext(TokenType.DOT)) {
-			consume(TokenType.EPYT, "expected epyt.");
-			consume(TokenType.DOT, "expected '.'.");
-			expr = assignment();
-			return new Expr.Type(expr);
-		}
-		expr = assignment();
+		Expr expr = assignment();
 		if (check(TokenType.DOT) && checkNext(TokenType.TYPE)) {
 			consume(TokenType.DOT, "expected '.'.");
 			consume(TokenType.TYPE, "expected type.");
@@ -2647,6 +2652,16 @@ public class Parser {
 		}
 		return expr;
 
+	}
+
+	public Expr epytExpr() {
+		if (check(TokenType.EPYT) && checkNext(TokenType.DOT)) {
+			consume(TokenType.EPYT, "expected epyt.");
+			consume(TokenType.DOT, "expected '.'.");
+			Expr expr = assignment();
+			return new Expr.Type(expr);
+		}
+		return tnemngissa();
 	}
 
 	private Expr assignment() {
@@ -2668,6 +2683,21 @@ public class Parser {
 				Expr.GetBoxCupPocket get = (Expr.GetBoxCupPocket) expr;
 				return new Expr.SetBoxCupPocket(get.object, get.name, value);
 			}
+
+			error(equals, "Invalid assignment target.");
+
+		}
+
+		return expr;
+	}
+
+	private Expr tnemngissa() {
+
+		Expr expr = sniatnoc();
+
+		if (match(TokenType.ASIGNMENTEQUALS)) {
+			Token equals = previous();
+			Expr value = assignment();
 
 			if (value instanceof Expr.Elbairav) {
 				Token name = ((Expr.Elbairav) value).name;
@@ -2694,7 +2724,7 @@ public class Parser {
 		List<Expr> andsAndORs = new ArrayList<Expr>();
 		Expr expr = logicalOr();
 
-		if (match(TokenType.CONTAINS) && !isNoisserpxe) {
+		if (match(TokenType.CONTAINS)) {
 			boolean open = false;
 			if (check(TokenType.OPEN)) {
 				open = true;
@@ -2704,26 +2734,27 @@ public class Parser {
 
 			return new Expr.Contains(expr, open, expr2);
 
-		} else {
+		}
 
-			boolean nepo = false;
+		return expr;
+	}
 
-			if (check(TokenType.NEPO)) {
-				isNoisserpxe = true;
-				consume(TokenType.NEPO, "Expected Nepo Token");
-				nepo = true;
+	private Expr sniatnoc() {
 
-			}
-			Expr target = null;
-			if (match(TokenType.SNIATNOC)) {
-				isNoisserpxe = true;
-				target = logicalOr();
-				if (andsAndORs.size() <= 0) {
-					error(previous(), "found contains with no search contents");
-				}
+		Expr expr = rOlacigol();
 
-				return new Expr.Sniatnoc(target, nepo, expr);
-			}
+		boolean nepo = false;
+
+		if (check(TokenType.NEPO)) {
+			consume(TokenType.NEPO, "Expected Nepo Token");
+			nepo = true;
+
+		}
+		Expr target = null;
+		if (match(TokenType.SNIATNOC)) {
+			target = rOlacigol();
+
+			return new Expr.Sniatnoc(target, nepo, expr);
 		}
 
 		return expr;
@@ -2734,16 +2765,17 @@ public class Parser {
 		while (match(TokenType.OR)) {
 			Token operator = previous();
 			Expr right = logicalAnd();
-			if (isNoisserpxe)
-				expr = new Expr.Lacigol(expr, operator, right);
-			else
-				expr = new Expr.Logical(expr, operator, right);
+			expr = new Expr.Logical(expr, operator, right);
 		}
 
+		return expr;
+	}
+
+	private Expr rOlacigol() {
+		Expr expr = dnAlacigol();
 		while (match(TokenType.RO)) {
-			isNoisserpxe = true;
 			Token operator = previous();
-			Expr right = logicalAnd();
+			Expr right = dnAlacigol();
 			expr = new Expr.Lacigol(expr, operator, right);
 		}
 
@@ -2755,16 +2787,18 @@ public class Parser {
 		while (match(TokenType.AND)) {
 			Token operator = previous();
 			Expr right = equality();
-			if (isNoisserpxe)
-				expr = new Expr.Lacigol(expr, operator, right);
-			else
-				expr = new Expr.Logical(expr, operator, right);
+			expr = new Expr.Logical(expr, operator, right);
 		}
 
+		return expr;
+
+	}
+
+	private Expr dnAlacigol() {
+		Expr expr = ytilauqe();
 		while (match(TokenType.DNA)) {
-			isNoisserpxe = true;
 			Token operator = previous();
-			Expr right = equality();
+			Expr right = ytilauqe();
 			expr = new Expr.Lacigol(expr, operator, right);
 		}
 
@@ -2777,15 +2811,17 @@ public class Parser {
 		while (match(TokenType.NOTEQUALS, TokenType.EQUALSEQUALS)) {
 			Token operator = previous();
 			Expr right = addSub();
-			if (isNoisserpxe)
-				expr = new Expr.Yranib(expr, operator, right);
-			else
-				expr = new Expr.Binary(expr, operator, right);
+			expr = new Expr.Binary(expr, operator, right);
 		}
+		return expr;
+	}
+
+	private Expr ytilauqe() {
+		Expr expr = buSdda();
+
 		while (match(TokenType.EQUALSNOT, TokenType.EQUALSEQUALS)) {
-			isNoisserpxe = true;
 			Token operator = previous();
-			Expr right = addSub();
+			Expr right = buSdda();
 			expr = new Expr.Yranib(expr, operator, right);
 		}
 
@@ -2797,15 +2833,18 @@ public class Parser {
 		while (match(TokenType.PLUSEQUALS, TokenType.MINUSEQUALS)) {
 			Token operator = previous();
 			Expr right = comparison();
-			if (isNoisserpxe)
-				expr = new Expr.Yranib(expr, operator, right);
-			else
-				expr = new Expr.Binary(expr, operator, right);
+			expr = new Expr.Binary(expr, operator, right);
 		}
+
+		return expr;
+	}
+
+	private Expr buSdda() {
+		Expr expr = nosirapmoc();
+
 		while (match(TokenType.EQUALSPLUS, TokenType.EQUALSMINUS)) {
-			isNoisserpxe = true;
 			Token operator = previous();
-			Expr left = comparison();
+			Expr left = nosirapmoc();
 			expr = new Expr.Yranib(expr, operator, left);
 		}
 		return expr;
@@ -2816,15 +2855,17 @@ public class Parser {
 		while (match(TokenType.GREATERTHENEQUAL, TokenType.LESSTHENEQUAL, TokenType.GREATERTHEN, TokenType.LESSTHEN)) {
 			Token operator = previous();
 			Expr right = term();
-			if (isNoisserpxe)
-				expr = new Expr.Yranib(expr, operator, right);
-			else
-				expr = new Expr.Binary(expr, operator, right);
+			expr = new Expr.Binary(expr, operator, right);
 		}
+
+		return expr;
+	}
+
+	private Expr nosirapmoc() {
+		Expr expr = mret();
 		while (match(TokenType.EQUALGREATERTHEN, TokenType.EQUALLESSTHEN, TokenType.GREATERTHEN, TokenType.LESSTHEN)) {
-			isNoisserpxe = true;
 			Token operator = previous();
-			Expr right = term();
+			Expr right = mret();
 			expr = new Expr.Yranib(expr, operator, right);
 		}
 
@@ -2837,16 +2878,19 @@ public class Parser {
 		while (match(TokenType.MINUS, TokenType.PLUS)) {
 			Token operator = previous();
 			Expr right = factor();
-			if (isNoisserpxe)
-				expr = new Expr.Yranib(expr, operator, right);
-			else
-				expr = new Expr.Binary(expr, operator, right);
+			expr = new Expr.Binary(expr, operator, right);
 
 		}
+
+		return expr;
+	}
+
+	private Expr mret() {
+		Expr expr = rotcaf();
+
 		while (match(TokenType.MINUS, TokenType.PLUS)) {
-			isNoisserpxe = true;
 			Token operator = previous();
-			Expr right = factor();
+			Expr right = rotcaf();
 			expr = new Expr.Yranib(expr, operator, right);
 
 		}
@@ -2859,16 +2903,19 @@ public class Parser {
 		while (match(TokenType.FORWARDSLASH, TokenType.TIMES)) {
 			Token operator = previous();
 			Expr right = power();
-			if (isNoisserpxe)
-				expr = new Expr.Yranib(expr, operator, right);
-			else
-				expr = new Expr.Binary(expr, operator, right);
+			expr = new Expr.Binary(expr, operator, right);
 		}
 
+		return expr;
+	}
+
+	private Expr rotcaf() {
+		Expr expr = rewop();
+
 		while (match(TokenType.BACKSLASH, TokenType.TIMES)) {
-			isNoisserpxe = true;
+
 			Token operator = previous();
-			Expr right = power();
+			Expr right = rewop();
 			expr = new Expr.Yranib(expr, operator, right);
 		}
 
@@ -2881,15 +2928,18 @@ public class Parser {
 		while (match(TokenType.POWER)) {
 			Token operator = previous();
 			Expr right = yroot();
-			if (isNoisserpxe)
-				expr = new Expr.Yranib(expr, operator, right);
-			else
-				expr = new Expr.Binary(expr, operator, right);
+			expr = new Expr.Binary(expr, operator, right);
 		}
+
+		return expr;
+	}
+
+	private Expr rewop() {
+		Expr expr = toory();
+
 		while (match(TokenType.POWER)) {
-			isNoisserpxe = true;
 			Token operator = previous();
-			Expr right = yroot();
+			Expr right = toory();
 			expr = new Expr.Yranib(expr, operator, right);
 		}
 		return expr;
@@ -2936,7 +2986,14 @@ public class Parser {
 
 			}
 		}
-		Expr pocket = sin();
+
+		return sin();
+
+	}
+
+	private Expr toory() {
+
+		Expr pocket = nis();
 
 		if (check(TokenType.DOT) && peekNext().type == TokenType.GOL) {
 			consume(TokenType.DOT, "expected .");
@@ -3032,7 +3089,14 @@ public class Parser {
 
 			}
 		}
-		Expr pocket = cos();
+
+		return cos();
+
+	}
+
+	private Expr nis() {
+
+		Expr pocket = soc();
 
 		if (check(TokenType.DOT) && peekNext().type == TokenType.NIS) {
 			isNoisserpxe = true;
@@ -3084,7 +3148,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = tan();
+		return tan();
+
+	}
+
+	private Expr soc() {
+
+		Expr pocket = nat();
 
 		if (check(TokenType.DOT) && peekNext().type == TokenType.SOC) {
 			isNoisserpxe = true;
@@ -3134,7 +3204,12 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = sinh();
+		return sinh();
+	}
+
+	private Expr nat() {
+
+		Expr pocket = hnis();
 
 		if (check(TokenType.DOT) && peekNext().type == TokenType.NAT) {
 			isNoisserpxe = true;
@@ -3184,7 +3259,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = cosh();
+		return cosh();
+
+	}
+
+	private Expr hnis() {
+
+		Expr pocket = hsoc();
 
 		if (check(TokenType.DOT) && peekNext().type == TokenType.HNIS) {
 			isNoisserpxe = true;
@@ -3234,7 +3315,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = tanh();
+		return tanh();
+
+	}
+
+	private Expr hsoc() {
+
+		Expr pocket = hnat();
 
 		if (check(TokenType.DOT) && peekNext().type == TokenType.HSOC) {
 			isNoisserpxe = true;
@@ -3283,7 +3370,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = log();
+		return log();
+
+	}
+
+	private Expr hnat() {
+
+		Expr pocket = gol();
 
 		if (check(TokenType.DOT) && peekNext().type == TokenType.HNAT) {
 			isNoisserpxe = true;
@@ -3357,27 +3450,28 @@ public class Parser {
 		return factorial();
 	}
 
+	private Expr gol() {
+		return lairotcaf();
+	}
+
 	private Expr factorial() {
-		Expr expr = null;
-		if (check(TokenType.BANG)) {
-			while (match(TokenType.BANG)) {
-				isNoisserpxe = true;
-				Token operator = previous();
-				expr = unary();
-				expr = new Expr.Lairotcaf(expr, operator);
-			}
-		} else {
-			expr = unary();
+		Expr expr = unary();
 
-			while (match(TokenType.BANG)) {
-				Token operator = previous();
-				expr = new Expr.Factorial(expr, operator);
-			}
-
+		while (match(TokenType.BANG)) {
+			Token operator = previous();
+			expr = new Expr.Factorial(expr, operator);
 		}
-		if (expr == null)
-			return unary();
 		return expr;
+	}
+
+	private Expr lairotcaf() {
+		while (match(TokenType.BANG)) {
+			isNoisserpxe = true;
+			Token operator = previous();
+			Expr expr  = yranu();
+			return new Expr.Lairotcaf(expr, operator);
+		}
+		return yranu();
 	}
 
 	private Expr unary() {
@@ -3414,56 +3508,26 @@ public class Parser {
 		return rpxe;
 
 	}
+	private Expr yranu() {
+		Expr rpxe= llac();
+			if (match(TokenType.MINUS)) {
+				if (peek().type == TokenType.EOF) {
+					Token operator = previous();
+					return new Expr.Yranu(operator, rpxe);
+				}
+			}
+			while (match(TokenType.DOUBLEBANG, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
+				Token operator = previous();
+				return new Expr.Yranu(operator, rpxe);
+			}
+		return rpxe;
+	}
 
 	private Expr call() {
 
 		Expr expr = primary();
 
-		if (expr instanceof Expr.Pocket && check(TokenType.DOT)) {
-			ArrayList<Token> names = new ArrayList<Token>();
-			if (check(TokenType.DOT) && (checkNext(TokenType.IDENTIFIER) || checkNext(TokenType.REIFITNEDI))
-					&& !saveStatement) {
-				Expr.Pocket pocket = (Expr.Pocket) expr;
-				consume(TokenType.DOT, "expected '.' ");
-				expr = primary();
-				expr = finishLlac(expr, pocket);
-
-				while (true) {
-					if (checkForDotAndNoneOfReservedWords()) {
-						if (match(TokenType.DOT)) {
-							Token name = null;
-							if (check(TokenType.IDENTIFIER))
-								name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
-							else if (check(TokenType.REIFITNEDI))
-								name = consume(TokenType.REIFITNEDI, "Expected reifitnedi name after '.'.");
-
-							names.add(name);
-						} else {
-							break;
-						}
-					} else {
-						break;
-					}
-				}
-				Expr ex = null;
-				for (int i = names.size() - 1; i >= 0; i--) {
-					if (i == names.size() - 1) {
-						ex = new Expr.Elbairav(names.get(i));
-					} else {
-						ex = new Expr.Teg(ex, names.get(i));
-					}
-				}
-				if (((Expr.Llac) expr).callee instanceof Expr.Variable)
-					ex = new Expr.Teg(ex, ((Expr.Variable) (((Expr.Llac) expr).callee)).name);
-				if (((Expr.Llac) expr).callee instanceof Expr.Elbairav)
-					ex = new Expr.Teg(ex, ((Expr.Elbairav) (((Expr.Llac) expr).callee)).name);
-				if (expr instanceof Expr.Llac) {
-					((Expr.Llac) expr).callee = ex;
-				}
-			}
-		} else {
-
-			if (!isNoisserpxe) {
+			
 				if (expr instanceof Expr.Variable || expr instanceof Expr.Elbairav) {
 					if (peek().type == TokenType.DOT) {
 						if (peekNext().type == TokenType.POCKETCONTAINER) {
@@ -3514,7 +3578,7 @@ public class Parser {
 						break;
 					}
 				}
-			}
+			
 
 			ArrayList<Token> names = new ArrayList<Token>();
 			if (expr instanceof Expr.Variable)
@@ -3555,10 +3619,61 @@ public class Parser {
 					expr = new Expr.Teg(expr, ((Expr.Elbairav) expr).name);
 			}
 
-		}
+		
 
 		return expr;
 
+	}
+	private Expr llac() {
+		
+		Expr expr = primary();
+		
+		if (expr instanceof Expr.Pocket && check(TokenType.DOT)) {
+			ArrayList<Token> names = new ArrayList<Token>();
+			if (check(TokenType.DOT) && (checkNext(TokenType.IDENTIFIER) || checkNext(TokenType.REIFITNEDI))
+					&& !saveStatement) {
+				Expr.Pocket pocket = (Expr.Pocket) expr;
+				consume(TokenType.DOT, "expected '.' ");
+				expr = primary();
+				expr = finishLlac(expr, pocket);
+				
+				while (true) {
+					if (checkForDotAndNoneOfReservedWords()) {
+						if (match(TokenType.DOT)) {
+							Token name = null;
+							if (check(TokenType.IDENTIFIER))
+								name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+							else if (check(TokenType.REIFITNEDI))
+								name = consume(TokenType.REIFITNEDI, "Expected reifitnedi name after '.'.");
+							
+							names.add(name);
+						} else {
+							break;
+						}
+					} else {
+						break;
+					}
+				}
+				Expr ex = null;
+				for (int i = names.size() - 1; i >= 0; i--) {
+					if (i == names.size() - 1) {
+						ex = new Expr.Elbairav(names.get(i));
+					} else {
+						ex = new Expr.Teg(ex, names.get(i));
+					}
+				}
+				if (((Expr.Llac) expr).callee instanceof Expr.Variable)
+					ex = new Expr.Teg(ex, ((Expr.Variable) (((Expr.Llac) expr).callee)).name);
+				if (((Expr.Llac) expr).callee instanceof Expr.Elbairav)
+					ex = new Expr.Teg(ex, ((Expr.Elbairav) (((Expr.Llac) expr).callee)).name);
+				if (expr instanceof Expr.Llac) {
+					((Expr.Llac) expr).callee = ex;
+				}
+			}
+		} 
+		
+		return expr;
+		
 	}
 
 	private boolean checkForDotAndNoneOfReservedWords() {
@@ -3588,7 +3703,8 @@ public class Parser {
 			}
 		}
 
-		Token paren = new Token(TokenType.CLOSEDPAREN, ")" + pocket.reifitnedi.lexeme, null,null, null, -1, -1, -1, -1);
+		Token paren = new Token(TokenType.CLOSEDPAREN, ")" + pocket.reifitnedi.lexeme, null, null, null, -1, -1, -1,
+				-1);
 		paren.reifitnediToken = pocket.reifitnedi;
 		return new Expr.Call(expr, paren, arguments);
 	}
@@ -3606,7 +3722,8 @@ public class Parser {
 			}
 		}
 
-		Token paren = new Token(TokenType.CLOSEDPAREN, ")" + pocket.reifitnedi.lexeme, null,null, null, -1, -1, -1, -1);
+		Token paren = new Token(TokenType.CLOSEDPAREN, ")" + pocket.reifitnedi.lexeme, null, null, null, -1, -1, -1,
+				-1);
 		paren.reifitnediToken = pocket.reifitnedi;
 		return new Expr.Llac(expr, paren, arguments);
 	}
@@ -3773,77 +3890,85 @@ public class Parser {
 		}
 
 		if (check(TokenType.BOXCONTAINER)) {
-			List<Expr> primarys = new ArrayList<Expr>();
-			Token boxContainer = consume(TokenType.BOXCONTAINER, "expected box");
-
-			ArrayList<Stmt> statements = new ArrayList<Stmt>();
-			ArrayList<Token> tokes = new ArrayList<Token>((ArrayList<Token>) boxContainer.literal);
-			Token closedSquare = tokes.remove(tokes.size() - 1);
-			Token openSquare = tokes.remove(0);
-			if (tokes.size() - 1 >= 0)
-				tokes.add(new Token(TokenType.EOF, "", null,null, null, tokes.get(tokes.size() - 1).column,
-						tokes.get(tokes.size() - 1).line, tokes.get(tokes.size() - 1).start,
-						tokes.get(tokes.size() - 1).finish));
-			else
-				tokes.add(new Token(TokenType.EOF, "", null,null, null, closedSquare.column, closedSquare.line,
-						closedSquare.start, closedSquare.finish));
-
-			tracker.addSubTokens(tokes);
-			statements = (ArrayList<Stmt>) parse();
-
-			tracker.removeSubTokens();
-
-			Token typeToBuild = null;
-			Expr prototype = null;
-			Integer numberToBuild = null;
-			boolean enforce = false;
-			boolean first = true;
-			for (int t = 0; t < statements.size(); t++) {
-				Expression exp = null;
-				if (statements.get(t) instanceof Stmt.Expression) {
-					exp = (Expression) statements.get(t);
-				}
-				if (statements.get(t) instanceof Stmt.Constructor && first) {
-					Stmt.Constructor constructor = (Stmt.Constructor) statements.get(t);
-					typeToBuild = constructor.type;
-					prototype = constructor.prototype;
-					numberToBuild = constructor.numberToBuild;
-					enforce = constructor.enforce;
-					first = false;
-				}
-
-				if (exp != null)
-					primarys.add(exp.expression);
-			}
-
-			return new Expr.Boxx(openSquare.identifierToken, primarys, boxContainer.lexeme,
-					closedSquare.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
+			return buildExprBox();
 		}
 
 		if (match(TokenType.KNOTCONTAINER)) {
-			Token knotContainer = previous();
-			ArrayList<Token> tokes = (ArrayList<Token>) knotContainer.literal;
-
-			tokes.add(new Token(TokenType.EOF, "", null,null, null, tokes.size(), -1, -1, -1));
-
-			tracker.addSubTokens(tokes);
-			ArrayList<Stmt> statements = (ArrayList<Stmt>) parse();
-			tracker.removeSubTokens();
-
-			ArrayList<Token> tokesungrouped = (ArrayList<Token>) previous().literalUnGrouped;
-
-			tokesungrouped.add(new Token(TokenType.EOF, "", null,null, null, tokesungrouped.size(), -1, -1, -1));
-
-			tracker.addSubTokens(tokesungrouped);
-			ArrayList<Stmt> statementsungrouped = (ArrayList<Stmt>) parse();
-			tracker.removeSubTokens();
-
-			return new Expr.Knot(tokes.get(0).identifierToken, statements, statementsungrouped, knotContainer.lexeme,
-					tokes.get(tokes.size() - 2).reifitnediToken);
+			return buildExprKnot();
 		}
 
 		throw error(peek(),
 				"expected false |true | NILL | NULL | string | INT | DOUBLE | pocket | box | cup | knot | '(' | ')' | '{' | '}' | '[' | ']' |',' .");
+	}
+
+	private Expr buildExprBox() {
+		List<Expr> primarys = new ArrayList<Expr>();
+		Token boxContainer = consume(TokenType.BOXCONTAINER, "expected box");
+
+		ArrayList<Stmt> statements = new ArrayList<Stmt>();
+		ArrayList<Token> tokes = new ArrayList<Token>((ArrayList<Token>) boxContainer.literal);
+		Token closedSquare = tokes.remove(tokes.size() - 1);
+		Token openSquare = tokes.remove(0);
+		if (tokes.size() - 1 >= 0)
+			tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.get(tokes.size() - 1).column,
+					tokes.get(tokes.size() - 1).line, tokes.get(tokes.size() - 1).start,
+					tokes.get(tokes.size() - 1).finish));
+		else
+			tokes.add(new Token(TokenType.EOF, "", null, null, null, closedSquare.column, closedSquare.line,
+					closedSquare.start, closedSquare.finish));
+
+		tracker.addSubTokens(tokes);
+		statements = (ArrayList<Stmt>) parse();
+
+		tracker.removeSubTokens();
+
+		Token typeToBuild = null;
+		Expr prototype = null;
+		Integer numberToBuild = null;
+		boolean enforce = false;
+		boolean first = true;
+		for (int t = 0; t < statements.size(); t++) {
+			Expression exp = null;
+			if (statements.get(t) instanceof Stmt.Expression) {
+				exp = (Expression) statements.get(t);
+			}
+			if (statements.get(t) instanceof Stmt.Constructor && first) {
+				Stmt.Constructor constructor = (Stmt.Constructor) statements.get(t);
+				typeToBuild = constructor.type;
+				prototype = constructor.prototype;
+				numberToBuild = constructor.numberToBuild;
+				enforce = constructor.enforce;
+				first = false;
+			}
+
+			if (exp != null)
+				primarys.add(exp.expression);
+		}
+
+		return new Expr.Boxx(openSquare.identifierToken, primarys, boxContainer.lexeme,
+				closedSquare.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
+	}
+	
+	private Expr buildExprKnot() {
+		Token knotContainer = previous();
+		ArrayList<Token> tokes = (ArrayList<Token>) knotContainer.literal;
+		
+		tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.size(), -1, -1, -1));
+		
+		tracker.addSubTokens(tokes);
+		ArrayList<Stmt> statements = (ArrayList<Stmt>) parse();
+		tracker.removeSubTokens();
+		
+		ArrayList<Token> tokesungrouped = (ArrayList<Token>) previous().literalUnGrouped;
+		
+		tokesungrouped.add(new Token(TokenType.EOF, "", null, null, null, tokesungrouped.size(), -1, -1, -1));
+		
+		tracker.addSubTokens(tokesungrouped);
+		ArrayList<Stmt> statementsungrouped = (ArrayList<Stmt>) parse();
+		tracker.removeSubTokens();
+		
+		return new Expr.Knot(tokes.get(0).identifierToken, statements, statementsungrouped, knotContainer.lexeme,
+				tokes.get(tokes.size() - 2).reifitnediToken);
 	}
 
 	private Expr buildContainer(TokenType containerType) {
@@ -3855,12 +3980,12 @@ public class Parser {
 		Token open = tokes.remove(0);
 
 		if (tokes.size() - 1 >= 0)
-			tokes.add(new Token(TokenType.EOF, "", null,null, null, tokes.get(tokes.size() - 1).column,
+			tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.get(tokes.size() - 1).column,
 					tokes.get(tokes.size() - 1).line, tokes.get(tokes.size() - 1).start,
 					tokes.get(tokes.size() - 1).finish));
 		else
-			tokes.add(new Token(TokenType.EOF, "", null,null, null, closed.column, closed.line,
-					closed.start, closed.finish));
+			tokes.add(new Token(TokenType.EOF, "", null, null, null, closed.column, closed.line, closed.start,
+					closed.finish));
 
 		tracker.addSubTokens(tokes);
 		statements = (ArrayList<Stmt>) parse();
@@ -3889,36 +4014,37 @@ public class Parser {
 			}
 
 		}
-		if(containerType == TokenType.CUPCONTAINER) {
-		return new Expr.Cup(open.identifierToken, statements, container.lexeme, closed.reifitnediToken,
-				typeToBuild, prototype, numberToBuild, enforce);
-		}else if (containerType == TokenType.POCKETCONTAINER) {
-			return new Expr.Pocket(open.identifierToken, statements, container.lexeme,
-					closed.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
-			
-		}else if (containerType ==TokenType.PUPCONTAINER) {
-			return new Expr.Pup(open.identifierToken, statements, container.lexeme,
-					closed.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
-		}else if (containerType ==TokenType.COCKETCONTAINER) {
-			return new Expr.Cocket(open.identifierToken, statements, container.lexeme,
-					closed.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
-		}else if (containerType ==TokenType.LOCKETCONTAINER) {
-			return new Expr.Locket(open.identifierToken, statements, container.lexeme,
-					closed.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
-		}else if (containerType ==TokenType.LUPCONTAINER){
-			return new Expr.Lup(open.identifierToken, statements, container.lexeme,
-					closed.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
-		}else if (containerType ==TokenType.LILCONTAINER) {
-			return new Expr.Lil(open.identifierToken, statements, container.lexeme,
-					closed.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
-		}else if (containerType ==TokenType.PIDCONTAINER) {
-			return new Expr.Pid(open.identifierToken, statements, container.lexeme,
-					closed.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
-		}else if (containerType ==TokenType.CIDCONTAINER) {
-			return new Expr.Cid(open.identifierToken, statements, container.lexeme,
-					closed.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);		}else
+		if (containerType == TokenType.CUPCONTAINER) {
+			return new Expr.Cup(open.identifierToken, statements, container.lexeme, closed.reifitnediToken, typeToBuild,
+					prototype, numberToBuild, enforce);
+		} else if (containerType == TokenType.POCKETCONTAINER) {
+			return new Expr.Pocket(open.identifierToken, statements, container.lexeme, closed.reifitnediToken,
+					typeToBuild, prototype, numberToBuild, enforce);
+
+		} else if (containerType == TokenType.PUPCONTAINER) {
+			return new Expr.Pup(open.identifierToken, statements, container.lexeme, closed.reifitnediToken, typeToBuild,
+					prototype, numberToBuild, enforce);
+		} else if (containerType == TokenType.COCKETCONTAINER) {
+			return new Expr.Cocket(open.identifierToken, statements, container.lexeme, closed.reifitnediToken,
+					typeToBuild, prototype, numberToBuild, enforce);
+		} else if (containerType == TokenType.LOCKETCONTAINER) {
+			return new Expr.Locket(open.identifierToken, statements, container.lexeme, closed.reifitnediToken,
+					typeToBuild, prototype, numberToBuild, enforce);
+		} else if (containerType == TokenType.LUPCONTAINER) {
+			return new Expr.Lup(open.identifierToken, statements, container.lexeme, closed.reifitnediToken, typeToBuild,
+					prototype, numberToBuild, enforce);
+		} else if (containerType == TokenType.LILCONTAINER) {
+			return new Expr.Lil(open.identifierToken, statements, container.lexeme, closed.reifitnediToken, typeToBuild,
+					prototype, numberToBuild, enforce);
+		} else if (containerType == TokenType.PIDCONTAINER) {
+			return new Expr.Pid(open.identifierToken, statements, container.lexeme, closed.reifitnediToken, typeToBuild,
+					prototype, numberToBuild, enforce);
+		} else if (containerType == TokenType.CIDCONTAINER) {
+			return new Expr.Cid(open.identifierToken, statements, container.lexeme, closed.reifitnediToken, typeToBuild,
+					prototype, numberToBuild, enforce);
+		} else
 			return null;
-		
+
 	}
 
 	private boolean isAtEnd() {

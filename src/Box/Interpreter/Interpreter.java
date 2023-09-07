@@ -106,6 +106,8 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	private ArrayList<Stmt> statements;
 	private boolean cupExecute = false;
 	private boolean pocketExecute = false;
+	private boolean forward;
+	private boolean backward;
 
 	public Interpreter() {
 
@@ -5059,6 +5061,20 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		}
 		((BoxInstance) boxInstance).setAt(evaluated, 0);
 		return null;
+	}
+
+
+
+
+	public void setForward(boolean forward) {
+		this.forward= forward;
+	}
+
+
+
+
+	public void setBackward(boolean backward) {
+		this.backward =backward;
 	}
 
 }
