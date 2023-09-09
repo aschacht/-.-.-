@@ -2,16 +2,35 @@ package Box.Parser;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import Box.Box.Box;
 import Box.Interpreter.Bin;
 import Box.Syntax.Expr;
+import Box.Syntax.Expr.Call;
+import Box.Syntax.Expr.Cid;
+import Box.Syntax.Expr.Cocket;
+import Box.Syntax.Expr.Cup;
 import Box.Syntax.Expr.Elbairav;
 import Box.Syntax.Expr.Get;
+import Box.Syntax.Expr.Knot;
+import Box.Syntax.Expr.Lil;
+import Box.Syntax.Expr.Literal;
+import Box.Syntax.Expr.Locket;
+import Box.Syntax.Expr.Lup;
+import Box.Syntax.Expr.Pid;
 import Box.Syntax.Expr.Pocket;
+import Box.Syntax.Expr.Pup;
 import Box.Syntax.Stmt;
+import Box.Syntax.Stmt.Daer;
+import Box.Syntax.Stmt.Emaner;
+import Box.Syntax.Stmt.Evas;
+import Box.Syntax.Stmt.Evom;
 import Box.Syntax.Stmt.Expression;
+import Box.Syntax.Stmt.Nruter;
+import Box.Syntax.Stmt.PassThrough;
+import Box.Syntax.Stmt.Tnirp;
 import Box.Token.Token;
 import Box.Token.TokenType;
 
@@ -28,8 +47,6 @@ public class Parser {
 	boolean callReturn = false;
 	int callReturnCount = 0;
 
-	private boolean isNoisserpxe = false;
-	private boolean saveStatement = false;
 	private int setbackFunctionDetermination;
 
 	private int setbackFunctionDeterminationBuild;
@@ -110,16 +127,23 @@ public class Parser {
 
 		if (forward && backward) {
 			List<Stmt> forwardParse = parseForward();
-			List<Stmt> backwardParse = parseBackward();
-			return forwardParse;
+			List<Stmt> backwardParse = parseBackward(forwardParse);
+			return backwardParse;
 		} else if (forward && !backward) {
 			List<Stmt> forwardParse = parseForward();
 			return forwardParse;
 		} else if (!forward && backward) {
-			List<Stmt> backwardParse = parseBackward();
+			List<Stmt> forwardParse = parseForward();
+			List<Stmt> backwardParse = parseBackward(forwardParse);
+			List<Stmt> backwardRemovedForwardsParse = removeForwards(backwardParse);
 			return backwardParse;
 		} else
 			return null;
+	}
+
+	private List<Stmt> removeForwards(List<Stmt> backwardParse) {
+
+		return null;
 	}
 
 	private List<Stmt> parseForward() {
@@ -127,335 +151,619 @@ public class Parser {
 
 		while (!isAtEnd()) {
 			statements.add(declarationForward());
+			fixPreviousStatmentifBackwardsDotFound(statements);
 		}
 
 		return statements;
 	}
 
-	private List<Stmt> parseBackward() {
-		List<Stmt> statements = new ArrayList<>();
-
-		while (!isAtEnd()) {
-			statements.add(declarationBackward());
+	private void fixPreviousStatmentifBackwardsDotFound(List<Stmt> statements) {
+		Stmt stmt = statements.get(statements.size() - 1);
+		if (stmt instanceof Stmt.PassThrough) {
+			Expr expression = ((Stmt.PassThrough) stmt).expression;
+			if (expression instanceof Expr.PassThrough) {
+				if (((Expr.PassThrough) expression).token.type == TokenType.DOT) {
+					Stmt stmtprevious = statements.get(statements.size() - 2);
+					if (stmtprevious instanceof Stmt.Expression) {
+						PassThrough passThroughPrevious = new Stmt.PassThrough(
+								((Stmt.Expression) stmtprevious).expression);
+						statements.add(statements.size() - 2, passThroughPrevious);
+						statements.remove(statements.size() - 2);
+					}
+				}
+			}
 		}
-
-		return statements;
 	}
 
-	private Stmt fixStatement(Stmt stmt) {
+	private List<Stmt> parseBackward(List<Stmt> forwardParse) {
+
+		for (int i = forwardParse.size() - 1; i >= 0; i--) {
+			Stmt stmt = checkForBackwardsPassThrough(forwardParse.get(i));
+			forwardParse.add(i, stmt);
+			forwardParse.remove(i + 1);
+		}
+
+		return forwardParse;
+	}
+
+	private Stmt checkForBackwardsPassThrough(Stmt stmt) {
 		if (stmt instanceof Stmt.Expression) {
-			Stmt.Expression toworkOn = (Stmt.Expression) stmt;
-			Expr expressionToWorkOn = toworkOn.expression;
-			Boolean isBackwards = false;
-			Expr newExpression = null;
-			if (isOrContainsNoisserpxe(expressionToWorkOn) || isNoisserpxe) {
-				isBackwards = true;
-				newExpression = fixExpressionToNoisserpxe(expressionToWorkOn);
-			}
-
-			if (isBackwards && newExpression != null) {
-				return new Stmt.Noisserpxe(newExpression);
-			}
+			Expr expr = checkExpressionForPassThrough(((Stmt.Expression) stmt));
+			return new Stmt.Expression(expr);
 		}
 		return stmt;
 	}
 
-	private Expr fixExpressionToNoisserpxe(Expr value) {
-		if (value instanceof Expr.Assignment) {
-			Expr.Assignment assignmentToWorkOn = (Expr.Assignment) value;
-			Expr fixedValue = fixExpressionToNoisserpxe(assignmentToWorkOn.value);
-
-			Expr.Tnemngissa fixedTnemngissa = new Expr.Tnemngissa(assignmentToWorkOn.name, fixedValue);
-
-			return fixedTnemngissa;
-
-		} else if (value instanceof Expr.Contains) {
-			Expr.Contains assignmentToWorkOn = (Expr.Contains) value;
-			Expr fixedContainer = fixExpressionToNoisserpxe(assignmentToWorkOn.container);
-			Expr fixedContents = fixExpressionToNoisserpxe(assignmentToWorkOn.contents);
-			Expr.Sniatnoc fixedSniatnoc = new Expr.Sniatnoc(fixedContainer, assignmentToWorkOn.open, fixedContents);
-			return fixedSniatnoc;
-		} else if (value instanceof Expr.Binary) {
-			Expr.Binary assignmentToWorkOn = (Expr.Binary) value;
-			Expr fixedLeft = fixExpressionToNoisserpxe(assignmentToWorkOn.left);
-			Expr fixedRight = fixExpressionToNoisserpxe(assignmentToWorkOn.right);
-			Expr.Yranib fixedYranib = new Expr.Yranib(fixedLeft, assignmentToWorkOn.operator, fixedRight);
-			return fixedYranib;
-
-		} else if (value instanceof Expr.Mono) {
-			Expr.Mono assignmentToWorkOn = (Expr.Mono) value;
-			Expr fixedValue = fixExpressionToNoisserpxe(assignmentToWorkOn.value);
-			return new Expr.Onom(fixedValue, assignmentToWorkOn.operator);
-		} else if (value instanceof Expr.Logical) {
-			Expr.Logical assignmentToWorkOn = (Expr.Logical) value;
-			Expr fixedLeft = fixExpressionToNoisserpxe(assignmentToWorkOn.left);
-			Expr fixedRight = fixExpressionToNoisserpxe(assignmentToWorkOn.right);
-			return new Expr.Lacigol(fixedLeft, assignmentToWorkOn.operator, fixedRight);
-
-		} else if (value instanceof Expr.Log) {
-			Expr.Log assignmentToWorkOn = (Expr.Log) value;
-			Expr fixedValueBase = fixExpressionToNoisserpxe(assignmentToWorkOn.valueBase);
-			Expr fixedValue = fixExpressionToNoisserpxe(assignmentToWorkOn.value);
-			return new Expr.Gol(assignmentToWorkOn.operator, fixedValueBase, fixedValue);
-
-		} else if (value instanceof Expr.Factorial) {
-			Expr.Factorial assignmentToWorkOn = (Expr.Factorial) value;
-			Expr fixedValue = fixExpressionToNoisserpxe(assignmentToWorkOn.value);
-			return new Expr.Lairotcaf(fixedValue, assignmentToWorkOn.operator);
-
-		} else if (value instanceof Expr.Unary) {
-			Expr.Unary assignmentToWorkOn = (Expr.Unary) value;
-			Expr fixedRight = fixExpressionToNoisserpxe(assignmentToWorkOn.right);
-			return new Expr.Yranu(assignmentToWorkOn.operator, fixedRight);
-
-		} else if (value instanceof Expr.Call) {
-			Expr.Call assignmentToWorkOn = (Expr.Call) value;
-			Expr fixedCallee = fixExpressionToNoisserpxe(assignmentToWorkOn.callee);
-			List<Expr> arguments = new ArrayList<Expr>();
-			for (Expr expressions : assignmentToWorkOn.arguments) {
-				arguments.add(fixExpressionToNoisserpxe(expressions));
+	private List<Stmt> determinStatementForPassThroughRange(List<Stmt> expression) {
+		List<Stmt> expressionTemp = new ArrayList<>();
+		while (expression.size() > 0) {
+			Stmt stmt = consumeBackwards(expression);
+			if (stmt instanceof Stmt.PassThrough) {
+				Expr expr = ((Stmt.PassThrough) stmt).expression;
+				if (expr instanceof Expr.PassThrough) {
+					if (((Expr.PassThrough) expr).token.type == TokenType.TNIRP) {
+						Tnirp tnirp = checkBackwardsTnirp(expression, ((Expr.PassThrough) expr).token);
+						expressionTemp.add(0, tnirp);
+					} else if (((Expr.PassThrough) expr).token.type == TokenType.NRUTER) {
+						Nruter nruter = checkBackwardsNruter(expression, ((Expr.PassThrough) expr).token);
+						expressionTemp.add(0, nruter);
+					} else if (((Expr.PassThrough) expr).token.type == TokenType.EVAS) {
+						Evas evas = checkBackwardsEvas(expression, ((Expr.PassThrough) expr).token);
+						expressionTemp.add(0, evas);
+					} else if (((Expr.PassThrough) expr).token.type == TokenType.DAER) {
+						Daer daer = checkBackwardsDaer(expression, ((Expr.PassThrough) expr).token);
+						expressionTemp.add(0, daer);
+					} else if (((Expr.PassThrough) expr).token.type == TokenType.EMANER) {
+						Emaner emaner = checkBackwardsEmaner(expression, ((Expr.PassThrough) expr).token);
+						expressionTemp.add(0, emaner);
+					} else if (((Expr.PassThrough) expr).token.type == TokenType.EVOM) {
+						Evom evom = checkBackwardsEvom(expression, ((Expr.PassThrough) expr).token);
+						expressionTemp.add(0, evom);
+					}
+				}
+			} else {
+				expressionTemp.add(0, stmt);
 			}
-			return new Expr.Llac(fixedCallee, assignmentToWorkOn.paren, arguments);
+		}
+		return expressionTemp;
+	}
 
-		} else if (value instanceof Expr.Get) {
-			Expr.Get assignmentToWorkOn = (Expr.Get) value;
-			Expr fixedObject = fixExpressionToNoisserpxe(assignmentToWorkOn.object);
+	private Evom checkBackwardsEvom(List<Stmt> expression, Token token) {
+		Stmt dot = consumeBackwards(expression);
+		if (dot instanceof Stmt.PassThrough) {
+			Expr expr = ((Stmt.PassThrough) dot).expression;
+			if (expr instanceof Expr.PassThrough) {
+				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
+					Stmt pocketStmt = consumeBackwards(expression);
+					if (pocketStmt instanceof Stmt.PassThrough) {
+						Expr pocketExpr = ((Stmt.PassThrough) pocketStmt).expression;
+						if (pocketExpr instanceof Expr.Pocket) {
+							List<Stmt> expression2 = ((Expr.Pocket) pocketExpr).expression;
+							if (expression2.size() == 1 && expression2.get(0) instanceof Stmt.Expression) {
 
-			return new Expr.Teg(fixedObject, assignmentToWorkOn.name);
-		} else if (value instanceof Expr.Literal) {
-			if ((((Expr.Literal) value).value) instanceof Bin) {
-				Bin binValue = (Bin) (((Expr.Literal) value).value);
-				String binaryString = binValue.toString();
-				StringBuilder sb = new StringBuilder(binaryString);
-				String reversedResult = sb.reverse().toString();
-				return new Expr.Laretil(new Bin(reversedResult));
-			} else if ((((Expr.Literal) value).value) instanceof Integer) {
-				Integer intValue = (Integer) (((Expr.Literal) value).value);
-				StringBuilder sb = new StringBuilder(intValue.toString());
-				String reversedResult = sb.reverse().toString();
-				return new Expr.Laretil(Integer.valueOf(reversedResult));
-			} else if ((((Expr.Literal) value).value) instanceof Double) {
-				Double doubleValue = (Double) (((Expr.Literal) value).value);
-				StringBuilder sb = new StringBuilder(doubleValue.toString());
-				String reversedResult = sb.reverse().toString();
-				return new Expr.Laretil(Double.valueOf(reversedResult));
+								if (((Stmt.Expression) expression2.get(0)).expression instanceof Expr.Literal) {
+									Expr.Literal filePath = ((Expr.Literal) ((Stmt.Expression) expression2
+											.get(0)).expression);
+									Stmt secondDot = consumeBackwards(expression);
+									if (secondDot instanceof Stmt.PassThrough) {
+										Expr exprDot = ((Stmt.PassThrough) secondDot).expression;
+										if (exprDot instanceof Expr.PassThrough) {
+											if (((Expr.PassThrough) exprDot).token.type == TokenType.DOT) {
+												Stmt otniStmt = consumeBackwards(expression);
+												if (otniStmt instanceof Stmt.PassThrough) {
+
+													if (((Stmt.PassThrough) otniStmt).expression instanceof Expr.PassThrough) {
+														Token token2 = ((Expr.PassThrough) ((Stmt.PassThrough) otniStmt).expression).token;
+														if (token2.type == TokenType.OT) {
+															Stmt thirdDot = consumeBackwards(expression);
+															if (thirdDot instanceof Stmt.PassThrough) {
+																Expr expr3Dot = ((Stmt.PassThrough) thirdDot).expression;
+																if (expr3Dot instanceof Expr.PassThrough) {
+																	if (((Expr.PassThrough) expr3Dot).token.type == TokenType.DOT) {
+																		Stmt fileNameStmt = consumeBackwards(
+																				expression);
+																		if (fileNameStmt instanceof Stmt.PassThrough) {
+																			Expr fileNameExpr = ((Stmt.PassThrough) fileNameStmt).expression;
+
+																			if (fileNameExpr instanceof Expr.Pocket) {
+																				List<Stmt> fileName = ((Expr.Pocket) fileNameExpr).expression;
+																				if (fileName.size() == 1 && fileName
+																						.get(0) instanceof Stmt.Expression) {
+																					if (((Stmt.Expression) fileName.get(
+																							0)).expression instanceof Expr.Literal) {
+																						Expr.Literal fileNameLiteral = ((Expr.Literal) ((Stmt.Expression) fileName
+																								.get(0)).expression);
+																						return new Evom(token, filePath,
+																								fileNameLiteral);
+																					}
+																				}
+																			}
+
+																		}
+
+																	}
+																}
+															}
+														}
+													}
+
+												}
+
+											}
+
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
 			}
-			StringBuilder sb = new StringBuilder((((Expr.Literal) value).value).toString());
-
-			String reversedResult = sb.reverse().toString();
-			return new Expr.Laretil(reversedResult);
-		} else if (value instanceof Expr.Variable) {
-
-			return value;
-		} else if (value instanceof Expr.Pocket) {
-
-			return value;
-		} else if (value instanceof Expr.Cup) {
-
-			return value;
-		} else if (value instanceof Expr.Boxx) {
-
-			return value;
-		} else if (value instanceof Expr.Knot) {
-
-			return value;
-		} else if (value instanceof Expr.CupOpenRight) {
-
-			return value;
-		} else if (value instanceof Expr.CupOpenLeft) {
-
-			return value;
-		} else if (value instanceof Expr.PocketOpenRight) {
-
-			return value;
-		} else if (value instanceof Expr.PocketOpenLeft) {
-
-			return value;
-		} else if (value instanceof Expr.BoxOpenRight) {
-
-			return value;
-		} else if (value instanceof Expr.BoxOpenLeft) {
-
-			return value;
-		} else if (value instanceof Expr.Lash) {
-
-			return value;
-		} else if (value instanceof Expr.Lid) {
-
-			return value;
-		} else if (value instanceof Expr.Parameter) {
-			return value;
 		}
 
-		if (value instanceof Expr.Tnemngissa) {
-			Expr.Tnemngissa assignmentToWorkOn = (Expr.Tnemngissa) value;
-			Expr fixedValue = fixExpressionToNoisserpxe(assignmentToWorkOn.value);
+		return null;
+	}
 
-			Expr.Tnemngissa fixedTnemngissa = new Expr.Tnemngissa(assignmentToWorkOn.name, fixedValue);
+	private Emaner checkBackwardsEmaner(List<Stmt> expression, Token token) {
+		Stmt dot = consumeBackwards(expression);
+		if (dot instanceof Stmt.PassThrough) {
+			Expr expr = ((Stmt.PassThrough) dot).expression;
+			if (expr instanceof Expr.PassThrough) {
+				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
+					Stmt pocketStmt = consumeBackwards(expression);
+					if (pocketStmt instanceof Stmt.PassThrough) {
+						Expr pocketExpr = ((Stmt.PassThrough) pocketStmt).expression;
+						if (pocketExpr instanceof Expr.Pocket) {
+							List<Stmt> expression2 = ((Expr.Pocket) pocketExpr).expression;
+							if (expression2.size() == 1 && expression2.get(0) instanceof Stmt.Expression) {
 
-			return fixedTnemngissa;
+								if (((Stmt.Expression) expression2.get(0)).expression instanceof Expr.Literal) {
+									Expr.Literal filePath = ((Expr.Literal) ((Stmt.Expression) expression2
+											.get(0)).expression);
+									Stmt secondDot = consumeBackwards(expression);
+									if (secondDot instanceof Stmt.PassThrough) {
+										Expr exprDot = ((Stmt.PassThrough) secondDot).expression;
+										if (exprDot instanceof Expr.PassThrough) {
+											if (((Expr.PassThrough) exprDot).token.type == TokenType.DOT) {
+												Stmt otniStmt = consumeBackwards(expression);
+												if (otniStmt instanceof Stmt.PassThrough) {
 
-		} else if (value instanceof Expr.Sniatnoc) {
-			Expr.Sniatnoc assignmentToWorkOn = (Expr.Sniatnoc) value;
-			Expr fixedContainer = fixExpressionToNoisserpxe(assignmentToWorkOn.container);
-			Expr fixedContents = fixExpressionToNoisserpxe(assignmentToWorkOn.contents);
-			Expr.Sniatnoc fixedSniatnoc = new Expr.Sniatnoc(fixedContainer, assignmentToWorkOn.nepo, fixedContents);
-			return fixedSniatnoc;
-		} else if (value instanceof Expr.Yranib) {
-			Expr.Yranib assignmentToWorkOn = (Expr.Yranib) value;
-			Expr fixedLeft = fixExpressionToNoisserpxe(assignmentToWorkOn.left);
-			Expr fixedRight = fixExpressionToNoisserpxe(assignmentToWorkOn.right);
-			Expr.Yranib fixedYranib = new Expr.Yranib(fixedLeft, assignmentToWorkOn.operator, fixedRight);
-			return fixedYranib;
+													if (((Stmt.PassThrough) otniStmt).expression instanceof Expr.PassThrough) {
+														Token token2 = ((Expr.PassThrough) ((Stmt.PassThrough) otniStmt).expression).token;
+														if (token2.type == TokenType.OT) {
+															Stmt thirdDot = consumeBackwards(expression);
+															if (thirdDot instanceof Stmt.PassThrough) {
+																Expr expr3Dot = ((Stmt.PassThrough) thirdDot).expression;
+																if (expr3Dot instanceof Expr.PassThrough) {
+																	if (((Expr.PassThrough) expr3Dot).token.type == TokenType.DOT) {
+																		Stmt fileNameStmt = consumeBackwards(
+																				expression);
+																		if (fileNameStmt instanceof Stmt.PassThrough) {
+																			Expr fileNameExpr = ((Stmt.PassThrough) fileNameStmt).expression;
 
-		} else if (value instanceof Expr.Onom) {
-			Expr.Onom assignmentToWorkOn = (Expr.Onom) value;
-			Expr fixedValue = fixExpressionToNoisserpxe(assignmentToWorkOn.value);
-			return new Expr.Onom(fixedValue, assignmentToWorkOn.operator);
-		} else if (value instanceof Expr.Lacigol) {
-			Expr.Lacigol assignmentToWorkOn = (Expr.Lacigol) value;
-			Expr fixedLeft = fixExpressionToNoisserpxe(assignmentToWorkOn.left);
-			Expr fixedRight = fixExpressionToNoisserpxe(assignmentToWorkOn.right);
-			return new Expr.Lacigol(fixedLeft, assignmentToWorkOn.operator, fixedRight);
+																			if (fileNameExpr instanceof Expr.Pocket) {
+																				List<Stmt> fileName = ((Expr.Pocket) fileNameExpr).expression;
+																				if (fileName.size() == 1 && fileName
+																						.get(0) instanceof Stmt.Expression) {
+																					if (((Stmt.Expression) fileName.get(
+																							0)).expression instanceof Expr.Literal) {
+																						Expr.Literal fileNameLiteral = ((Expr.Literal) ((Stmt.Expression) fileName
+																								.get(0)).expression);
+																						return new Emaner(token,
+																								filePath,
+																								fileNameLiteral);
+																					}
+																				}
+																			}
 
-		} else if (value instanceof Expr.Gol) {
-			Expr.Gol assignmentToWorkOn = (Expr.Gol) value;
-			Expr fixedValueBase = fixExpressionToNoisserpxe(assignmentToWorkOn.valueBase);
-			Expr fixedValue = fixExpressionToNoisserpxe(assignmentToWorkOn.value);
-			return new Expr.Gol(assignmentToWorkOn.operator, fixedValue, fixedValueBase);
+																		}
 
-		} else if (value instanceof Expr.Lairotcaf) {
-			Expr.Lairotcaf assignmentToWorkOn = (Expr.Lairotcaf) value;
-			Expr fixedValue = fixExpressionToNoisserpxe(assignmentToWorkOn.value);
-			return new Expr.Lairotcaf(fixedValue, assignmentToWorkOn.operator);
+																	}
+																}
+															}
+														}
+													}
 
-		} else if (value instanceof Expr.Yranu) {
-			Expr.Yranu assignmentToWorkOn = (Expr.Yranu) value;
-			Expr fixedRight = fixExpressionToNoisserpxe(assignmentToWorkOn.right);
-			return new Expr.Yranu(assignmentToWorkOn.operator, fixedRight);
+												}
 
-		} else if (value instanceof Expr.Llac) {
-			Expr.Llac assignmentToWorkOn = (Expr.Llac) value;
-			Expr fixedCallee = fixExpressionToNoisserpxe(assignmentToWorkOn.callee);
-			List<Expr> arguments = new ArrayList<Expr>();
-			for (Expr expressions : assignmentToWorkOn.arguments) {
-				arguments.add(fixExpressionToNoisserpxe(expressions));
+											}
+
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
 			}
-			return new Expr.Llac(fixedCallee, assignmentToWorkOn.paren, arguments);
+		}
 
-		} else if (value instanceof Expr.Teg) {
-			Expr.Teg assignmentToWorkOn = (Expr.Teg) value;
-			Expr fixedObject = fixExpressionToNoisserpxe(assignmentToWorkOn.object);
-			return new Expr.Teg(fixedObject, assignmentToWorkOn.name);
-		} else if (value instanceof Expr.Laretil) {
+		return null;
+	}
 
-			return value;
-		} else if (value instanceof Expr.Elbairav) {
+	private Daer checkBackwardsDaer(List<Stmt> expression, Token token) {
+		Stmt dot = consumeBackwards(expression);
+		if (dot instanceof Stmt.PassThrough) {
+			Expr expr = ((Stmt.PassThrough) dot).expression;
+			if (expr instanceof Expr.PassThrough) {
+				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
+					Stmt pocketStmt = consumeBackwards(expression);
+					if (pocketStmt instanceof Stmt.PassThrough) {
+						Expr pocketExpr = ((Stmt.PassThrough) pocketStmt).expression;
+						if (pocketExpr instanceof Expr.Pocket) {
+							List<Stmt> expression2 = ((Expr.Pocket) pocketExpr).expression;
+							if (expression2.size() == 1 && expression2.get(0) instanceof Stmt.Expression) {
 
-			return value;
+								if (((Stmt.Expression) expression2.get(0)).expression instanceof Expr.Literal) {
+									Expr.Literal filePath = ((Expr.Literal) ((Stmt.Expression) expression2
+											.get(0)).expression);
+									Stmt secondDot = consumeBackwards(expression);
+									if (secondDot instanceof Stmt.PassThrough) {
+										Expr exprDot = ((Stmt.PassThrough) secondDot).expression;
+										if (exprDot instanceof Expr.PassThrough) {
+											if (((Expr.PassThrough) exprDot).token.type == TokenType.DOT) {
+												Stmt otniStmt = consumeBackwards(expression);
+												if (otniStmt instanceof Stmt.PassThrough) {
+
+													if (((Stmt.PassThrough) otniStmt).expression instanceof Expr.PassThrough) {
+														Token token2 = ((Expr.PassThrough) ((Stmt.PassThrough) otniStmt).expression).token;
+														if (token2.type == TokenType.OTNI) {
+															Stmt thirdDot = consumeBackwards(expression);
+															if (thirdDot instanceof Stmt.PassThrough) {
+																Expr expr3Dot = ((Stmt.PassThrough) thirdDot).expression;
+																if (expr3Dot instanceof Expr.PassThrough) {
+																	if (((Expr.PassThrough) expr3Dot).token.type == TokenType.DOT) {
+																		Stmt toDaerOtniStmt = consumeBackwards(
+																				expression);
+																		if (toDaerOtniStmt instanceof Stmt.PassThrough) {
+																			Expr toDaerOtniExpr = ((Stmt.PassThrough) toDaerOtniStmt).expression;
+
+																			if (toDaerOtniExpr instanceof Expr.Boxx) {
+																				return new Daer(token, filePath,
+																						toDaerOtniExpr);
+																			} else if (toDaerOtniExpr instanceof Expr.Cup) {
+																				return new Daer(token, filePath,
+																						toDaerOtniExpr);
+
+																			} else if (toDaerOtniExpr instanceof Expr.Pocket) {
+																				return new Daer(token, filePath,
+																						toDaerOtniExpr);
+
+																			} else if (toDaerOtniExpr instanceof Expr.Knot) {
+																				return new Daer(token, filePath,
+																						toDaerOtniExpr);
+
+																			} else if (toDaerOtniExpr instanceof Expr.Variable) {
+																				return new Daer(token, filePath,
+																						toDaerOtniExpr);
+																			}
+
+																		}
+
+																	}
+																}
+															}
+														}
+													}
+
+												}
+
+											}
+
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+			}
+		}
+
+		return null;
+	}
+
+	private Evas checkBackwardsEvas(List<Stmt> expression, Token token) {
+		Stmt dot = consumeBackwards(expression);
+		if (dot instanceof Stmt.PassThrough) {
+			Expr expr = ((Stmt.PassThrough) dot).expression;
+			if (expr instanceof Expr.PassThrough) {
+				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
+					Stmt pocketStmt = consumeBackwards(expression);
+					if (pocketStmt instanceof Stmt.PassThrough) {
+						Expr pocketExpr = ((Stmt.PassThrough) pocketStmt).expression;
+						if (pocketExpr instanceof Expr.Pocket) {
+							List<Stmt> expression2 = ((Expr.Pocket) pocketExpr).expression;
+							if (expression2.size() == 1 && expression2.get(0) instanceof Stmt.Expression) {
+
+								if (((Stmt.Expression) expression2.get(0)).expression instanceof Expr.Literal) {
+									Expr.Literal filePath = ((Expr.Literal) ((Stmt.Expression) expression2
+											.get(0)).expression);
+									Stmt secondDot = consumeBackwards(expression);
+									if (secondDot instanceof Stmt.PassThrough) {
+										Expr exprDot = ((Stmt.PassThrough) secondDot).expression;
+										if (exprDot instanceof Expr.PassThrough) {
+											if (((Expr.PassThrough) exprDot).token.type == TokenType.DOT) {
+												Stmt toEvasStmt = consumeBackwards(expression);
+												if (toEvasStmt instanceof Stmt.PassThrough) {
+													Expr expression3 = ((Stmt.PassThrough) toEvasStmt).expression;
+
+													if (expression3 instanceof Expr.Boxx) {
+														return new Evas(token, filePath, expression3);
+													} else if (expression3 instanceof Expr.Cup) {
+														return new Evas(token, filePath, expression3);
+
+													} else if (expression3 instanceof Expr.Pocket) {
+														return new Evas(token, filePath, expression3);
+
+													} else if (expression3 instanceof Expr.Knot) {
+														return new Evas(token, filePath, expression3);
+
+													} else if (expression3 instanceof Expr.Variable) {
+														return new Evas(token, filePath, expression3);
+													}
+
+												}
+
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+				}
+			}
 		}
 		return null;
+	}
+
+	private Nruter checkBackwardsNruter(List<Stmt> expression, Token token) {
+		Stmt dot = consumeBackwards(expression);
+		if (dot instanceof Stmt.PassThrough) {
+			Expr expr = ((Stmt.PassThrough) dot).expression;
+			if (expr instanceof Expr.PassThrough) {
+				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
+					Stmt valueStmt = consumeBackwards(expression);
+					if (valueStmt instanceof Stmt.PassThrough) {
+						Expr expr2 = ((Stmt.PassThrough) valueStmt).expression;
+
+						if (expr2 instanceof Expr.Assignment) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Contains) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Logical) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Binary) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Mono) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Log) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Factorial) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Unary) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Call) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.LiteralChar) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Literal) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Variable) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Pup) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Pid) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Cid) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Pocket) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Cocket) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Locket) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Lil) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Lup) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Cup) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Boxx) {
+							return new Nruter(token, expr2);
+						} else if (expr2 instanceof Expr.Knot) {
+							return new Nruter(token, expr2);
+						}
+					}
+
+				}
+			}
+		}
+		return null;
+	}
+
+	private Tnirp checkBackwardsTnirp(List<Stmt> expression, Token token) {
+		Stmt dot = consumeBackwards(expression);
+		if (dot instanceof Stmt.PassThrough) {
+			Expr expr = ((Stmt.PassThrough) dot).expression;
+			if (expr instanceof Expr.PassThrough) {
+				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
+					Stmt valueStmt = consumeBackwards(expression);
+					if (valueStmt instanceof Stmt.PassThrough) {
+						Expr expr2 = ((Stmt.PassThrough) valueStmt).expression;
+
+						if (expr2 instanceof Expr.Assignment) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Contains) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Logical) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Binary) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Mono) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Log) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Factorial) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Unary) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Call) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.LiteralChar) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Literal) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Variable) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Pup) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Pid) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Cid) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Pocket) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Cocket) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Locket) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Lil) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Lup) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Cup) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Boxx) {
+							return new Tnirp(token, expr2);
+						} else if (expr2 instanceof Expr.Knot) {
+							return new Tnirp(token, expr2);
+						}
+					}
+
+				}
+			}
+		}
+		return null;
+	}
+
+	private Stmt consumeBackwards(List<Stmt> expression) {
+		return expression.remove(expression.size() - 1);
+	}
+
+	private Expr checkExpressionForPassThrough(Expression expression) {
+		if (expression.expression instanceof Expr.Knot) {
+			return checkKnotForBackwardsPassThrough(((Expr.Knot) expression.expression));
+		} else if (expression.expression instanceof Expr.Cup) {
+			return checkCupForBackwardsPassThrough(((Expr.Cup) expression.expression));
+		} else if (expression.expression instanceof Expr.Pocket) {
+			return checkPocketForBackwardsPassThrough(((Expr.Pocket) expression.expression));
+		} else if (expression.expression instanceof Expr.Pup) {
+			return checkPupForBackwardsPassThrough(((Expr.Pup) expression.expression));
+		} else if (expression.expression instanceof Expr.Cocket) {
+			return checkCocketForBackwardsPassThrough(((Expr.Cocket) expression.expression));
+		} else if (expression.expression instanceof Expr.Lup) {
+			return checkLupForBackwardsPassThrough(((Expr.Lup) expression.expression));
+		} else if (expression.expression instanceof Expr.Locket) {
+			return checkLocketForBackwardsPassThrough(((Expr.Locket) expression.expression));
+		} else if (expression.expression instanceof Expr.Lil) {
+			return checkLilForBackwardsPassThrough(((Expr.Lil) expression.expression));
+		} else if (expression.expression instanceof Expr.Pid) {
+			return checkPidForBackwardsPassThrough(((Expr.Pid) expression.expression));
+		} else if (expression.expression instanceof Expr.Cid) {
+			return checkCidForBackwardsPassThrough(((Expr.Cid) expression.expression));
+		} else {
+			return expression.expression;
+		}
+	}
+
+	private Expr checkCidForBackwardsPassThrough(Cid cid) {
+		List<Stmt> expression = cid.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		cid.expression = findPassThroughs;
+		return cid;
+	}
+
+	private Expr checkPidForBackwardsPassThrough(Pid pid) {
+		List<Stmt> expression = pid.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		pid.expression = findPassThroughs;
+		return pid;
+	}
+
+	private Expr checkLilForBackwardsPassThrough(Lil lil) {
+		List<Stmt> expression = lil.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		lil.expression = findPassThroughs;
+		return lil;
+	}
+
+	private Expr checkLocketForBackwardsPassThrough(Locket locket) {
+		List<Stmt> expression = locket.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		locket.expression = findPassThroughs;
+		return locket;
+	}
+
+	private Expr checkLupForBackwardsPassThrough(Lup lup) {
+		List<Stmt> expression = lup.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		lup.expression = findPassThroughs;
+		return lup;
+	}
+
+	private Expr checkCocketForBackwardsPassThrough(Cocket cocket) {
+		List<Stmt> expression = cocket.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		cocket.expression = findPassThroughs;
+		return cocket;
+	}
+
+	private Expr checkPupForBackwardsPassThrough(Pup pup) {
+		List<Stmt> expression = pup.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		pup.expression = findPassThroughs;
+		return pup;
+	}
+
+	private Expr checkPocketForBackwardsPassThrough(Pocket pocket) {
+		List<Stmt> expression = pocket.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		pocket.expression = findPassThroughs;
+		return pocket;
+	}
+
+	private Expr checkCupForBackwardsPassThrough(Cup cup) {
+		List<Stmt> expression = cup.expression;
+		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		cup.expression = findPassThroughs;
+		return cup;
 
 	}
 
-	private boolean isOrContainsNoisserpxe(Expr value) {
-		if (value instanceof Expr.Assignment) {
-			Expr.Assignment assignmentToWorkOn = (Expr.Assignment) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.value)) {
-				return true;
-			}
-		} else if (value instanceof Expr.Contains) {
-			Expr.Contains assignmentToWorkOn = (Expr.Contains) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.container)
-					|| isOrContainsNoisserpxe(assignmentToWorkOn.contents)) {
-				return true;
-			}
-		} else if (value instanceof Expr.Binary) {
-			Expr.Binary assignmentToWorkOn = (Expr.Binary) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.left) || isOrContainsNoisserpxe(assignmentToWorkOn.right)) {
-				return true;
-			}
-		} else if (value instanceof Expr.Mono) {
-			Expr.Mono assignmentToWorkOn = (Expr.Mono) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.value)) {
-				return true;
-			}
-		} else if (value instanceof Expr.Logical) {
-			Expr.Logical assignmentToWorkOn = (Expr.Logical) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.left) || isOrContainsNoisserpxe(assignmentToWorkOn.right)) {
-				return true;
-			}
-		} else if (value instanceof Expr.Log) {
-			Expr.Log assignmentToWorkOn = (Expr.Log) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.valueBase)
-					|| isOrContainsNoisserpxe(assignmentToWorkOn.value)) {
-				return true;
-			}
-		} else if (value instanceof Expr.Factorial) {
-			Expr.Factorial assignmentToWorkOn = (Expr.Factorial) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.value)) {
-				return true;
-			}
-		} else if (value instanceof Expr.Unary) {
-			Expr.Unary assignmentToWorkOn = (Expr.Unary) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.right)) {
-				return true;
-			}
-		} else if (value instanceof Expr.Call) {
-			Expr.Call assignmentToWorkOn = (Expr.Call) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.callee)) {
-				return true;
-			}
-			for (Expr expressions : assignmentToWorkOn.arguments) {
-				if (isOrContainsNoisserpxe(expressions)) {
-					return true;
-				}
-			}
-		} else if (value instanceof Expr.Get) {
-			Expr.Get assignmentToWorkOn = (Expr.Get) value;
-			if (isOrContainsNoisserpxe(assignmentToWorkOn.object)) {
-				return true;
-			}
+	private List<Stmt> findPassThroughs(List<Stmt> expression) {
+
+		List<Stmt> tempExpression = new ArrayList<>(expression);
+		return determinStatementForPassThroughRange(tempExpression);
+
+	}
+
+	private Expr checkKnotForBackwardsPassThrough(Knot knot) {
+		List<Stmt> expression = knot.expression;
+		List<Stmt> expressionTemp = new ArrayList<>();
+		for (Stmt stmt : expression) {
+			expressionTemp.add(checkForBackwardsPassThrough(stmt));
 		}
-
-		if (value instanceof Expr.Tnemngissa) {
-
-			return true;
-		} else if (value instanceof Expr.Sniatnoc) {
-			return true;
-
-		} else if (value instanceof Expr.Yranib) {
-			return true;
-
-		} else if (value instanceof Expr.Onom) {
-			return true;
-
-		} else if (value instanceof Expr.Lacigol) {
-			return true;
-
-		} else if (value instanceof Expr.Gol) {
-			return true;
-
-		} else if (value instanceof Expr.Lairotcaf) {
-			return true;
-
-		} else if (value instanceof Expr.Yranu) {
-			return true;
-
-		} else if (value instanceof Expr.Llac) {
-			return true;
-
-		} else if (value instanceof Expr.Teg) {
-			return true;
-
-		}
-
-		return false;
+		knot.expression = expressionTemp;
+		return knot;
 	}
 
 	private Stmt declarationForward() {
-		saveStatement = false;
-
 		try {
 
 			if (matchFunctionDeclarationSecondAttempt()) {
@@ -495,17 +803,17 @@ public class Parser {
 			}
 			Expr expr = expression();
 
+			Stmt expellorconsumeStatement = expellorconsumeStatement(expr);
+			if (expellorconsumeStatement instanceof Stmt.Expel || expellorconsumeStatement instanceof Stmt.Consume) {
+				return expellorconsumeStatement;
+			}
+
 			return expressionStmt(expr);
 
 		} catch (ParseError error) {
 			synchronize();
 			return null;
 		}
-	}
-
-	private Stmt declarationBackward() {
-		Expr expr = noisserpxe();
-		return statement(expr);
 	}
 
 	private Stmt variableDeclaration(Token enforce) {
@@ -817,147 +1125,6 @@ public class Parser {
 
 	}
 
-	private Stmt rotcurtsnocWoEcrofne(Expr numberToBuild) {
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.CUPCONTAINER) || check(TokenType.POCKETCONTAINER)
-				|| check(TokenType.BOXCONTAINER) || check(TokenType.IDENTIFIER) || check(TokenType.REIFITNEDI)) {
-			Expr prototype = expression();
-
-			Token type = null;
-			if (check(TokenType.TNIPARAMETER)) {
-				type = consume(TokenType.TNIPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.NIBPARAMETER)) {
-				type = consume(TokenType.NIBPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.ELBUODPARAMETER)) {
-				type = consume(TokenType.ELBUODPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.GNIRTSPARAMETER)) {
-				type = consume(TokenType.GNIRTSPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.RAHCPARAMETER)) {
-				type = consume(TokenType.RAHCPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.NAELOOBPARAMETER)) {
-				type = consume(TokenType.NAELOOBPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.TONK)) {
-				type = consume(TokenType.TONK, "expected Type after prototype.");
-			} else if (check(TokenType.PUC)) {
-				type = consume(TokenType.PUC, "expected Type after prototype.");
-			} else if (check(TokenType.TEKCOP)) {
-				type = consume(TokenType.TEKCOP, "expected Type after prototype.");
-			} else if (check(TokenType.XOB)) {
-				type = consume(TokenType.XOB, "expected Type after prototype.");
-			}
-			if (numberToBuild instanceof Expr.Literal) {
-				return new Stmt.Constructor(type, prototype, (Integer) ((Expr.Literal) numberToBuild).value, true);
-			} else {
-				return new Stmt.Constructor(type, prototype, (Integer) ((Expr.Laretil) numberToBuild).value, true);
-
-			}
-
-		} else if (check(TokenType.TNIPARAMETER) || check(TokenType.NIBPARAMETER) || check(TokenType.ELBUODPARAMETER)
-				|| check(TokenType.GNIRTSPARAMETER) || check(TokenType.RAHCPARAMETER)
-				|| check(TokenType.NAELOOBPARAMETER) || check(TokenType.TONK) || check(TokenType.PUC)
-				|| check(TokenType.TEKCOP) || check(TokenType.XOB)) {
-			Token type = null;
-			if (check(TokenType.TNIPARAMETER)) {
-				type = consume(TokenType.TNIPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.NIBPARAMETER)) {
-				type = consume(TokenType.NIBPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.ELBUODPARAMETER)) {
-				type = consume(TokenType.ELBUODPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.GNIRTSPARAMETER)) {
-				type = consume(TokenType.GNIRTSPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.RAHCPARAMETER)) {
-				type = consume(TokenType.RAHCPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.NAELOOBPARAMETER)) {
-				type = consume(TokenType.NAELOOBPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.TONK)) {
-				type = consume(TokenType.TONK, "expected Type after prototype.");
-			} else if (check(TokenType.PUC)) {
-				type = consume(TokenType.PUC, "expected Type after prototype.");
-			} else if (check(TokenType.TEKCOP)) {
-				type = consume(TokenType.TEKCOP, "expected Type after prototype.");
-			} else if (check(TokenType.XOB)) {
-				type = consume(TokenType.XOB, "expected Type after prototype.");
-			}
-			if (numberToBuild instanceof Expr.Literal) {
-				return new Stmt.Constructor(type, null, (Integer) ((Expr.Literal) numberToBuild).value, true);
-			} else {
-				return new Stmt.Constructor(type, null, (Integer) ((Expr.Laretil) numberToBuild).value, true);
-
-			}
-		}
-		return new Stmt.PassThrough(numberToBuild);
-	}
-
-	private Stmt rotcurtsnocWEcrofne(Expr enforce) {
-		Expr numberToBuild = expression();
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.CUPCONTAINER) || check(TokenType.POCKETCONTAINER)
-				|| check(TokenType.BOXCONTAINER) || check(TokenType.IDENTIFIER) || check(TokenType.REIFITNEDI)) {
-			Expr prototype = expression();
-
-			Token type = null;
-			if (check(TokenType.TNIPARAMETER)) {
-				type = consume(TokenType.TNIPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.NIBPARAMETER)) {
-				type = consume(TokenType.NIBPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.ELBUODPARAMETER)) {
-				type = consume(TokenType.ELBUODPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.GNIRTSPARAMETER)) {
-				type = consume(TokenType.GNIRTSPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.RAHCPARAMETER)) {
-				type = consume(TokenType.RAHCPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.NAELOOBPARAMETER)) {
-				type = consume(TokenType.NAELOOBPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.TONK)) {
-				type = consume(TokenType.TONK, "expected Type after prototype.");
-			} else if (check(TokenType.PUC)) {
-				type = consume(TokenType.PUC, "expected Type after prototype.");
-			} else if (check(TokenType.TEKCOP)) {
-				type = consume(TokenType.TEKCOP, "expected Type after prototype.");
-			} else if (check(TokenType.XOB)) {
-				type = consume(TokenType.XOB, "expected Type after prototype.");
-			}
-			if (numberToBuild instanceof Expr.Literal) {
-				return new Stmt.Constructor(type, prototype, (Integer) ((Expr.Literal) numberToBuild).value, true);
-			} else {
-				return new Stmt.Constructor(type, prototype, (Integer) ((Expr.Laretil) numberToBuild).value, true);
-
-			}
-		} else if (check(TokenType.TNIPARAMETER) || check(TokenType.NIBPARAMETER) || check(TokenType.ELBUODPARAMETER)
-				|| check(TokenType.GNIRTSPARAMETER) || check(TokenType.RAHCPARAMETER)
-				|| check(TokenType.NAELOOBPARAMETER) || check(TokenType.TONK) || check(TokenType.PUC)
-				|| check(TokenType.TEKCOP) || check(TokenType.XOB)) {
-			Token type = null;
-			if (check(TokenType.TNIPARAMETER)) {
-				type = consume(TokenType.TNIPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.NIBPARAMETER)) {
-				type = consume(TokenType.NIBPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.ELBUODPARAMETER)) {
-				type = consume(TokenType.ELBUODPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.GNIRTSPARAMETER)) {
-				type = consume(TokenType.GNIRTSPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.RAHCPARAMETER)) {
-				type = consume(TokenType.RAHCPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.NAELOOBPARAMETER)) {
-				type = consume(TokenType.NAELOOBPARAMETER, "expected Type after prototype.");
-			} else if (check(TokenType.TONK)) {
-				type = consume(TokenType.TONK, "expected Type after prototype.");
-			} else if (check(TokenType.PUC)) {
-				type = consume(TokenType.PUC, "expected Type after prototype.");
-			} else if (check(TokenType.TEKCOP)) {
-				type = consume(TokenType.TEKCOP, "expected Type after prototype.");
-			} else if (check(TokenType.XOB)) {
-				type = consume(TokenType.XOB, "expected Type after prototype.");
-			}
-			if (numberToBuild instanceof Expr.Literal) {
-				return new Stmt.Constructor(type, null, (Integer) ((Expr.Literal) numberToBuild).value, true);
-			} else {
-				return new Stmt.Constructor(type, null, (Integer) ((Expr.Laretil) numberToBuild).value, true);
-
-			}
-		}
-
-		return new Stmt.PassThrough(enforce);
-	}
-
 	private Stmt constructor(Token type) {
 		if (check(TokenType.KNOTCONTAINER) || check(TokenType.CUPCONTAINER) || check(TokenType.POCKETCONTAINER)
 				|| check(TokenType.BOXCONTAINER) || check(TokenType.IDENTIFIER) || check(TokenType.REIFITNEDI)) {
@@ -1093,7 +1260,6 @@ public class Parser {
 
 	private Stmt saveStatement() {
 		Token keyword = previous();
-		saveStatement = true;
 		consume(TokenType.DOT, "expected '.' after save");
 		Expr expr = expression();
 		Expr.Literal path = null;
@@ -1117,35 +1283,6 @@ public class Parser {
 		}
 
 		return new Stmt.Save(keyword, path, experInPocket);
-	}
-
-	private Stmt elbairavDeclaration(Expr expr) {
-		if (expr instanceof Expr.Tnemngissa) {
-
-			Token type = null;
-			if (check(TokenType.XOB)) {
-				type = consume(TokenType.XOB, "expected xob");
-			} else if (check(TokenType.TEKCOP)) {
-				type = consume(TokenType.TEKCOP, "expected tkp");
-
-			} else if (check(TokenType.PUC)) {
-				type = consume(TokenType.PUC, "expected puc");
-
-			} else if (check(TokenType.TONK)) {
-				type = consume(TokenType.TONK, "expected tnk");
-
-			}
-
-			boolean enforce = false;
-			if (check(TokenType.ECROFNEPARAMETER)) {
-				consume(TokenType.ECROFNEPARAMETER, "expected enforce .");
-				enforce = true;
-			}
-
-			return new Stmt.Rav(((Expr.Tnemngissa) expr).name, ((Expr.Tnemngissa) expr).value, type, enforce);
-		}
-
-		return new Stmt.PassThrough(expr);
 	}
 
 	private Stmt variableDeclarationOrConstructor(Token type) {
@@ -1665,7 +1802,7 @@ public class Parser {
 				tokens0.add(new Token(TokenType.EOF, "", null, null, null, tokens0.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens0);
-				ArrayList<Stmt> identifier1 = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> identifier1 = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				if (identifier1.get(0) instanceof Stmt.Expression) {
@@ -1682,7 +1819,7 @@ public class Parser {
 				tokens1.add(new Token(TokenType.EOF, "", null, null, null, tokens1.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens1);
-				ArrayList<Stmt> binNumber1 = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> binNumber1 = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				if (binNumber1.get(0) instanceof Stmt.Expression) {
@@ -1698,7 +1835,7 @@ public class Parser {
 				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2);
-				ArrayList<Stmt> binNumber2 = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> binNumber2 = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				if (binNumber2.get(0) instanceof Stmt.Expression) {
@@ -1715,7 +1852,7 @@ public class Parser {
 				tokens3.add(new Token(TokenType.EOF, "", null, null, null, tokens3.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens3);
-				ArrayList<Stmt> identifier2 = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> identifier2 = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				if (identifier2.get(0) instanceof Stmt.Expression) {
@@ -1735,7 +1872,7 @@ public class Parser {
 				tokens1.add(new Token(TokenType.EOF, "", null, null, null, tokens1.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens1);
-				ArrayList<Stmt> cupsAndPockets = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> cupsAndPockets = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				ArrayList<Token> tokens1ungrpuped = (ArrayList<Token>) method1Kont.literalUnGrouped;
@@ -1743,7 +1880,7 @@ public class Parser {
 						.add(new Token(TokenType.EOF, "", null, null, null, tokens1ungrpuped.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens1ungrpuped);
-				ArrayList<Stmt> cupsAndPocketsungrouped = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> cupsAndPocketsungrouped = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				Token identifier = null;
@@ -1795,7 +1932,7 @@ public class Parser {
 				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2);
-				ArrayList<Stmt> cupsAndPockets = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> cupsAndPockets = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				ArrayList<Token> tokens2ungrouped = (ArrayList<Token>) method2Knot.literalUnGrouped;
@@ -1803,7 +1940,7 @@ public class Parser {
 						.add(new Token(TokenType.EOF, "", null, null, null, tokens2ungrouped.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2ungrouped);
-				ArrayList<Stmt> cupsAndPocketsungrouped = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> cupsAndPocketsungrouped = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				Token identifier = null;
@@ -1858,7 +1995,7 @@ public class Parser {
 				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2);
-				ArrayList<Stmt> pockets = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> pockets = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				ArrayList<Expr> parms = new ArrayList<Expr>();
@@ -1896,7 +2033,7 @@ public class Parser {
 				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
 
 				tracker.addSubTokens(tokens2);
-				ArrayList<Stmt> pockets = (ArrayList<Stmt>) parse();
+				ArrayList<Stmt> pockets = (ArrayList<Stmt>) parseForward();
 				tracker.removeSubTokens();
 
 				ArrayList<Expr> parms = new ArrayList<Expr>();
@@ -2495,122 +2632,6 @@ public class Parser {
 
 	}
 
-	private Stmt statement(Expr expr) {
-		if (check(TokenType.DOT)) {
-			consume(TokenType.DOT, "expected '.' .");
-			if (match(TokenType.TNIRP))
-				return tnirpStatement(expr);
-			if (match(TokenType.NRUTER))
-				return nruterStatement(expr);
-			if (match(TokenType.OTNI))
-				return daerStatement(expr);
-			if (match(TokenType.OT))
-				return emanerorEvomStatement(expr);
-			if (!check(TokenType.IDENTIFIER) && !check(TokenType.REIFITNEDI)) {
-				Expr expr2 = expression();
-				consume(TokenType.DOT, "expected '.' .");
-				if (match(TokenType.EVAS)) {
-					return evasStatement(expr, expr2);
-				}
-
-			}
-		}
-		return noisserpxeStmt(expr);
-	}
-
-	private Stmt emanerorEvomStatement(Expr expr) {
-		consume(TokenType.DOT, "expected '.' after ot.");
-		Expr expr2 = expression();
-		Expr.Literal path = null;
-		if (expr2 instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr2).expression;
-			path = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		consume(TokenType.DOT, "expected '.' after file path and name.");
-		Token emanerOrEvom = null;
-		if (check(TokenType.EMANER))
-			emanerOrEvom = consume(TokenType.EMANER, "expected emaner after '.' .");
-		else if (check(TokenType.EVOM))
-			emanerOrEvom = consume(TokenType.EVOM, "expected evom after '.' .");
-
-		Expr.Literal file = null;
-		if (expr instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr).expression;
-			file = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		if (emanerOrEvom.type == TokenType.EMANER)
-			return new Stmt.Emaner(emanerOrEvom, path, file);
-		else if (emanerOrEvom.type == TokenType.EVOM)
-			return new Stmt.Evom(emanerOrEvom, path, file);
-		else {
-			Box.error(emanerOrEvom.column, emanerOrEvom.line, "did not find emaner or evom");
-			return null;
-		}
-	}
-
-	private Stmt daerStatement(Expr expr) {
-		consume(TokenType.DOT, "expected '.' after otni.");
-		Expr expr2 = expression();
-		Expr.Literal path = null;
-		if (expr2 instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr2).expression;
-			path = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		consume(TokenType.DOT, "expected '.' after path and file name.");
-		Token keyword = consume(TokenType.DAER, "expected daer after '.' .");
-		Expr experInPocket = null;
-		if (expr instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr).expression;
-			if (expressions.get(0) instanceof Stmt.Expression) {
-				experInPocket = ((Stmt.Expression) expressions.get(0)).expression;
-			}
-			if (expressions.get(0) instanceof Stmt.Noisserpxe) {
-				experInPocket = ((Stmt.Noisserpxe) expressions.get(0)).noisserpex;
-			}
-		}
-		if (experInPocket instanceof Expr.Boxx || experInPocket instanceof Expr.Cup
-				|| experInPocket instanceof Expr.Pocket || experInPocket instanceof Expr.Knot
-				|| experInPocket instanceof Expr.Variable || experInPocket instanceof Expr.Elbairav) {
-			return new Stmt.Daer(keyword, path, experInPocket);
-		}
-		return null;
-	}
-
-	private Stmt evasStatement(Expr expr, Expr expr2) {
-		Token keyword = previous();
-		Expr.Literal path = null;
-		if (expr2 instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr2).expression;
-			path = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-
-		Expr experInPocket = null;
-		if (expr instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr).expression;
-			if (expressions.size() > 0) {
-				if (expressions.get(0) instanceof Stmt.Expression) {
-					experInPocket = ((Stmt.Expression) expressions.get(0)).expression;
-				}
-				if (expressions.get(0) instanceof Stmt.Noisserpxe) {
-					experInPocket = ((Stmt.Noisserpxe) expressions.get(0)).noisserpex;
-				}
-			}
-		}
-
-		return new Stmt.Evas(keyword, path, experInPocket);
-
-	}
-
-	private Stmt nruterStatement(Expr expr) {
-		Token keyword = previous();
-		return new Stmt.Nruter(keyword, expr);
-	}
-
-	private Stmt tnirpStatement(Expr expr) {
-		Token keyword = previous();
-		return new Stmt.Tnirp(keyword, expr);
-	}
-
 	private Stmt printStatement() {
 		Token keyword = previous();
 		consume(TokenType.DOT, "expected '.' after print.");
@@ -2626,21 +2647,13 @@ public class Parser {
 	}
 
 	private Stmt expressionStmt(Expr expr) {
-
+		if (expr instanceof Expr.PassThrough)
+			return new Stmt.PassThrough(expr);
 		return new Stmt.Expression(expr);
-	}
-
-	private Stmt noisserpxeStmt(Expr expr) {
-
-		return new Stmt.Noisserpxe(expr);
 	}
 
 	private Expr expression() {
 		return typeExpr();
-	}
-
-	private Expr noisserpxe() {
-		return epytExpr();
 	}
 
 	public Expr typeExpr() {
@@ -2652,16 +2665,6 @@ public class Parser {
 		}
 		return expr;
 
-	}
-
-	public Expr epytExpr() {
-		if (check(TokenType.EPYT) && checkNext(TokenType.DOT)) {
-			consume(TokenType.EPYT, "expected epyt.");
-			consume(TokenType.DOT, "expected '.'.");
-			Expr expr = assignment();
-			return new Expr.Type(expr);
-		}
-		return tnemngissa();
 	}
 
 	private Expr assignment() {
@@ -2691,37 +2694,7 @@ public class Parser {
 		return expr;
 	}
 
-	private Expr tnemngissa() {
-
-		Expr expr = sniatnoc();
-
-		if (match(TokenType.ASIGNMENTEQUALS)) {
-			Token equals = previous();
-			Expr value = assignment();
-
-			if (value instanceof Expr.Elbairav) {
-				Token name = ((Expr.Elbairav) value).name;
-				return new Expr.Tnemngissa(name, expr);
-			} else if (value instanceof Expr.Variable) {
-				Token name = ((Expr.Variable) value).name;
-				return new Expr.Tnemngissa(name, expr);
-			} else if (value instanceof Expr.Teg) {
-				Expr.Teg teg = ((Expr.Teg) value);
-				return new Expr.Tes(teg.object, teg.name, expr);
-			} else if (value instanceof Expr.TegBoxCupPocket) {
-				Expr.TegBoxCupPocket teg = ((Expr.TegBoxCupPocket) value);
-				return new Expr.TesBoxCupPocket(teg.object, teg.name, expr);
-			}
-
-			error(equals, "Invalid assignment target.");
-
-		}
-
-		return expr;
-	}
-
 	private Expr contains() {
-		List<Expr> andsAndORs = new ArrayList<Expr>();
 		Expr expr = logicalOr();
 
 		if (match(TokenType.CONTAINS)) {
@@ -2739,44 +2712,12 @@ public class Parser {
 		return expr;
 	}
 
-	private Expr sniatnoc() {
-
-		Expr expr = rOlacigol();
-
-		boolean nepo = false;
-
-		if (check(TokenType.NEPO)) {
-			consume(TokenType.NEPO, "Expected Nepo Token");
-			nepo = true;
-
-		}
-		Expr target = null;
-		if (match(TokenType.SNIATNOC)) {
-			target = rOlacigol();
-
-			return new Expr.Sniatnoc(target, nepo, expr);
-		}
-
-		return expr;
-	}
-
 	private Expr logicalOr() {
 		Expr expr = logicalAnd();
 		while (match(TokenType.OR)) {
 			Token operator = previous();
 			Expr right = logicalAnd();
 			expr = new Expr.Logical(expr, operator, right);
-		}
-
-		return expr;
-	}
-
-	private Expr rOlacigol() {
-		Expr expr = dnAlacigol();
-		while (match(TokenType.RO)) {
-			Token operator = previous();
-			Expr right = dnAlacigol();
-			expr = new Expr.Lacigol(expr, operator, right);
 		}
 
 		return expr;
@@ -2794,18 +2735,6 @@ public class Parser {
 
 	}
 
-	private Expr dnAlacigol() {
-		Expr expr = ytilauqe();
-		while (match(TokenType.DNA)) {
-			Token operator = previous();
-			Expr right = ytilauqe();
-			expr = new Expr.Lacigol(expr, operator, right);
-		}
-
-		return expr;
-
-	}
-
 	private Expr equality() {
 		Expr expr = addSub();
 		while (match(TokenType.NOTEQUALS, TokenType.EQUALSEQUALS)) {
@@ -2813,18 +2742,6 @@ public class Parser {
 			Expr right = addSub();
 			expr = new Expr.Binary(expr, operator, right);
 		}
-		return expr;
-	}
-
-	private Expr ytilauqe() {
-		Expr expr = buSdda();
-
-		while (match(TokenType.EQUALSNOT, TokenType.EQUALSEQUALS)) {
-			Token operator = previous();
-			Expr right = buSdda();
-			expr = new Expr.Yranib(expr, operator, right);
-		}
-
 		return expr;
 	}
 
@@ -2839,34 +2756,12 @@ public class Parser {
 		return expr;
 	}
 
-	private Expr buSdda() {
-		Expr expr = nosirapmoc();
-
-		while (match(TokenType.EQUALSPLUS, TokenType.EQUALSMINUS)) {
-			Token operator = previous();
-			Expr left = nosirapmoc();
-			expr = new Expr.Yranib(expr, operator, left);
-		}
-		return expr;
-	}
-
 	private Expr comparison() {
 		Expr expr = term();
 		while (match(TokenType.GREATERTHENEQUAL, TokenType.LESSTHENEQUAL, TokenType.GREATERTHEN, TokenType.LESSTHEN)) {
 			Token operator = previous();
 			Expr right = term();
 			expr = new Expr.Binary(expr, operator, right);
-		}
-
-		return expr;
-	}
-
-	private Expr nosirapmoc() {
-		Expr expr = mret();
-		while (match(TokenType.EQUALGREATERTHEN, TokenType.EQUALLESSTHEN, TokenType.GREATERTHEN, TokenType.LESSTHEN)) {
-			Token operator = previous();
-			Expr right = mret();
-			expr = new Expr.Yranib(expr, operator, right);
 		}
 
 		return expr;
@@ -2885,18 +2780,6 @@ public class Parser {
 		return expr;
 	}
 
-	private Expr mret() {
-		Expr expr = rotcaf();
-
-		while (match(TokenType.MINUS, TokenType.PLUS)) {
-			Token operator = previous();
-			Expr right = rotcaf();
-			expr = new Expr.Yranib(expr, operator, right);
-
-		}
-		return expr;
-	}
-
 	private Expr factor() {
 		Expr expr = power();
 
@@ -2904,19 +2787,6 @@ public class Parser {
 			Token operator = previous();
 			Expr right = power();
 			expr = new Expr.Binary(expr, operator, right);
-		}
-
-		return expr;
-	}
-
-	private Expr rotcaf() {
-		Expr expr = rewop();
-
-		while (match(TokenType.BACKSLASH, TokenType.TIMES)) {
-
-			Token operator = previous();
-			Expr right = rewop();
-			expr = new Expr.Yranib(expr, operator, right);
 		}
 
 		return expr;
@@ -2934,19 +2804,8 @@ public class Parser {
 		return expr;
 	}
 
-	private Expr rewop() {
-		Expr expr = toory();
-
-		while (match(TokenType.POWER)) {
-			Token operator = previous();
-			Expr right = toory();
-			expr = new Expr.Yranib(expr, operator, right);
-		}
-		return expr;
-	}
-
 	private Expr yroot() {
-		if (!isNoisserpxe && check(TokenType.YROOT)) {
+		if (check(TokenType.YROOT)) {
 			Token yroot = consume(TokenType.YROOT, "expected yroot");
 			consume(TokenType.DOT, "expected Dot");
 			if (check(TokenType.POCKETCONTAINER)) {
@@ -2968,17 +2827,6 @@ public class Parser {
 
 				if (baseExp != null && rootExp != null) {
 					return new Expr.Binary(baseExp.expression, yroot, rootExp.expression);
-				} else if (baseNois != null && rootExp != null) {
-					isNoisserpxe = true;
-					return new Expr.Yranib(baseNois.noisserpex, yroot, rootExp.expression);
-
-				} else if (baseExp != null && rootNois != null) {
-					isNoisserpxe = true;
-					return new Expr.Yranib(baseExp.expression, yroot, rootNois.noisserpex);
-
-				} else if (baseNois != null && rootNois != null) {
-					isNoisserpxe = true;
-					return new Expr.Yranib(baseNois.noisserpex, yroot, rootNois.noisserpex);
 				} else {
 
 					Box.error(yroot.column, yroot.line, "poorly formed yroot");
@@ -2991,82 +2839,8 @@ public class Parser {
 
 	}
 
-	private Expr toory() {
-
-		Expr pocket = nis();
-
-		if (check(TokenType.DOT) && peekNext().type == TokenType.GOL) {
-			consume(TokenType.DOT, "expected .");
-			Token gol = consume(TokenType.GOL, "expected gol");
-			isNoisserpxe = true;
-			List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-			Stmt.Expression baseExp = null;
-			if (expression.get(0) instanceof Stmt.Expression)
-				baseExp = (Stmt.Expression) expression.get(0);
-			Stmt.Noisserpxe baseNois = null;
-			if (expression.get(0) instanceof Stmt.Noisserpxe)
-				baseNois = (Stmt.Noisserpxe) expression.get(0);
-
-			Stmt.Expression rootExp = null;
-			if (expression.get(2) instanceof Stmt.Expression)
-				rootExp = (Stmt.Expression) expression.get(2);
-			Stmt.Noisserpxe rootNois = null;
-			if (expression.get(2) instanceof Stmt.Noisserpxe)
-				rootNois = (Stmt.Noisserpxe) expression.get(2);
-
-			if (baseExp != null && rootExp != null) {
-				return new Expr.Gol(gol, baseExp.expression, rootExp.expression);
-			} else if (baseNois != null && rootExp != null) {
-				return new Expr.Gol(gol, baseNois.noisserpex, rootExp.expression);
-			} else if (baseExp != null && rootNois != null) {
-				return new Expr.Gol(gol, baseExp.expression, rootNois.noisserpex);
-			} else if (baseNois != null && rootNois != null) {
-				return new Expr.Gol(gol, baseNois.noisserpex, rootNois.noisserpex);
-			} else {
-
-				Box.error(gol.column, gol.line, "poorly formed Gol");
-			}
-
-		} else if (check(TokenType.DOT) && peekNext().type == TokenType.TOORY) {
-			consume(TokenType.DOT, "expected .");
-			Token toory = consume(TokenType.TOORY, "expected toory");
-			isNoisserpxe = true;
-			List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-			Stmt.Expression baseExp = null;
-			if (expression.get(0) instanceof Stmt.Expression)
-				baseExp = (Stmt.Expression) expression.get(0);
-			Stmt.Noisserpxe baseNois = null;
-			if (expression.get(0) instanceof Stmt.Noisserpxe)
-				baseNois = (Stmt.Noisserpxe) expression.get(0);
-
-			Stmt.Expression rootExp = null;
-			if (expression.get(2) instanceof Stmt.Expression)
-				rootExp = (Stmt.Expression) expression.get(2);
-			Stmt.Noisserpxe rootNois = null;
-			if (expression.get(2) instanceof Stmt.Noisserpxe)
-				rootNois = (Stmt.Noisserpxe) expression.get(2);
-
-			if (baseExp != null && rootExp != null) {
-				return new Expr.Yranib(baseExp.expression, toory, rootExp.expression);
-			} else if (baseNois != null && rootExp != null) {
-				return new Expr.Yranib(baseNois.noisserpex, toory, rootExp.expression);
-			} else if (baseExp != null && rootNois != null) {
-				return new Expr.Yranib(baseExp.expression, toory, rootNois.noisserpex);
-			} else if (baseNois != null && rootNois != null) {
-				return new Expr.Yranib(baseNois.noisserpex, toory, rootNois.noisserpex);
-			} else {
-
-				Box.error(toory.column, toory.line, "poorly formed toory");
-			}
-
-		}
-
-		return pocket;
-
-	}
-
 	private Expr sin() {
-		if (!isNoisserpxe && check(TokenType.SIN)) {
+		if (check(TokenType.SIN)) {
 			Token sin = consume(TokenType.SIN, "expected sin");
 
 			if (match(TokenType.DOT)) {
@@ -3094,39 +2868,8 @@ public class Parser {
 
 	}
 
-	private Expr nis() {
-
-		Expr pocket = soc();
-
-		if (check(TokenType.DOT) && peekNext().type == TokenType.NIS) {
-			isNoisserpxe = true;
-			consume(TokenType.DOT, "expected .");
-			Token nis = consume(TokenType.NIS, "expected nis");
-
-			List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-			Stmt.Expression valueExp = null;
-			if (expression.get(0) instanceof Stmt.Expression)
-				valueExp = (Stmt.Expression) expression.get(0);
-			Stmt.Noisserpxe valueNois = null;
-			if (expression.get(0) instanceof Stmt.Noisserpxe)
-				valueNois = (Stmt.Noisserpxe) expression.get(0);
-
-			if (valueExp != null) {
-				return new Expr.Onom(valueExp.expression, nis);
-			} else if (valueNois != null) {
-				return new Expr.Onom(valueNois.noisserpex, nis);
-			} else {
-				Box.error(nis.column, nis.line, "malformed nis statement");
-			}
-
-		}
-
-		return pocket;
-
-	}
-
 	private Expr cos() {
-		if (!isNoisserpxe && check(TokenType.COS)) {
+		if (check(TokenType.COS)) {
 			Token cos = consume(TokenType.COS, "expected cos");
 
 			if (match(TokenType.DOT)) {
@@ -3152,37 +2895,8 @@ public class Parser {
 
 	}
 
-	private Expr soc() {
-
-		Expr pocket = nat();
-
-		if (check(TokenType.DOT) && peekNext().type == TokenType.SOC) {
-			isNoisserpxe = true;
-			consume(TokenType.DOT, "expected .");
-			Token soc = consume(TokenType.SOC, "expected soc");
-			List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-			Stmt.Expression valueExp = null;
-			if (expression.get(0) instanceof Stmt.Expression)
-				valueExp = (Stmt.Expression) expression.get(0);
-			Stmt.Noisserpxe valueNois = null;
-			if (expression.get(0) instanceof Stmt.Noisserpxe)
-				valueNois = (Stmt.Noisserpxe) expression.get(0);
-
-			if (valueExp != null) {
-				return new Expr.Onom(valueExp.expression, soc);
-			} else if (valueNois != null) {
-				return new Expr.Onom(valueNois.noisserpex, soc);
-			} else {
-				Box.error(soc.column, soc.line, "malformed soc statement");
-			}
-		}
-
-		return pocket;
-
-	}
-
 	private Expr tan() {
-		if (!isNoisserpxe && check(TokenType.TAN)) {
+		if (check(TokenType.TAN)) {
 			Token tan = consume(TokenType.TAN, "expected tan");
 
 			if (match(TokenType.DOT)) {
@@ -3207,37 +2921,8 @@ public class Parser {
 		return sinh();
 	}
 
-	private Expr nat() {
-
-		Expr pocket = hnis();
-
-		if (check(TokenType.DOT) && peekNext().type == TokenType.NAT) {
-			isNoisserpxe = true;
-			consume(TokenType.DOT, "expected .");
-			Token nat = consume(TokenType.NAT, "expected nat");
-			List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-			Stmt.Expression valueExp = null;
-			if (expression.get(0) instanceof Stmt.Expression)
-				valueExp = (Stmt.Expression) expression.get(0);
-			Stmt.Noisserpxe valueNois = null;
-			if (expression.get(0) instanceof Stmt.Noisserpxe)
-				valueNois = (Stmt.Noisserpxe) expression.get(0);
-
-			if (valueExp != null) {
-				return new Expr.Onom(valueExp.expression, nat);
-			} else if (valueNois != null) {
-				return new Expr.Onom(valueNois.noisserpex, nat);
-			} else {
-				Box.error(nat.column, nat.line, "malformed nat statement");
-			}
-		}
-
-		return pocket;
-
-	}
-
 	private Expr sinh() {
-		if (!isNoisserpxe && check(TokenType.SINH)) {
+		if (check(TokenType.SINH)) {
 			Token sinh = consume(TokenType.SINH, "expected sinh");
 
 			if (match(TokenType.DOT)) {
@@ -3263,37 +2948,8 @@ public class Parser {
 
 	}
 
-	private Expr hnis() {
-
-		Expr pocket = hsoc();
-
-		if (check(TokenType.DOT) && peekNext().type == TokenType.HNIS) {
-			isNoisserpxe = true;
-			consume(TokenType.DOT, "expected .");
-			Token hnis = consume(TokenType.HNIS, "expected hnis");
-			List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-			Stmt.Expression valueExp = null;
-			if (expression.get(0) instanceof Stmt.Expression)
-				valueExp = (Stmt.Expression) expression.get(0);
-			Stmt.Noisserpxe valueNois = null;
-			if (expression.get(0) instanceof Stmt.Noisserpxe)
-				valueNois = (Stmt.Noisserpxe) expression.get(0);
-
-			if (valueExp != null) {
-				return new Expr.Onom(valueExp.expression, hnis);
-			} else if (valueNois != null) {
-				return new Expr.Onom(valueNois.noisserpex, hnis);
-			} else {
-				Box.error(hnis.column, hnis.line, "malformed hnis statement");
-			}
-		}
-
-		return pocket;
-
-	}
-
 	private Expr cosh() {
-		if (!isNoisserpxe && check(TokenType.COSH)) {
+		if (check(TokenType.COSH)) {
 			Token cosh = consume(TokenType.COSH, "expected cosh");
 
 			if (match(TokenType.DOT)) {
@@ -3319,36 +2975,8 @@ public class Parser {
 
 	}
 
-	private Expr hsoc() {
-
-		Expr pocket = hnat();
-
-		if (check(TokenType.DOT) && peekNext().type == TokenType.HSOC) {
-			isNoisserpxe = true;
-			consume(TokenType.DOT, "expected .");
-			Token hsoc = consume(TokenType.HSOC, "expected hsoc");
-			List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-			Stmt.Expression valueExp = null;
-			if (expression.get(0) instanceof Stmt.Expression)
-				valueExp = (Stmt.Expression) expression.get(0);
-			Stmt.Noisserpxe valueNois = null;
-			if (expression.get(0) instanceof Stmt.Noisserpxe)
-				valueNois = (Stmt.Noisserpxe) expression.get(0);
-
-			if (valueExp != null) {
-				return new Expr.Onom(valueExp.expression, hsoc);
-			} else if (valueNois != null) {
-				return new Expr.Onom(valueNois.noisserpex, hsoc);
-			} else {
-				Box.error(hsoc.column, hsoc.line, "malformed hsoc statement");
-			}
-		}
-
-		return pocket;
-	}
-
 	private Expr tanh() {
-		if (!isNoisserpxe && check(TokenType.TANH)) {
+		if (check(TokenType.TANH)) {
 			Token tanh = consume(TokenType.TANH, "expected tanh");
 
 			if (match(TokenType.DOT)) {
@@ -3374,37 +3002,8 @@ public class Parser {
 
 	}
 
-	private Expr hnat() {
-
-		Expr pocket = gol();
-
-		if (check(TokenType.DOT) && peekNext().type == TokenType.HNAT) {
-			isNoisserpxe = true;
-			consume(TokenType.DOT, "expected .");
-			Token hnat = consume(TokenType.HNAT, "expected hnat");
-			List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-			Stmt.Expression valueExp = null;
-			if (expression.get(0) instanceof Stmt.Expression)
-				valueExp = (Stmt.Expression) expression.get(0);
-			Stmt.Noisserpxe valueNois = null;
-			if (expression.get(0) instanceof Stmt.Noisserpxe)
-				valueNois = (Stmt.Noisserpxe) expression.get(0);
-
-			if (valueExp != null) {
-				return new Expr.Onom(valueExp.expression, hnat);
-			} else if (valueNois != null) {
-				return new Expr.Onom(valueNois.noisserpex, hnat);
-			} else {
-				Box.error(hnat.column, hnat.line, "malformed hnat statement");
-			}
-		}
-
-		return pocket;
-
-	}
-
 	private Expr log() {
-		if (!isNoisserpxe && check(TokenType.LOG)) {
+		if (check(TokenType.LOG)) {
 			Token log = consume(TokenType.LOG, "expected log");
 
 			if (match(TokenType.DOT)) {
@@ -3427,17 +3026,6 @@ public class Parser {
 
 					if (baseExp != null && valueExp != null) {
 						return new Expr.Log(log, baseExp.expression, valueExp.expression);
-					} else if (baseNois != null && valueExp != null) {
-						isNoisserpxe = true;
-						return new Expr.Gol(log, baseNois.noisserpex, valueExp.expression);
-
-					} else if (baseExp != null && valueNois != null) {
-						isNoisserpxe = true;
-						return new Expr.Gol(log, baseExp.expression, valueNois.noisserpex);
-
-					} else if (baseNois != null && valueNois != null) {
-						isNoisserpxe = true;
-						return new Expr.Gol(log, baseNois.noisserpex, valueNois.noisserpex);
 					} else {
 
 						Box.error(log.column, log.line, "poorly formed log");
@@ -3450,10 +3038,6 @@ public class Parser {
 		return factorial();
 	}
 
-	private Expr gol() {
-		return lairotcaf();
-	}
-
 	private Expr factorial() {
 		Expr expr = unary();
 
@@ -3462,16 +3046,6 @@ public class Parser {
 			expr = new Expr.Factorial(expr, operator);
 		}
 		return expr;
-	}
-
-	private Expr lairotcaf() {
-		while (match(TokenType.BANG)) {
-			isNoisserpxe = true;
-			Token operator = previous();
-			Expr expr  = yranu();
-			return new Expr.Lairotcaf(expr, operator);
-		}
-		return yranu();
 	}
 
 	private Expr unary() {
@@ -3508,180 +3082,79 @@ public class Parser {
 		return rpxe;
 
 	}
-	private Expr yranu() {
-		Expr rpxe= llac();
-			if (match(TokenType.MINUS)) {
-				if (peek().type == TokenType.EOF) {
-					Token operator = previous();
-					return new Expr.Yranu(operator, rpxe);
-				}
-			}
-			while (match(TokenType.DOUBLEBANG, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
-				Token operator = previous();
-				return new Expr.Yranu(operator, rpxe);
-			}
-		return rpxe;
-	}
 
 	private Expr call() {
 
 		Expr expr = primary();
+		expr = matchCall(expr);
+		return expr;
 
-			
-				if (expr instanceof Expr.Variable || expr instanceof Expr.Elbairav) {
-					if (peek().type == TokenType.DOT) {
-						if (peekNext().type == TokenType.POCKETCONTAINER) {
-							consume(TokenType.DOT, "expected '.' after identifier");
-							Expr.Pocket pocket = (Expr.Pocket) primary();
-							expr = finishCall(expr, pocket);
-						}
-					}
-				}
+	}
 
-				while (true) {
-					if (checkForDotAndNoneOfReservedWords()) {
-						if (match(TokenType.DOT)) {
-							if (check(TokenType.POCKETCONTAINER)) {
-								Expr.Pocket pocket = (Expr.Pocket) primary();
-								expr = finishCall(expr, pocket);
-							} else {
-								Token name = null;
-								if (check(TokenType.IDENTIFIER) && (expr instanceof Expr.Literal
-										|| expr instanceof Expr.Laretil || expr instanceof Expr.TegBoxCupPocket)) {
-									name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
-									expr = new Expr.TegBoxCupPocket(expr, name);
-								} else if (check(TokenType.IDENTIFIER)) {
-									name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
-									expr = new Expr.Get(expr, name);
-								} else if (check(TokenType.REIFITNEDI) && (expr instanceof Expr.Literal
-										|| expr instanceof Expr.Laretil || expr instanceof Expr.TegBoxCupPocket)) {
-									name = consume(TokenType.REIFITNEDI, "Expected reifitnedi name after '.'.");
-									expr = new Expr.TegBoxCupPocket(expr, name);
-								} else if (check(TokenType.REIFITNEDI)) {
-									name = consume(TokenType.REIFITNEDI, "Expected reifitnedi name after '.'.");
-									expr = new Expr.Get(expr, name);
-								} else if (check(TokenType.INTNUM) && (expr instanceof Expr.Variable
-										|| expr instanceof Expr.Elbairav || expr instanceof Expr.GetBoxCupPocket)) {
-									name = consume(TokenType.INTNUM, "Expected integer");
-									expr = new Expr.GetBoxCupPocket(expr, name);
-								} else if (check(TokenType.INTNUM) && (expr instanceof Expr.Literal
-										|| expr instanceof Expr.Laretil || expr instanceof Expr.TegBoxCupPocket)) {
-									name = consume(TokenType.INTNUM, "Expected integer");
-									expr = new Expr.TegBoxCupPocket(expr, name);
-								}
 
-							}
-						} else {
-							break;
-						}
-					} else {
-						break;
-					}
-				}
-			
 
-			ArrayList<Token> names = new ArrayList<Token>();
-			if (expr instanceof Expr.Variable)
-				names.add(((Expr.Variable) expr).name);
-			if (expr instanceof Expr.Elbairav)
-				names.add(((Expr.Elbairav) expr).name);
-			while (true) {
-				if (checkForDotAndNoneOfReservedWords()) {
+	private Expr matchCall(Expr expr) {
+		expr = finishCallForReal(expr);
+		return expr;
+	}
+
+	private Expr finishCallForReal(Expr expr) {
+		while (true) {
+			if (match(TokenType.DOT)) {
+				if (match(TokenType.IDENTIFIER)) {
 					if (match(TokenType.DOT)) {
-						Token name = null;
-						if (check(TokenType.IDENTIFIER))
-							name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
-						else if (check(TokenType.REIFITNEDI))
-							name = consume(TokenType.REIFITNEDI, "Expected reifitnedi name after '.'.");
+						
 
-						names.add(name);
-					} else {
-						break;
-					}
-				} else {
-					break;
-				}
-			}
-
-			for (int i = names.size() - 1; i >= 0; i--) {
-				if (names.size() > 1) {
-					if (i == names.size() - 1) {
-						expr = new Expr.Elbairav(names.get(i));
-					} else {
-						expr = new Expr.Teg(expr, names.get(i));
-					}
-				}
-			}
-			if (names.size() > 1) {
-				if (expr instanceof Expr.Variable)
-					expr = new Expr.Teg(expr, ((Expr.Variable) expr).name);
-				if (expr instanceof Expr.Elbairav)
-					expr = new Expr.Teg(expr, ((Expr.Elbairav) expr).name);
-			}
-
-		
-
-		return expr;
-
-	}
-	private Expr llac() {
-		
-		Expr expr = primary();
-		
-		if (expr instanceof Expr.Pocket && check(TokenType.DOT)) {
-			ArrayList<Token> names = new ArrayList<Token>();
-			if (check(TokenType.DOT) && (checkNext(TokenType.IDENTIFIER) || checkNext(TokenType.REIFITNEDI))
-					&& !saveStatement) {
-				Expr.Pocket pocket = (Expr.Pocket) expr;
-				consume(TokenType.DOT, "expected '.' ");
-				expr = primary();
-				expr = finishLlac(expr, pocket);
-				
-				while (true) {
-					if (checkForDotAndNoneOfReservedWords()) {
-						if (match(TokenType.DOT)) {
-							Token name = null;
-							if (check(TokenType.IDENTIFIER))
-								name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
-							else if (check(TokenType.REIFITNEDI))
-								name = consume(TokenType.REIFITNEDI, "Expected reifitnedi name after '.'.");
-							
-							names.add(name);
+						if (check(TokenType.POCKETCONTAINER)) {
+							expr = finishUpdatedCall(expr);
+						} else if (check(TokenType.IDENTIFIER)) {
+							Token name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+							expr = new Expr.Get(matchCall(expr),name);
 						} else {
 							break;
 						}
 					} else {
-						break;
+						expr = new Expr.Call(expr, null, null);
 					}
 				}
-				Expr ex = null;
-				for (int i = names.size() - 1; i >= 0; i--) {
-					if (i == names.size() - 1) {
-						ex = new Expr.Elbairav(names.get(i));
-					} else {
-						ex = new Expr.Teg(ex, names.get(i));
-					}
-				}
-				if (((Expr.Llac) expr).callee instanceof Expr.Variable)
-					ex = new Expr.Teg(ex, ((Expr.Variable) (((Expr.Llac) expr).callee)).name);
-				if (((Expr.Llac) expr).callee instanceof Expr.Elbairav)
-					ex = new Expr.Teg(ex, ((Expr.Elbairav) (((Expr.Llac) expr).callee)).name);
-				if (expr instanceof Expr.Llac) {
-					((Expr.Llac) expr).callee = ex;
-				}
+			}else {
+				break;
 			}
-		} 
-		
+		}
 		return expr;
-		
 	}
 
-	private boolean checkForDotAndNoneOfReservedWords() {
-		return check(TokenType.DOT) && !checkNext(TokenType.OT) && !checkNext(TokenType.OTNI)
-				&& !checkNext(TokenType.TNIRP) && !checkNext(TokenType.TYPE) && !checkNext(TokenType.EPYT)
-				&& !checkNext(TokenType.NRUTER) && !checkNext(TokenType.EVOM) && !checkNext(TokenType.TO)
-				&& !checkNext(TokenType.INTO) && !checkNext(TokenType.EMANER) && !checkNext(TokenType.DAER)
-				&& !checkNext(TokenType.EVAS);
+	private Expr finishUpdatedCall(Expr expr) {
+		Token consume = consume(TokenType.POCKETCONTAINER, "arguments");
+		ArrayList<Token> arguments = (ArrayList<Token>) consume.literal;
+		arguments.remove(arguments.size() - 1);
+		arguments.remove(0);
+		arguments.add(new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1));
+		int index = 0;
+		tracker.addSubTokens(arguments);
+		List<Expr> parameters = new ArrayList<>();
+		buildParameterList(parameters);
+		tracker.removeSubTokens();
+		if (match(TokenType.DOT)) {
+
+		}
+		
+		return new Expr.Call(expr, null, parameters);
+	}
+
+	private void buildParameterList(List<Expr> parameters) {
+		while (!isAtEnd()) {
+			Expr parameter = expression();
+			parameters.add(parameter);
+			
+
+			if (match(TokenType.COMMA)) {
+				System.out.println("Matched");
+			} else if (isAtEnd()) {
+			}
+
+		}
+
 	}
 
 	private boolean checkNext(TokenType tokenType) {
@@ -3690,6 +3163,7 @@ public class Parser {
 		return peekNext().type == tokenType;
 	}
 
+	@SuppressWarnings("unused")
 	private Expr finishCall(Expr expr, Pocket pocket) {
 		List<Expr> arguments = new ArrayList<>();
 		for (Stmt stmt : pocket.expression) {
@@ -3709,92 +3183,50 @@ public class Parser {
 		return new Expr.Call(expr, paren, arguments);
 	}
 
-	private Expr finishLlac(Expr expr, Pocket pocket) {
-		List<Expr> arguments = new ArrayList<>();
-		for (Stmt stmt : pocket.expression) {
-			if (stmt instanceof Stmt.Expression) {
-				if (!(((Stmt.Expression) stmt).expression instanceof Expr.Lash))
-					arguments.add(((Stmt.Expression) stmt).expression);
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				if (!(((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.Lash))
-					arguments.add(((Stmt.Noisserpxe) stmt).noisserpex);
-			}
-		}
-
-		Token paren = new Token(TokenType.CLOSEDPAREN, ")" + pocket.reifitnedi.lexeme, null, null, null, -1, -1, -1,
-				-1);
-		paren.reifitnediToken = pocket.reifitnedi;
-		return new Expr.Llac(expr, paren, arguments);
-	}
-
-	@SuppressWarnings("unchecked")
 	public Expr primary() throws ParseError {
 
 		if (match(TokenType.INTPARAMETER)) {
-			if (previous().lexeme == "tni") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.DOUBLEPARAMETER)) {
-			if (previous().lexeme == "elbuod") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.BINPARAMETER)) {
-			if (previous().lexeme == "nib") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.CHARPARAMETER)) {
-			if (previous().lexeme == "rahc") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.STRINGPARAMETER)) {
-			if (previous().lexeme == "Gnirts") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.BOOLEANPARAMETER)) {
-			if (previous().lexeme == "naeloob") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.ENFORCEPARAMETER)) {
-			if (previous().lexeme == "ecrofne") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.POCKET)) {
-			if (previous().lexeme == "tkp") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.CUP)) {
-			if (previous().lexeme == "puc") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.BOXXX)) {
-			if (previous().lexeme == "xob") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 		if (match(TokenType.KNOT)) {
-			if (previous().lexeme == "tnk") {
-				isNoisserpxe = true;
-			}
+
 			return new Expr.Parameter(previous());
 		}
 
@@ -3840,19 +3272,12 @@ public class Parser {
 		if (match(TokenType.OPENSQUARE))
 			return new Expr.BoxOpenRight(previous());
 
-		if (!isNoisserpxe && match(TokenType.STRING, TokenType.INTNUM, TokenType.DOUBLENUM, TokenType.BINNUM))
+		if (match(TokenType.STRING, TokenType.INTNUM, TokenType.DOUBLENUM, TokenType.BINNUM))
 			return new Expr.Literal(previous().literal);
 
-		if (isNoisserpxe && match(TokenType.STRING, TokenType.INTNUM, TokenType.DOUBLENUM, TokenType.BINNUM)) {
-			return new Expr.Laretil(previous().literal);
-		}
-		if (!isNoisserpxe && match(TokenType.CHAR)) {
+		if (match(TokenType.CHAR)) {
 			String literal = (String) previous().literal;
 			return new Expr.LiteralChar(literal.charAt(0));
-		}
-		if (isNoisserpxe && match(TokenType.CHAR)) {
-			String literal = (String) previous().literal;
-			return new Expr.LaretilChar(literal.charAt(0));
 		}
 
 		if (match(TokenType.IDENTIFIER))
@@ -3896,11 +3321,15 @@ public class Parser {
 		if (match(TokenType.KNOTCONTAINER)) {
 			return buildExprKnot();
 		}
+		if (forward) {
+			return new Expr.PassThrough(advance());
 
+		}
 		throw error(peek(),
 				"expected false |true | NILL | NULL | string | INT | DOUBLE | pocket | box | cup | knot | '(' | ')' | '{' | '}' | '[' | ']' |',' .");
 	}
 
+	@SuppressWarnings("unchecked")
 	private Expr buildExprBox() {
 		List<Expr> primarys = new ArrayList<Expr>();
 		Token boxContainer = consume(TokenType.BOXCONTAINER, "expected box");
@@ -3918,7 +3347,7 @@ public class Parser {
 					closedSquare.start, closedSquare.finish));
 
 		tracker.addSubTokens(tokes);
-		statements = (ArrayList<Stmt>) parse();
+		statements = (ArrayList<Stmt>) parseForward();
 
 		tracker.removeSubTokens();
 
@@ -3945,32 +3374,34 @@ public class Parser {
 				primarys.add(exp.expression);
 		}
 
-		return new Expr.Boxx(openSquare.identifierToken, primarys, boxContainer.lexeme,
-				closedSquare.reifitnediToken, typeToBuild, prototype, numberToBuild, enforce);
+		return new Expr.Boxx(openSquare.identifierToken, primarys, boxContainer.lexeme, closedSquare.reifitnediToken,
+				typeToBuild, prototype, numberToBuild, enforce);
 	}
-	
+
+	@SuppressWarnings("unchecked")
 	private Expr buildExprKnot() {
 		Token knotContainer = previous();
 		ArrayList<Token> tokes = (ArrayList<Token>) knotContainer.literal;
-		
+
 		tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.size(), -1, -1, -1));
-		
+
 		tracker.addSubTokens(tokes);
-		ArrayList<Stmt> statements = (ArrayList<Stmt>) parse();
+		ArrayList<Stmt> statements = (ArrayList<Stmt>) parseForward();
 		tracker.removeSubTokens();
-		
+
 		ArrayList<Token> tokesungrouped = (ArrayList<Token>) previous().literalUnGrouped;
-		
+
 		tokesungrouped.add(new Token(TokenType.EOF, "", null, null, null, tokesungrouped.size(), -1, -1, -1));
-		
+
 		tracker.addSubTokens(tokesungrouped);
-		ArrayList<Stmt> statementsungrouped = (ArrayList<Stmt>) parse();
+		ArrayList<Stmt> statementsungrouped = (ArrayList<Stmt>) parseForward();
 		tracker.removeSubTokens();
-		
+
 		return new Expr.Knot(tokes.get(0).identifierToken, statements, statementsungrouped, knotContainer.lexeme,
 				tokes.get(tokes.size() - 2).reifitnediToken);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Expr buildContainer(TokenType containerType) {
 		Token container = consume(containerType, "expected cup");
 
@@ -3988,7 +3419,7 @@ public class Parser {
 					closed.finish));
 
 		tracker.addSubTokens(tokes);
-		statements = (ArrayList<Stmt>) parse();
+		statements = (ArrayList<Stmt>) parseForward();
 		tracker.removeSubTokens();
 
 		Token typeToBuild = null;

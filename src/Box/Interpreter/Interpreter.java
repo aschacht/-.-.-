@@ -399,12 +399,12 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		}
 
 		if (!(callee instanceof BoxCallable)) {
-			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+			throw new RuntimeError(expr.calleeToken, "Can only call functions and classes.");
 		}
 
 		BoxCallable function = (BoxCallable) callee;
 		if (arguments.size() != function.arity()) {
-			throw new RuntimeError(expr.paren,
+			throw new RuntimeError(expr.calleeToken,
 					"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
 		}
 
@@ -5075,6 +5075,19 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	public void setBackward(boolean backward) {
 		this.backward =backward;
+	}
+
+
+
+
+
+
+
+
+	@Override
+	public Object visitPassThroughExpr(Expr.PassThrough expr) {
+		
+		return null;
 	}
 
 }

@@ -41,7 +41,7 @@ public static class Expression extends Stmt {
 	 	return visitor.visitExpressionStmt(this);
 	}
 
-	public final Expr expression;
+	public  Expr expression;
 	}
 public static class If extends Stmt {
 	 public If(Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup) {
@@ -56,10 +56,10 @@ public static class If extends Stmt {
 	 	return visitor.visitIfStmt(this);
 	}
 
-	public final Expr ifPocket;
-	public final Expr ifCup;
-	public Stmt elseIfStmt;
-	public final Expr elseCup;
+	public  Expr ifPocket;
+	public  Expr ifCup;
+	public  Stmt elseIfStmt;
+	public  Expr elseCup;
 	}
 public static class Print extends Stmt {
 	 public Print(Token keyword , Expr expression) {
@@ -72,8 +72,8 @@ public static class Print extends Stmt {
 	 	return visitor.visitPrintStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr expression;
+	public  Token keyword;
+	public  Expr expression;
 	}
 public static class Return extends Stmt {
 	 public Return(Token keyWord , Expr expression) {
@@ -86,8 +86,8 @@ public static class Return extends Stmt {
 	 	return visitor.visitReturnStmt(this);
 	}
 
-	public final Token keyWord;
-	public final Expr expression;
+	public  Token keyWord;
+	public  Expr expression;
 	}
 public static class Save extends Stmt {
 	 public Save(Token keyword , Expr filePathFileName , Expr objecttosave) {
@@ -101,9 +101,9 @@ public static class Save extends Stmt {
 	 	return visitor.visitSaveStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr filePathFileName;
-	public final Expr objecttosave;
+	public  Token keyword;
+	public  Expr filePathFileName;
+	public  Expr objecttosave;
 	}
 public static class Expel extends Stmt {
 	 public Expel(Token keyword , Expr toExpell , Expr filePath) {
@@ -117,9 +117,9 @@ public static class Expel extends Stmt {
 	 	return visitor.visitExpelStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr toExpell;
-	public final Expr filePath;
+	public  Token keyword;
+	public  Expr toExpell;
+	public  Expr filePath;
 	}
 public static class Read extends Stmt {
 	 public Read(Token keyword , Expr filePath , Expr objectToReadInto) {
@@ -133,9 +133,9 @@ public static class Read extends Stmt {
 	 	return visitor.visitReadStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr filePath;
-	public final Expr objectToReadInto;
+	public  Token keyword;
+	public  Expr filePath;
+	public  Expr objectToReadInto;
 	}
 public static class Consume extends Stmt {
 	 public Consume(Token keyword , Expr boxToFill , Expr filePath) {
@@ -149,9 +149,9 @@ public static class Consume extends Stmt {
 	 	return visitor.visitConsumeStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr boxToFill;
-	public final Expr filePath;
+	public  Token keyword;
+	public  Expr boxToFill;
+	public  Expr filePath;
 	}
 public static class Rename extends Stmt {
 	 public Rename(Token keyword , Expr filePathAndName , Expr filenewname) {
@@ -165,9 +165,9 @@ public static class Rename extends Stmt {
 	 	return visitor.visitRenameStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr filePathAndName;
-	public final Expr filenewname;
+	public  Token keyword;
+	public  Expr filePathAndName;
+	public  Expr filenewname;
 	}
 public static class Move extends Stmt {
 	 public Move(Token keyword , Expr OringialfilePathAndFile , Expr newfilePath) {
@@ -181,9 +181,9 @@ public static class Move extends Stmt {
 	 	return visitor.visitMoveStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr OringialfilePathAndFile;
-	public final Expr newfilePath;
+	public  Token keyword;
+	public  Expr OringialfilePathAndFile;
+	public  Expr newfilePath;
 	}
 public static class Var extends Stmt {
 	 public Var(Token name , Expr initializer , Token type , Boolean enforce) {
@@ -198,10 +198,10 @@ public static class Var extends Stmt {
 	 	return visitor.visitVarStmt(this);
 	}
 
-	public final Token name;
-	public final Expr initializer;
-	public final Token type;
-	public final Boolean enforce;
+	public  Token name;
+	public  Expr initializer;
+	public  Token type;
+	public  Boolean enforce;
 	}
 public static class Constructor extends Stmt {
 	 public Constructor(Token type, Expr prototype , Integer numberToBuild , boolean enforce) {
@@ -216,10 +216,10 @@ public static class Constructor extends Stmt {
 	 	return visitor.visitConstructorStmt(this);
 	}
 
-	public final Token type;
-	public final Expr prototype;
-	public final Integer numberToBuild;
-	public final boolean enforce;
+	public  Token type;
+	public  Expr prototype;
+	public  Integer numberToBuild;
+	public  boolean enforce;
 	}
 public static class Function extends Stmt {
 	 public Function(Expr knotfun0 , Expr identifierfun0 , Expr binFun0 , List<Expr> paramsfun0, List<Expr> paramsfun1 , Expr binFun1  , Expr identifierfun1 , Expr knotfun1) {
@@ -238,14 +238,14 @@ public static class Function extends Stmt {
 	 	return visitor.visitFunctionStmt(this);
 	}
 
-	public final Expr knotfun0;
-	public final Expr identifierfun0;
-	public final Expr binFun0;
-	public final List<Expr> paramsfun0;
-	public final List<Expr> paramsfun1;
-	public final Expr binFun1;
-	public final Expr identifierfun1;
-	public final Expr knotfun1;
+	public  Expr knotfun0;
+	public  Expr identifierfun0;
+	public  Expr binFun0;
+	public  List<Expr> paramsfun0;
+	public  List<Expr> paramsfun1;
+	public  Expr binFun1;
+	public  Expr identifierfun1;
+	public  Expr knotfun1;
 	}
 public static class Noisserpxe extends Stmt {
 	 public Noisserpxe(Expr noisserpex) {
@@ -257,7 +257,7 @@ public static class Noisserpxe extends Stmt {
 	 	return visitor.visitNoisserpxeStmt(this);
 	}
 
-	public final Expr noisserpex;
+	public  Expr noisserpex;
 	}
 public static class Fi extends Stmt {
 	 public Fi(Expr fiPocket , Expr fiCup , Stmt fiesleStmt , Expr esleCup) {
@@ -272,10 +272,10 @@ public static class Fi extends Stmt {
 	 	return visitor.visitFiStmt(this);
 	}
 
-	public final Expr fiPocket;
-	public final Expr fiCup;
-	public Stmt fiesleStmt;
-	public final Expr esleCup;
+	public  Expr fiPocket;
+	public  Expr fiCup;
+	public  Stmt fiesleStmt;
+	public  Expr esleCup;
 	}
 public static class Tnirp extends Stmt {
 	 public Tnirp(Token keyword , Expr expression) {
@@ -288,8 +288,8 @@ public static class Tnirp extends Stmt {
 	 	return visitor.visitTnirpStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr expression;
+	public  Token keyword;
+	public  Expr expression;
 	}
 public static class Nruter extends Stmt {
 	 public Nruter(Token keyword , Expr expression) {
@@ -302,8 +302,8 @@ public static class Nruter extends Stmt {
 	 	return visitor.visitNruterStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr expression;
+	public  Token keyword;
+	public  Expr expression;
 	}
 public static class Evas extends Stmt {
 	 public Evas(Token keyword , Expr filePathFileName , Expr objecttosave) {
@@ -317,9 +317,9 @@ public static class Evas extends Stmt {
 	 	return visitor.visitEvasStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr filePathFileName;
-	public final Expr objecttosave;
+	public  Token keyword;
+	public  Expr filePathFileName;
+	public  Expr objecttosave;
 	}
 public static class Daer extends Stmt {
 	 public Daer(Token keyword , Expr filePath , Expr objectToReadInto) {
@@ -333,9 +333,9 @@ public static class Daer extends Stmt {
 	 	return visitor.visitDaerStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr filePath;
-	public final Expr objectToReadInto;
+	public  Token keyword;
+	public  Expr filePath;
+	public  Expr objectToReadInto;
 	}
 public static class Emaner extends Stmt {
 	 public Emaner(Token keyword , Expr filePathAndName, Expr filenewname) {
@@ -349,9 +349,9 @@ public static class Emaner extends Stmt {
 	 	return visitor.visitEmanerStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr filePathAndName;
-	public final Expr filenewname;
+	public  Token keyword;
+	public  Expr filePathAndName;
+	public  Expr filenewname;
 	}
 public static class Evom extends Stmt {
 	 public Evom(Token keyword , Expr OringialfilePathAndFile , Expr newfilePath) {
@@ -365,9 +365,9 @@ public static class Evom extends Stmt {
 	 	return visitor.visitEvomStmt(this);
 	}
 
-	public final Token keyword;
-	public final Expr OringialfilePathAndFile;
-	public final Expr newfilePath;
+	public  Token keyword;
+	public  Expr OringialfilePathAndFile;
+	public  Expr newfilePath;
 	}
 public static class Rav extends Stmt {
 	 public Rav(Token name , Expr initializer , Token type , Boolean enforce) {
@@ -382,10 +382,10 @@ public static class Rav extends Stmt {
 	 	return visitor.visitRavStmt(this);
 	}
 
-	public final Token name;
-	public final Expr initializer;
-	public final Token type;
-	public final Boolean enforce;
+	public  Token name;
+	public  Expr initializer;
+	public  Token type;
+	public  Boolean enforce;
 	}
 public static class PassThrough extends Stmt {
 	 public PassThrough(Expr expression) {
@@ -397,7 +397,7 @@ public static class PassThrough extends Stmt {
 	 	return visitor.visitPassThroughStmt(this);
 	}
 
-	public final Expr expression;
+	public  Expr expression;
 	}
 
  public abstract <R> R accept(Visitor<R> visitor);

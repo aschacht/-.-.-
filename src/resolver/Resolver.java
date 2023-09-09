@@ -5,12 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+
 import Box.Box.Box;
-import Box.Interpreter.BoxInstance;
 import Box.Interpreter.Interpreter;
 import Box.Interpreter.KnotTracker;
-import Box.Token.TokenType;
-
 import Box.Syntax.Expr;
 import Box.Syntax.Expr.Assignment;
 import Box.Syntax.Expr.Binary;
@@ -71,7 +69,6 @@ import Box.Syntax.Stmt.Constructor;
 import Box.Syntax.Stmt.Consume;
 import Box.Syntax.Stmt.Daer;
 import Box.Syntax.Stmt.Emaner;
-
 import Box.Syntax.Stmt.Evas;
 import Box.Syntax.Stmt.Evom;
 import Box.Syntax.Stmt.Expel;
@@ -90,9 +87,9 @@ import Box.Syntax.Stmt.Rename;
 import Box.Syntax.Stmt.Return;
 import Box.Syntax.Stmt.Save;
 import Box.Syntax.Stmt.Tnirp;
-
 import Box.Syntax.Stmt.Var;
 import Box.Token.Token;
+import Box.Token.TokenType;
 
 public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -807,6 +804,12 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Object visitCidExpr(Cid expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitPassThroughExpr(Expr.PassThrough expr) {
 		
 		return null;
 	}

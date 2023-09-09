@@ -1,2 +1,1 @@
-
-a{b(c{}a)b d{e(}c}d)e
+a.cool.awesome

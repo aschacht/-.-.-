@@ -30,7 +30,7 @@ public class GenerateAST {
 				"Log		:Token operator , Expr valueBase , Expr value",
 				"Factorial	:Expr value , Token operator",
 				"Unary		: Token operator , Expr right",
-				"Call 		: Expr callee , Token paren , List<Expr> arguments",
+				"Call 		: Expr callee , Token calleeToken , List<Expr> arguments",
 				"Get 		: Expr object , Token name",
 				"GetBoxCupPocket : Expr object , Token name",
 				"Set : Expr object, Token name, Expr value",
@@ -79,7 +79,8 @@ public class GenerateAST {
 				"Epyt 	:	Expr expression",
 				
 				
-				"Parameter	: Token parameter"
+				"Parameter	: Token parameter",
+				"PassThrough: Token token"
 				
 				
 				));
@@ -211,11 +212,11 @@ public class GenerateAST {
 			if(split.length==3) {
 				name = field.split(" ")[2];
 				typeName = field.split(" ")[0];
-				writer.println("	public final ArrayList<" + typeName+"> "+ name+ "=new ArrayList<"+ typeName+">();");
+				writer.println("	public  ArrayList<" + typeName+"> "+ name+ "=new ArrayList<"+ typeName+">();");
 			}else {
 				name = field.split(" ")[1];
 				typeName = field.split(" ")[0];
-				writer.println("	public final " + typeName+" "+ name+ ";");
+				writer.println("	public  " + typeName+" "+ name+ ";");
 			}
 			
 		}

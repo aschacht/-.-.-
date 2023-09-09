@@ -61,6 +61,7 @@ public abstract class Expr {
 	R visitElbairavExpr(Elbairav expr);
 	R visitEpytExpr(Epyt expr);
 	R visitParameterExpr(Parameter expr);
+	R visitPassThroughExpr(PassThrough expr);
 	}
 public static class Assignment extends Expr {
 	 public Assignment(Token name , Expr value) {
@@ -73,8 +74,8 @@ public static class Assignment extends Expr {
 	 	return visitor.visitAssignmentExpr(this);
 	}
 
-	public final Token name;
-	public final Expr value;
+	public  Token name;
+	public  Expr value;
 	}
 public static class Contains extends Expr {
 	 public Contains(Expr container , boolean open , Expr contents) {
@@ -88,9 +89,9 @@ public static class Contains extends Expr {
 	 	return visitor.visitContainsExpr(this);
 	}
 
-	public final Expr container;
-	public final boolean open;
-	public final Expr contents;
+	public  Expr container;
+	public  boolean open;
+	public  Expr contents;
 	}
 public static class Binary extends Expr {
 	 public Binary(Expr left , Token operator , Expr right) {
@@ -104,9 +105,9 @@ public static class Binary extends Expr {
 	 	return visitor.visitBinaryExpr(this);
 	}
 
-	public final Expr left;
-	public final Token operator;
-	public final Expr right;
+	public  Expr left;
+	public  Token operator;
+	public  Expr right;
 	}
 public static class Mono extends Expr {
 	 public Mono(Expr value , Token operator) {
@@ -119,8 +120,8 @@ public static class Mono extends Expr {
 	 	return visitor.visitMonoExpr(this);
 	}
 
-	public final Expr value;
-	public final Token operator;
+	public  Expr value;
+	public  Token operator;
 	}
 public static class Logical extends Expr {
 	 public Logical(Expr left, Token operator, Expr right) {
@@ -134,9 +135,9 @@ public static class Logical extends Expr {
 	 	return visitor.visitLogicalExpr(this);
 	}
 
-	public final Expr left;
-	public final Token operator;
-	public final Expr right;
+	public  Expr left;
+	public  Token operator;
+	public  Expr right;
 	}
 public static class Log extends Expr {
 	 public Log(Token operator , Expr valueBase , Expr value) {
@@ -150,9 +151,9 @@ public static class Log extends Expr {
 	 	return visitor.visitLogExpr(this);
 	}
 
-	public final Token operator;
-	public final Expr valueBase;
-	public final Expr value;
+	public  Token operator;
+	public  Expr valueBase;
+	public  Expr value;
 	}
 public static class Factorial extends Expr {
 	 public Factorial(Expr value , Token operator) {
@@ -165,8 +166,8 @@ public static class Factorial extends Expr {
 	 	return visitor.visitFactorialExpr(this);
 	}
 
-	public final Expr value;
-	public final Token operator;
+	public  Expr value;
+	public  Token operator;
 	}
 public static class Unary extends Expr {
 	 public Unary(Token operator , Expr right) {
@@ -179,13 +180,13 @@ public static class Unary extends Expr {
 	 	return visitor.visitUnaryExpr(this);
 	}
 
-	public final Token operator;
-	public final Expr right;
+	public  Token operator;
+	public  Expr right;
 	}
 public static class Call extends Expr {
-	 public Call(Expr callee , Token paren , List<Expr> arguments) {
+	 public Call(Expr callee , Token calleeToken , List<Expr> arguments) {
 	this.callee = callee;
-	this.paren = paren;
+	this.calleeToken = calleeToken;
 	this.arguments = arguments;
 	}
 
@@ -194,9 +195,9 @@ public static class Call extends Expr {
 	 	return visitor.visitCallExpr(this);
 	}
 
-	public final Expr callee;
-	public final Token paren;
-	public final List<Expr> arguments;
+	public  Expr callee;
+	public  Token calleeToken;
+	public  List<Expr> arguments;
 	}
 public static class Get extends Expr {
 	 public Get(Expr object , Token name) {
@@ -209,8 +210,8 @@ public static class Get extends Expr {
 	 	return visitor.visitGetExpr(this);
 	}
 
-	public final Expr object;
-	public final Token name;
+	public  Expr object;
+	public  Token name;
 	}
 public static class GetBoxCupPocket extends Expr {
 	 public GetBoxCupPocket(Expr object , Token name) {
@@ -223,8 +224,8 @@ public static class GetBoxCupPocket extends Expr {
 	 	return visitor.visitGetBoxCupPocketExpr(this);
 	}
 
-	public final Expr object;
-	public final Token name;
+	public  Expr object;
+	public  Token name;
 	}
 public static class Set extends Expr {
 	 public Set(Expr object, Token name, Expr value) {
@@ -238,9 +239,9 @@ public static class Set extends Expr {
 	 	return visitor.visitSetExpr(this);
 	}
 
-	public final Expr object;
-	public final Token name;
-	public final Expr value;
+	public  Expr object;
+	public  Token name;
+	public  Expr value;
 	}
 public static class SetBoxCupPocket extends Expr {
 	 public SetBoxCupPocket(Expr object, Token name, Expr value) {
@@ -254,9 +255,9 @@ public static class SetBoxCupPocket extends Expr {
 	 	return visitor.visitSetBoxCupPocketExpr(this);
 	}
 
-	public final Expr object;
-	public final Token name;
-	public final Expr value;
+	public  Expr object;
+	public  Token name;
+	public  Expr value;
 	}
 public static class Literal extends Expr {
 	 public Literal(Object value) {
@@ -268,7 +269,7 @@ public static class Literal extends Expr {
 	 	return visitor.visitLiteralExpr(this);
 	}
 
-	public final Object value;
+	public  Object value;
 	}
 public static class LiteralChar extends Expr {
 	 public LiteralChar(char value) {
@@ -280,7 +281,7 @@ public static class LiteralChar extends Expr {
 	 	return visitor.visitLiteralCharExpr(this);
 	}
 
-	public final char value;
+	public  char value;
 	}
 public static class Variable extends Expr {
 	 public Variable(Token name) {
@@ -292,7 +293,7 @@ public static class Variable extends Expr {
 	 	return visitor.visitVariableExpr(this);
 	}
 
-	public final Token name;
+	public  Token name;
 	}
 public static class Pocket extends Expr {
 	 public Pocket(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -311,14 +312,14 @@ public static class Pocket extends Expr {
 	 	return visitor.visitPocketExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Cup extends Expr {
 	 public Cup(Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -337,14 +338,14 @@ public static class Cup extends Expr {
 	 	return visitor.visitCupExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Boxx extends Expr {
 	 public Boxx(Token identifier , List<Expr> primarys , String lexeme, Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -363,14 +364,14 @@ public static class Boxx extends Expr {
 	 	return visitor.visitBoxxExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Expr> primarys;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Expr> primarys;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Knot extends Expr {
 	 public Knot(Token identifier , List<Stmt> expression , List<Stmt> unGrouped , String lexeme , Token reifitnedi) {
@@ -386,11 +387,11 @@ public static class Knot extends Expr {
 	 	return visitor.visitKnotExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final List<Stmt> unGrouped;
-	public final String lexeme;
-	public final Token reifitnedi;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  List<Stmt> unGrouped;
+	public  String lexeme;
+	public  Token reifitnedi;
 	}
 public static class Pup extends Expr {
 	 public Pup(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -409,14 +410,14 @@ public static class Pup extends Expr {
 	 	return visitor.visitPupExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Cocket extends Expr {
 	 public Cocket(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -435,14 +436,14 @@ public static class Cocket extends Expr {
 	 	return visitor.visitCocketExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Locket extends Expr {
 	 public Locket(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -461,14 +462,14 @@ public static class Locket extends Expr {
 	 	return visitor.visitLocketExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Lup extends Expr {
 	 public Lup(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -487,14 +488,14 @@ public static class Lup extends Expr {
 	 	return visitor.visitLupExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Lil extends Expr {
 	 public Lil(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -513,14 +514,14 @@ public static class Lil extends Expr {
 	 	return visitor.visitLilExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Pid extends Expr {
 	 public Pid(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -539,14 +540,14 @@ public static class Pid extends Expr {
 	 	return visitor.visitPidExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class Cid extends Expr {
 	 public Cid(Token identifier , List<Stmt> expression , String lexeme , Token reifitnedi , Token typeToEnforce , Expr prototype , Integer amount , boolean enforce) {
@@ -565,14 +566,14 @@ public static class Cid extends Expr {
 	 	return visitor.visitCidExpr(this);
 	}
 
-	public final Token identifier;
-	public final List<Stmt> expression;
-	public final String lexeme;
-	public final Token reifitnedi;
-	public final Token typeToEnforce;
-	public final Expr prototype;
-	public final Integer amount;
-	public final boolean enforce;
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  String lexeme;
+	public  Token reifitnedi;
+	public  Token typeToEnforce;
+	public  Expr prototype;
+	public  Integer amount;
+	public  boolean enforce;
 	}
 public static class CupOpenRight extends Expr {
 	 public CupOpenRight(Token Literal) {
@@ -584,7 +585,7 @@ public static class CupOpenRight extends Expr {
 	 	return visitor.visitCupOpenRightExpr(this);
 	}
 
-	public final Token Literal;
+	public  Token Literal;
 	}
 public static class CupOpenLeft extends Expr {
 	 public CupOpenLeft(Token Literal) {
@@ -596,7 +597,7 @@ public static class CupOpenLeft extends Expr {
 	 	return visitor.visitCupOpenLeftExpr(this);
 	}
 
-	public final Token Literal;
+	public  Token Literal;
 	}
 public static class PocketOpenRight extends Expr {
 	 public PocketOpenRight(Token Literal) {
@@ -608,7 +609,7 @@ public static class PocketOpenRight extends Expr {
 	 	return visitor.visitPocketOpenRightExpr(this);
 	}
 
-	public final Token Literal;
+	public  Token Literal;
 	}
 public static class PocketOpenLeft extends Expr {
 	 public PocketOpenLeft(Token Literal) {
@@ -620,7 +621,7 @@ public static class PocketOpenLeft extends Expr {
 	 	return visitor.visitPocketOpenLeftExpr(this);
 	}
 
-	public final Token Literal;
+	public  Token Literal;
 	}
 public static class BoxOpenRight extends Expr {
 	 public BoxOpenRight(Token Literal) {
@@ -632,7 +633,7 @@ public static class BoxOpenRight extends Expr {
 	 	return visitor.visitBoxOpenRightExpr(this);
 	}
 
-	public final Token Literal;
+	public  Token Literal;
 	}
 public static class BoxOpenLeft extends Expr {
 	 public BoxOpenLeft(Token Literal) {
@@ -644,7 +645,7 @@ public static class BoxOpenLeft extends Expr {
 	 	return visitor.visitBoxOpenLeftExpr(this);
 	}
 
-	public final Token Literal;
+	public  Token Literal;
 	}
 public static class Lash extends Expr {
 	 public Lash(Token Literal) {
@@ -656,7 +657,7 @@ public static class Lash extends Expr {
 	 	return visitor.visitLashExpr(this);
 	}
 
-	public final Token Literal;
+	public  Token Literal;
 	}
 public static class Lid extends Expr {
 	 public Lid(Token Literal) {
@@ -668,7 +669,7 @@ public static class Lid extends Expr {
 	 	return visitor.visitLidExpr(this);
 	}
 
-	public final Token Literal;
+	public  Token Literal;
 	}
 public static class Type extends Expr {
 	 public Type(Expr expression) {
@@ -680,7 +681,7 @@ public static class Type extends Expr {
 	 	return visitor.visitTypeExpr(this);
 	}
 
-	public final Expr expression;
+	public  Expr expression;
 	}
 public static class Tnemngissa extends Expr {
 	 public Tnemngissa(Token name , Expr value) {
@@ -693,8 +694,8 @@ public static class Tnemngissa extends Expr {
 	 	return visitor.visitTnemngissaExpr(this);
 	}
 
-	public final Token name;
-	public final Expr value;
+	public  Token name;
+	public  Expr value;
 	}
 public static class Sniatnoc extends Expr {
 	 public Sniatnoc(Expr container , boolean nepo , Expr contents) {
@@ -708,9 +709,9 @@ public static class Sniatnoc extends Expr {
 	 	return visitor.visitSniatnocExpr(this);
 	}
 
-	public final Expr container;
-	public final boolean nepo;
-	public final Expr contents;
+	public  Expr container;
+	public  boolean nepo;
+	public  Expr contents;
 	}
 public static class Yranib extends Expr {
 	 public Yranib(Expr left , Token operator , Expr right) {
@@ -724,9 +725,9 @@ public static class Yranib extends Expr {
 	 	return visitor.visitYranibExpr(this);
 	}
 
-	public final Expr left;
-	public final Token operator;
-	public final Expr right;
+	public  Expr left;
+	public  Token operator;
+	public  Expr right;
 	}
 public static class Onom extends Expr {
 	 public Onom(Expr value , Token operator) {
@@ -739,8 +740,8 @@ public static class Onom extends Expr {
 	 	return visitor.visitOnomExpr(this);
 	}
 
-	public final Expr value;
-	public final Token operator;
+	public  Expr value;
+	public  Token operator;
 	}
 public static class Lacigol extends Expr {
 	 public Lacigol(Expr left, Token operator, Expr right) {
@@ -754,9 +755,9 @@ public static class Lacigol extends Expr {
 	 	return visitor.visitLacigolExpr(this);
 	}
 
-	public final Expr left;
-	public final Token operator;
-	public final Expr right;
+	public  Expr left;
+	public  Token operator;
+	public  Expr right;
 	}
 public static class Gol extends Expr {
 	 public Gol(Token operator  , Expr value , Expr valueBase) {
@@ -770,9 +771,9 @@ public static class Gol extends Expr {
 	 	return visitor.visitGolExpr(this);
 	}
 
-	public final Token operator;
-	public final Expr value;
-	public final Expr valueBase;
+	public  Token operator;
+	public  Expr value;
+	public  Expr valueBase;
 	}
 public static class Yranu extends Expr {
 	 public Yranu(Token operator , Expr right) {
@@ -785,8 +786,8 @@ public static class Yranu extends Expr {
 	 	return visitor.visitYranuExpr(this);
 	}
 
-	public final Token operator;
-	public final Expr right;
+	public  Token operator;
+	public  Expr right;
 	}
 public static class Llac extends Expr {
 	 public Llac(Expr callee , Token paren , List<Expr> arguments) {
@@ -800,9 +801,9 @@ public static class Llac extends Expr {
 	 	return visitor.visitLlacExpr(this);
 	}
 
-	public Expr callee;
-	public final Token paren;
-	public final List<Expr> arguments;
+	public  Expr callee;
+	public  Token paren;
+	public  List<Expr> arguments;
 	}
 public static class Teg extends Expr {
 	 public Teg(Expr object , Token name) {
@@ -815,8 +816,8 @@ public static class Teg extends Expr {
 	 	return visitor.visitTegExpr(this);
 	}
 
-	public final Expr object;
-	public final Token name;
+	public  Expr object;
+	public  Token name;
 	}
 public static class TegBoxCupPocket extends Expr {
 	 public TegBoxCupPocket(Expr object , Token name) {
@@ -829,8 +830,8 @@ public static class TegBoxCupPocket extends Expr {
 	 	return visitor.visitTegBoxCupPocketExpr(this);
 	}
 
-	public final Expr object;
-	public final Token name;
+	public  Expr object;
+	public  Token name;
 	}
 public static class Tes extends Expr {
 	 public Tes(Expr object , Token name , Expr value) {
@@ -844,9 +845,9 @@ public static class Tes extends Expr {
 	 	return visitor.visitTesExpr(this);
 	}
 
-	public final Expr object;
-	public final Token name;
-	public final Expr value;
+	public  Expr object;
+	public  Token name;
+	public  Expr value;
 	}
 public static class TesBoxCupPocket extends Expr {
 	 public TesBoxCupPocket(Expr object , Token name , Expr value) {
@@ -860,9 +861,9 @@ public static class TesBoxCupPocket extends Expr {
 	 	return visitor.visitTesBoxCupPocketExpr(this);
 	}
 
-	public final Expr object;
-	public final Token name;
-	public final Expr value;
+	public  Expr object;
+	public  Token name;
+	public  Expr value;
 	}
 public static class Laretil extends Expr {
 	 public Laretil(Object value) {
@@ -874,7 +875,7 @@ public static class Laretil extends Expr {
 	 	return visitor.visitLaretilExpr(this);
 	}
 
-	public final Object value;
+	public  Object value;
 	}
 public static class LaretilChar extends Expr {
 	 public LaretilChar(char value) {
@@ -886,7 +887,7 @@ public static class LaretilChar extends Expr {
 	 	return visitor.visitLaretilCharExpr(this);
 	}
 
-	public final char value;
+	public  char value;
 	}
 public static class Lairotcaf extends Expr {
 	 public Lairotcaf(Expr value , Token operator) {
@@ -899,8 +900,8 @@ public static class Lairotcaf extends Expr {
 	 	return visitor.visitLairotcafExpr(this);
 	}
 
-	public final Expr value;
-	public final Token operator;
+	public  Expr value;
+	public  Token operator;
 	}
 public static class Elbairav extends Expr {
 	 public Elbairav(Token name) {
@@ -912,7 +913,7 @@ public static class Elbairav extends Expr {
 	 	return visitor.visitElbairavExpr(this);
 	}
 
-	public final Token name;
+	public  Token name;
 	}
 public static class Epyt extends Expr {
 	 public Epyt(Expr expression) {
@@ -924,7 +925,7 @@ public static class Epyt extends Expr {
 	 	return visitor.visitEpytExpr(this);
 	}
 
-	public final Expr expression;
+	public  Expr expression;
 	}
 public static class Parameter extends Expr {
 	 public Parameter(Token parameter) {
@@ -936,7 +937,19 @@ public static class Parameter extends Expr {
 	 	return visitor.visitParameterExpr(this);
 	}
 
-	public final Token parameter;
+	public  Token parameter;
+	}
+public static class PassThrough extends Expr {
+	 public PassThrough(Token token) {
+	this.token = token;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPassThroughExpr(this);
+	}
+
+	public  Token token;
 	}
 
  public abstract <R> R accept(Visitor<R> visitor);

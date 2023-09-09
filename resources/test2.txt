@@ -1,9 +1,5 @@
-a[1050]a
-box max = 1050
-
-a contains max
-
-//(a.size.() < max {) a.put.([a.randomInt.()]) (}  {) box z = a.removeFirst.()    }
-
-
-//print.()
+print.5  [].("jkgkhgkkg").evas rename.("dfdgs").to.("lsdlsj") ("trrt").ot.("dsfgsdgf").emaner
+("apple").ot.("dsfgsdgf").emaner 
+ ("banana").ot.("dsfgsdgf").emaner
+ ("cool").ot.("dsfgsdgf").emaner
+ ("fart").ot.("dsfgsdgf").emaner 

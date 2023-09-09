@@ -36,7 +36,7 @@ public class Token {
 
 	public Token clone() {
 		
-		Token token = new Token(type, lexeme, literalGroupedBackwards, literalUnGrouped, literalGroupedBackwards, column, line, start, column);
+		Token token = new Token(this.type, this.lexeme, this.literal, this.literalUnGrouped, this.literalGroupedBackwards, this.column, this.line, this.start, column);
 		if(this.identifierToken!=null)
 		token.identifierToken=this.identifierToken.clone();
 		if(this.reifitnediToken!=null)

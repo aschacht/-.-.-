@@ -126,6 +126,7 @@ public class Grouper {
 	}
 
 	private void fixSuperclasses(ArrayList<Token> tokens) {
+		
 		for (Token token : tokens) {
 			if (token.type == TokenType.OPENBRACE) {
 				String lexeme = token.identifierToken.lexeme;
@@ -226,42 +227,49 @@ public class Grouper {
 			} else if (token.type == TokenType.KNOTCONTAINER) {
 
 				ArrayList<Token> knotTokens = (ArrayList<Token>) token.literal;
-				fixSuperclasses(knotTokens);
-				ArrayList<Token> knotTokensungrouped = (ArrayList<Token>) token.literalUnGrouped;
-				fixSuperclasses(knotTokensungrouped);
+				
+					fixSuperclasses(knotTokens);
+					ArrayList<Token> knotTokensungrouped = (ArrayList<Token>) token.literalUnGrouped;
+					fixSuperclasses(knotTokensungrouped);
 
-				String lexemeFixed = "";
-				for (Token fixedToken : knotTokensungrouped) {
-					lexemeFixed += fixedToken.lexeme + " ";
-				}
-
+					String lexemeFixed = "";
+					for (Token fixedToken : knotTokensungrouped) {
+						lexemeFixed += fixedToken.lexeme + " ";
+					}
+				
 			} else if (token.type == TokenType.CUPCONTAINER) {
 
 				ArrayList<Token> cupTokens = (ArrayList<Token>) token.literal;
-				fixSuperclasses(cupTokens);
-				String lexemeFixed = "";
-				for (Token fixedToken : cupTokens) {
-					lexemeFixed += fixedToken.lexeme + " ";
-				}
-				token.lexeme = lexemeFixed;
+				
+					fixSuperclasses(cupTokens);
+					String lexemeFixed = "";
+					for (Token fixedToken : cupTokens) {
+						lexemeFixed += fixedToken.lexeme + " ";
+					}
+					token.lexeme = lexemeFixed;
+				
 			} else if (token.type == TokenType.POCKETCONTAINER) {
 
 				ArrayList<Token> pocketTokens = (ArrayList<Token>) token.literal;
-				fixSuperclasses(pocketTokens);
-				String lexemeFixed = "";
-				for (Token fixedToken : pocketTokens) {
-					lexemeFixed += fixedToken.lexeme + " ";
-				}
-				token.lexeme = lexemeFixed;
+				
+					fixSuperclasses(pocketTokens);
+					String lexemeFixed = "";
+					for (Token fixedToken : pocketTokens) {
+						lexemeFixed += fixedToken.lexeme + " ";
+					}
+					token.lexeme = lexemeFixed;
+				
 			} else if (token.type == TokenType.BOXCONTAINER) {
 
 				ArrayList<Token> boxTokens = (ArrayList<Token>) token.literal;
-				fixSuperclasses(boxTokens);
-				String lexemeFixed = "";
-				for (Token fixedToken : boxTokens) {
-					lexemeFixed += fixedToken.lexeme + " ";
-				}
-				token.lexeme = lexemeFixed;
+				
+					fixSuperclasses(boxTokens);
+					String lexemeFixed = "";
+					for (Token fixedToken : boxTokens) {
+						lexemeFixed += fixedToken.lexeme + " ";
+					}
+					token.lexeme = lexemeFixed;
+				
 			}
 		}
 	}
@@ -2255,8 +2263,8 @@ public class Grouper {
 	}
 
 	private void renameTransitionalGroups(TokenType grouptype, ArrayList<Token> group, ArrayList<String> namesUsed) {
-		Token token2 = group.get(0);
-		Token token3 = group.get(group.size() - 1);
+		Token token2 = group.get(0).clone();
+		Token token3 = group.get(group.size() - 1).clone();
 		if (grouptype == TokenType.PUPCONTAINER) {
 			String identName = "PUP.";
 			String reifName = ".PUP";
@@ -2311,7 +2319,7 @@ public class Grouper {
 		}
 		namesUsed.add(identString);
 		namesUsed.add(reifString);
-		
+
 		token2.identifierToken.lexeme = identString;
 		token2.lexeme = identName + token2.lexeme;
 		token3.reifitnediToken.lexeme = reifString;
