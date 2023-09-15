@@ -10,8 +10,10 @@ import Box.Box.Box;
 import Box.Interpreter.Bin;
 import Box.Syntax.Expr;
 import Box.Syntax.Stmt;
+import Box.Token.TTDynamic;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Box.Token.TokenTypeEnum;
 
 public class Scanner {
 
@@ -22,9 +24,29 @@ public class Scanner {
 	private int line = 1;
 	private int start = 0;
 	private int current = 0;
-	private static Map<String, TokenType> keywords = new HashMap<>();
+	private static Map<String, TokenTypeEnum> keywords = new HashMap<>();
 
 	public Scanner(String string) {
+		keywords.put("#HATTAG", TokenType.HATTAG);
+		keywords.put("#hattag", TokenType.HATTAG);
+		keywords.put("#Hattag", TokenType.HATTAG);
+		keywords.put("#HAttag", TokenType.HATTAG);
+		keywords.put("#HATtag", TokenType.HATTAG);
+		keywords.put("#HATTag", TokenType.HATTAG);
+		keywords.put("#HATTAg", TokenType.HATTAG);
+		keywords.put("#HATTaG", TokenType.HATTAG);
+		keywords.put("#HATtAG", TokenType.HATTAG);
+		keywords.put("#HAtTAG", TokenType.HATTAG);
+		keywords.put("#HaTTAG", TokenType.HATTAG);
+		keywords.put("#hATTAG", TokenType.HATTAG);
+		keywords.put("#haTTAG", TokenType.HATTAG);
+		keywords.put("#HatTAG", TokenType.HATTAG);
+		keywords.put("#HAttAG", TokenType.HATTAG);
+		keywords.put("#HATtaG", TokenType.HATTAG);
+		keywords.put("#HATTag", TokenType.HATTAG);
+		keywords.put("#GATTAH", TokenType.GATTAH);
+		keywords.put("#gattah", TokenType.GATTAH);
+
 		keywords.put("true", TokenType.TRUE);
 		keywords.put("false", TokenType.FALSE);
 		keywords.put("print", TokenType.PRINT);
@@ -92,22 +114,6 @@ public class Scanner {
 
 		keywords.put("not", TokenType.NOT);
 
-		keywords.put("String", TokenType.STRINGPARAMETER);
-		keywords.put("char", TokenType.CHARPARAMETER);
-		keywords.put("int", TokenType.INTPARAMETER);
-		keywords.put("double", TokenType.DOUBLEPARAMETER);
-		keywords.put("bin", TokenType.BINPARAMETER);
-		keywords.put("boolean", TokenType.BOOLEANPARAMETER);
-		keywords.put("enforce", TokenType.ENFORCEPARAMETER);
-
-		keywords.put("Gnirts", TokenType.GNIRTSPARAMETER);
-		keywords.put("rahc", TokenType.RAHCPARAMETER);
-		keywords.put("tni", TokenType.TNIPARAMETER);
-		keywords.put("elbuod", TokenType.ELBUODPARAMETER);
-		keywords.put("nib", TokenType.NIBPARAMETER);
-		keywords.put("naeloob", TokenType.NAELOOBPARAMETER);
-		keywords.put("ecrofne", TokenType.ECROFNEPARAMETER);
-
 		keywords.put("knt", TokenType.KNOT);
 		keywords.put("cup", TokenType.CUP);
 		keywords.put("pkt", TokenType.POCKET);
@@ -139,6 +145,24 @@ public class Scanner {
 		char c = advance();
 
 		switch (c) {
+		case '#':
+			advance();
+			while (peek() != '#') {
+				advance();
+			}
+			TokenTypeEnum tag = checkIfKewordHattagorgattaH(tokens);
+
+			if (tag == TokenType.HATTAG) {
+				readHATTAGS();
+				TokenTypeEnum gat = checkIfKewordHattagorgattaH(tokens);
+				while (gat != TokenType.GATTAH) {
+					TTDynamic.getInstance().addType(source.substring(start, current));
+					readHATTAGS();
+					gat = checkIfKewordHattagorgattaH(tokens);
+				}
+			}
+			start = current;
+			break;
 		case '(':
 			addToken(TokenType.OPENPAREN, tokens);
 			break;
@@ -163,7 +187,13 @@ public class Scanner {
 			addToken(TokenType.COMMA, tokens);
 			break;
 		case '.':
+
 			addToken(TokenType.DOT, tokens);
+
+			break;
+		case '?':
+			addToken(TokenType.QMARK, tokens);
+
 			break;
 		case '-':
 			if (match('=')) {
@@ -198,8 +228,6 @@ public class Scanner {
 		case '!':
 			if (match('=')) {
 				addToken(TokenType.NOTEQUALS, tokens);
-			} else if (match('!')) {
-				addToken(TokenType.DOUBLEBANG, tokens);
 			} else {
 				addToken(TokenType.BANG, tokens);
 			}
@@ -258,6 +286,11 @@ public class Scanner {
 				addToken(TokenType.FORWARDSLASH, tokens);
 
 			break;
+		case '_':
+
+			addToken(TokenType.UNDERSCORE, tokens);
+
+			break;
 		case '\\':
 			addToken(TokenType.BACKSLASH, tokens);
 			break;
@@ -286,110 +319,154 @@ public class Scanner {
 			break;
 		default:
 			if (isDigit(c))
-				numberreifitnediBIN(tokens, c);
+				intNum_BinNum(tokens, c);
 			else if (isAlpha(c))
-				identifierOrReifitnediOrBinaryNum(tokens, c);
+				ident_BinNum_IntNum(tokens, c, false);
 			else
 				Box.error(column, line, "Unexpected character " + c);
 		}
 
 	}
 
-	private void identifierOrReifitnediOrBinaryNum(ArrayList<Token> tokens, char c) {
+	private void readHATTAGS() {
+		start = current;
+		advance();
+		while (peek() != '#' && isAlphaNumeric(peek())) {
+			advance();
+		}
+	}
+
+	private TokenTypeEnum checkIfKewordHattagorgattaH(ArrayList<Token> tokens2) {
+		String text = source.substring(start, current);
+		TokenTypeEnum type = keywords.get(text);
+		return type;
+	}
+
+	private void ident_BinNum_IntNum(ArrayList<Token> tokens, char c, boolean hasAlphafromPass) {
 
 		if (isb(c) && isBinary(peek())) {
-			while (isBinary(peek()))
-				advance();
-			TokenType type = null;
-			String text = null;
-			Bin binNum = null;
 			boolean endb = false;
-			if (isb(peek())) {
+			Bin binNum = null;
+			while (isBinary(peek())) {
 				advance();
-				type = TokenType.BINNUM;
-				endb = true;
-			} else if (!isb(peek())) {
-				type = TokenType.BINNUM;
-			}
-			if (type == TokenType.BINNUM) {
-				if (endb)
-					binNum = Bin.valueOf(source.substring(start + 1, current - 1));
-				else
-					binNum = Bin.valueOf(source.substring(start + 1, current));
-			} else {
-				while (isAlphaNumeric(peek()))
+				if (isb(peek())) {
 					advance();
-				text = source.substring(start, current);
-				//// hack
-				if (!identifiers.contains(text)) {
-					identifiers.add(text);
+					endb = true;
+					break;
 				}
-				if (type == null)
-					type = TokenType.IDENTIFIER;
 			}
-			if (text != null)
-				addToken(type, text, tokens);
-			else
-				addToken(type, binNum, tokens);
 
-		} else if (isb(c) && !isBinary(peek())) {
-			while (isAlphaNumeric(peek()))
+			boolean advancedFurther = false;
+			while (isAlphaNumeric(peek())) {
+				advancedFurther = true;
 				advance();
-
-			String text = source.substring(start, current);
-			//// hack
-			if (!identifiers.contains(text)) {
-				identifiers.add(text);
-
 			}
-			TokenType type = keywords.get(text);
-			if (type == null)
-				type = TokenType.IDENTIFIER;
-			addToken(type, tokens);
-		} else if (!isb(c) && !isBinary(peek()) && isAlpha(c) && (isAlphaNumeric(peek()))) {
-			while (isAlphaNumeric(peek()))
+
+			if (!endb && !advancedFurther && !hasAlphafromPass) {
+				binNum = Bin.valueOf(source.substring(start + 1, current));
+				addToken(TokenType.BINNUM, binNum, tokens);
+			} else if (endb && !advancedFurther && !hasAlphafromPass) {
+				binNum = Bin.valueOf(source.substring(start + 1, current - 1));
+				addToken(TokenType.BINNUM, binNum, tokens);
+			} else if (!endb && !advancedFurther && hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			} else if (!endb && advancedFurther && !hasAlphafromPass) {
+				binNum = Bin.valueOf(source.substring(start + 1, current));
+				addToken(TokenType.BINNUM, binNum, tokens);
+			} else if (!endb && advancedFurther && hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			} else if (endb && !advancedFurther && hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			} else if (endb && advancedFurther && !hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			} else if (endb && advancedFurther && hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			}
+
+		} else if (isBinary(c)) {
+			boolean endb = false;
+			Bin binNum = null;
+			while (isBinary(peek())) {
 				advance();
-
-			String text = source.substring(start, current);
-			//// hack
-			if (!identifiers.contains(text)) {
-				identifiers.add(text);
-
+				if (isb(peek())) {
+					advance();
+					endb = true;
+					break;
+				}
 			}
-			TokenType type = keywords.get(text);
-			if (type == null)
-				type = TokenType.IDENTIFIER;
-			addToken(type, tokens);
-		} else if (isAlpha(c)) {
-			while (isAlphaNumeric(peek()))
+			boolean advancedFurther = false;
+			boolean hasAlpha = false;
+			while (isAlphaNumeric(peek())) {
+				if (isAlpha(peek()))
+					hasAlpha = true;
+				advancedFurther = true;
 				advance();
-
-			String text = source.substring(start, current);
-			//// hack
-			if (!identifiers.contains(text)) {
-				identifiers.add(text);
-
 			}
-			TokenType type = keywords.get(text);
-			if (type == null)
-				type = TokenType.IDENTIFIER;
-			addToken(type, tokens);
-		} else if (isDigit(c) && (isAlphaNumeric(peek()))) {
-			while (isAlphaNumeric(peek()))
+
+			if (endb && !advancedFurther && !hasAlphafromPass) {
+				binNum = Bin.valueOf(source.substring(start, current - 1));
+				addToken(TokenType.BINNUM, binNum, tokens);
+			} else if (!endb && !advancedFurther && !hasAlphafromPass) {
+				addToken(TokenType.INTNUM, Integer.valueOf(source.substring(start, current)), tokens);
+			} else if (!endb && advancedFurther && hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			} else if (!endb && advancedFurther && !hasAlphafromPass) {
+				addToken(TokenType.INTNUM, Integer.valueOf(source.substring(start, current)), tokens);
+			} else if (!endb && !advancedFurther && hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			} else if (endb && advancedFurther && hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			} else if (endb && advancedFurther && !hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			} else if (endb && !advancedFurther && hasAlphafromPass) {
+				checkIfKewordOrIdentifierAndAdd(tokens);
+			}
+
+		} else if (isAlphaNumeric(c)) {
+			boolean hasAlpha = isAlpha(c);
+			while (isAlphaNumeric(peek())) {
+				if (isAlpha(peek()))
+					hasAlpha = true;
 				advance();
-
-			String text = source.substring(start, current);
-			//// hack
-			if (!identifiers.contains(text)) {
-				identifiers.add(text);
-
 			}
-			TokenType type = keywords.get(text);
-			if (type == null)
-				type = TokenType.REIFITNEDI;
-			addToken(type, tokens);
+
+			if (hasAlpha || hasAlphafromPass)
+				if (checkIfKeword(tokens) && peek() == '.') {
+					checkIfKewordOrIdentifierAndAdd(tokens);
+				} else if (checkIfKeword(tokens) && peek() != '.') {
+					checkIfKewordOrIdentifierAndAdd(tokens);
+				} else if (!checkIfKeword(tokens) && peek() == '.') {
+					addToken(TokenType.IDENTIFIER, source.substring(start, current), tokens);
+				} else {
+					addToken(TokenType.IDENTIFIER, source.substring(start, current), tokens);
+
+				}
+			else {
+				addToken(TokenType.INTNUM, Integer.valueOf(source.substring(start, current)), tokens);
+			}
+
 		}
 
+	}
+
+	private void checkIfKewordOrIdentifierAndAdd(ArrayList<Token> tokens) {
+		String text = source.substring(start, current);
+		TokenTypeEnum type = keywords.get(text);
+		if (type == null) {
+			type = TokenType.IDENTIFIER;
+			addToken(type, text, tokens);
+		} else {
+			addToken(type, tokens);
+		}
+	}
+
+	private boolean checkIfKeword(ArrayList<Token> tokens) {
+		String text = source.substring(start, current);
+		TokenTypeEnum type = keywords.get(text);
+		if (type != null) {
+			return true;
+		}
+		return false;
 	}
 
 	private boolean isAlphaNumeric(char c) {
@@ -405,70 +482,93 @@ public class Scanner {
 		return (c == 'b');
 	}
 
-	private void numberreifitnediBIN(ArrayList<Token> tokens, char c) {
-		if (previous() == '.') {
-			while (isDigit(peek()))
-				advance();
-			addToken(TokenType.INTNUM, Integer.valueOf(source.substring(start, current)), tokens);
-			return;
+	private void intNum_BinNum(ArrayList<Token> tokens, char c) {
+		while (isBinary(peek()))
+			advance();
+		boolean isB = false;
+		if (isb(peek())) {
+			advance();
+			isB = true;
 		}
+		if (isB && isNewline_Space_Tab_Return_Eof(peek())) {
+			determinIdentifier_BinNum_IntNum(tokens, isB);
+		} else if ((isB && !isNewline_Space_Tab_Return_Eof(peek()))) {
+			determinIdentifier_BinNum_IntNum(tokens, isB);
+		} else if ((!isB && isNewline_Space_Tab_Return_Eof(peek()))) {
+			isItIdent_IntNum_BinNum(tokens);
+		} else if ((!isB && !isNewline_Space_Tab_Return_Eof(peek()))) {
+			isItIdent_IntNum_BinNum(tokens);
+		}
+	}
 
-		while (isDigit(peek()))
+	private void isItIdent_IntNum_BinNum(ArrayList<Token> tokens) {
+		boolean hasAlpha = false;
+		while (isAlphaNumeric(peek())) {
+			if (isAlpha(peek()))
+				hasAlpha = true;
 			advance();
-		if (peek() == '.' && isDigit(peekNext())) {
-			Hashtable<Integer, Integer> startsandEnds = new Hashtable<Integer, Integer>();
-			ArrayList<Integer> keys = new ArrayList<Integer>();
-			keys.add(start);
-			startsandEnds.put(start, current);
+		}
+		if (peek() == '.') {
 			advance();
-			while (!isAlpha(peek()) && !anythingOtherThenDigit(peek())) {
-				int newStart = current;
-				if (isDigit(peek())) {
-					int newFinish = current;
-					keys.add(newStart);
-					startsandEnds.put(newStart, newFinish);
-					advance();
-				}else if (isAlpha(peek())) {
-					int newFinish = current;
-					keys.add(newStart);
-					startsandEnds.put(newStart, newFinish);
-					advance();
-				}else {
-					break;
-				}
+			while (isDigit(peek())) {
+				advance();
 			}
-			if ((isAlpha(peek()) || anythingOtherThenDigit(peek())) && previousCurrent() == '.') {
-				for (int i = 0; i < keys.size(); i++) {
-
-					Integer valueOfIntNum = Integer
-							.valueOf(source.substring(keys.get(i), startsandEnds.get(keys.get(i))));
-					addToken(TokenType.INTNUM, valueOfIntNum, keys.get(i), startsandEnds.get(keys.get(i)), tokens);
-					if (i < keys.size() - 1)
-						addToken(TokenType.DOT, source.substring(startsandEnds.get(keys.get(i)), keys.get(i + 1)),
-								startsandEnds.get(keys.get(i)), keys.get(i + 1), tokens);
-					else
-						addToken(TokenType.DOT, source.substring(startsandEnds.get(keys.get(i)), current),
-								startsandEnds.get(keys.get(i)), current, tokens);
-
-				}
-
-			} else {
-
+			if (isNewline_Space_Tab_Return_Eof(peek())) {
 				addToken(TokenType.DOUBLENUM, Double.valueOf(source.substring(start, current)), tokens);
+			} else {
+				addToken(TokenType.UNKNOWN, source.substring(start, current), tokens);
 			}
-
-		} else if (isAlpha(peek()) || isDigit(peek())) {
-			identifierOrReifitnediOrBinaryNum(tokens, c);
-
 		} else {
-			if (isb(peek()) && isBinary(source.substring(start, current))) {
-				addToken(TokenType.BINNUM, Bin.valueOf(source.substring(start, current)), tokens);
-				advance();
-			} else if (isb(peek()) && !isBinary(source.substring(start, current))) {
-				identifierOrReifitnediOrBinaryNum(tokens, c);
-			} else
+			if (hasAlpha) {
+				addToken(TokenType.IDENTIFIER, source.substring(start, current), tokens);
+			} else {
 				addToken(TokenType.INTNUM, Integer.valueOf(source.substring(start, current)), tokens);
+
+			}
 		}
+	}
+
+	private void determinIdentifier_BinNum_IntNum(ArrayList<Token> tokens, boolean isB) {
+		if (!isAlphaNumeric(peek()) && isB) {
+			addToken(TokenType.BINNUM, Bin.valueOf(source.substring(start, current - 1)), tokens);
+		} else if (!isAlphaNumeric(peek()) && !isB) {
+			while (isDigit(peek())) {
+				advance();
+			}
+			if (isAlpha(peek())) {
+				ident_BinNum_IntNum(tokens, peek(), true);
+			} else {
+				addToken(TokenType.INTNUM, Integer.valueOf(source.substring(start, current)), tokens);
+			}
+		} else if (isAlphaNumeric(peek()) && !isB) {
+			ident_BinNum_IntNum(tokens, peek(), true);
+		} else if (isAlphaNumeric(peek()) && isB) {
+			ident_BinNum_IntNum(tokens, peek(), true);
+		}
+	}
+
+	private boolean isNewline_Space_Tab_Return_Eof(char c) {
+		boolean istrue = false;
+		switch (c) {
+		case '\n':
+			istrue = true;
+			break;
+		case ' ':
+			istrue = true;
+			break;
+		case '\t':
+			istrue = true;
+
+			break;
+		case '\r':
+			istrue = true;
+			break;
+		case '\0':
+			istrue = true;
+			break;
+
+		}
+		return istrue;
 	}
 
 	private boolean anythingOtherThenDigit(char c) {
@@ -645,28 +745,35 @@ public class Scanner {
 		return true;
 	}
 
-	private void addToken(TokenType type, ArrayList<Token> tokens) {
+	private void addToken(TokenTypeEnum type, ArrayList<Token> tokens) {
 		addToken(type, null, tokens);
 
 	}
 
-	private void addToken(TokenType type, Object literal, ArrayList<Token> tokens) {
+	private void addToken(TokenTypeEnum type, Object literal, ArrayList<Token> tokens) {
 		String text = source.substring(start, current);
 
 		column = column - (current - start);
-		tokens.add(new Token(type, text, literal, null,null, column, line, start, current));
+		tokens.add(new Token(type, text, literal, null, null, column, line, start, current));
 	}
 
-	private void addToken(TokenType type, Object literal, int theStart, int theCurrent, ArrayList<Token> tokens) {
+	private void addToken(TokenTypeEnum type, Object literal, int theStart, int theCurrent, ArrayList<Token> tokens) {
 		String text = source.substring(theStart, theCurrent);
 
 		column = column - (theCurrent - theStart);
-		tokens.add(new Token(type, text, literal, null,null, column, line, theStart, theCurrent));
+		tokens.add(new Token(type, text, literal, null, null, column, line, theStart, theCurrent));
 	}
 
 	private char advance() {
+		
 		current++;
 		column++;
+		return source.charAt(current - 1);
+	}
+
+	private char regress() {
+		current--;
+		column--;
 		return source.charAt(current - 1);
 	}
 

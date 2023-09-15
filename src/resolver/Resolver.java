@@ -52,15 +52,15 @@ import Box.Syntax.Expr.PocketOpenLeft;
 import Box.Syntax.Expr.PocketOpenRight;
 import Box.Syntax.Expr.Pup;
 import Box.Syntax.Expr.Set;
-import Box.Syntax.Expr.SetBoxCupPocket;
 import Box.Syntax.Expr.Sniatnoc;
 import Box.Syntax.Expr.Teg;
 import Box.Syntax.Expr.TegBoxCupPocket;
 import Box.Syntax.Expr.Tes;
-import Box.Syntax.Expr.TesBoxCupPocket;
 import Box.Syntax.Expr.Tnemngissa;
 import Box.Syntax.Expr.Type;
+import Box.Syntax.Expr.UnKnown;
 import Box.Syntax.Expr.Unary;
+import Box.Syntax.Expr.UnknownnwonknU;
 import Box.Syntax.Expr.Variable;
 import Box.Syntax.Expr.Yranib;
 import Box.Syntax.Expr.Yranu;
@@ -87,7 +87,9 @@ import Box.Syntax.Stmt.Rename;
 import Box.Syntax.Stmt.Return;
 import Box.Syntax.Stmt.Save;
 import Box.Syntax.Stmt.Tnirp;
+import Box.Syntax.Stmt.UnDetermined;
 import Box.Syntax.Stmt.Var;
+import Box.Syntax.Stmt.VarFB;
 import Box.Token.Token;
 import Box.Token.TokenType;
 
@@ -140,14 +142,7 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			declare(((Expr.Elbairav) stmt.identifierfun0).name);
 			define(((Expr.Elbairav) stmt.identifierfun0).name);
 		}
-		if (stmt.identifierfun0 instanceof Expr.Get) {
-			declare(((Expr.Get) stmt.identifierfun0).name);
-			define(((Expr.Get) stmt.identifierfun0).name);
-		}
-		if (stmt.identifierfun0 instanceof Expr.Teg) {
-			declare(((Expr.Teg) stmt.identifierfun0).name);
-			define(((Expr.Teg) stmt.identifierfun0).name);
-		}
+
 		if (stmt.identifierfun1 instanceof Expr.Variable) {
 			declare(((Expr.Variable) stmt.identifierfun1).name);
 			define(((Expr.Variable) stmt.identifierfun1).name);
@@ -156,14 +151,8 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			declare(((Expr.Elbairav) stmt.identifierfun1).name);
 			define(((Expr.Elbairav) stmt.identifierfun1).name);
 		}
-		if (stmt.identifierfun1 instanceof Expr.Get) {
-			declare(((Expr.Get) stmt.identifierfun1).name);
-			define(((Expr.Get) stmt.identifierfun1).name);
-		}
-		if (stmt.identifierfun1 instanceof Expr.Teg) {
-			declare(((Expr.Teg) stmt.identifierfun1).name);
-			define(((Expr.Teg) stmt.identifierfun1).name);
-		}
+
+
 		resolveFunction(stmt, FunctionType.FUNCTION);
 		return null;
 	}
@@ -249,9 +238,9 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Void visitVarStmt(Var stmt) {
 		declare(stmt.name);
-		if (stmt.initializer != null) {
-			resolve(stmt.initializer);
-		}
+//		if (stmt.initializer != null) {
+//			resolve(stmt.initializer);
+//		}
 		define(stmt.name);
 		return null;
 	}
@@ -288,15 +277,6 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		return null;
 	}
 
-	@Override
-	public Void visitCallExpr(Call expr) {
-		resolve(expr.callee);
-
-		for (Expr argument : expr.arguments) {
-			resolve(argument);
-		}
-		return null;
-	}
 
 	@Override
 	public Void visitLiteralExpr(Literal expr) {
@@ -336,11 +316,6 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		}
 	}
 
-	@Override
-	public Void visitGetExpr(Get expr) {
-		resolve(expr.object);
-		return null;
-	}
 
 	@Override
 	public Void visitSetExpr(Set expr) {
@@ -754,17 +729,7 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		return null;
 	}
 
-	@Override
-	public Object visitSetBoxCupPocketExpr(SetBoxCupPocket expr) {
 
-		return null;
-	}
-
-	@Override
-	public Object visitTesBoxCupPocketExpr(TesBoxCupPocket expr) {
-
-		return null;
-	}
 
 	@Override
 	public Object visitPupExpr(Pup expr) {
@@ -813,5 +778,46 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		
 		return null;
 	}
+
+
+
+	@Override
+	public Void visitUnDeterminedStmt(UnDetermined stmt) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitCallExpr(Call expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitGetExpr(Get expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitUnKnownExpr(UnKnown expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitUnknownnwonknUExpr(UnknownnwonknU expr) {
+		
+		return null;
+	}
+
+	@Override
+	public Void visitVarFBStmt(VarFB stmt) {
+		
+		return null;
+	}
+
+
+
 
 }

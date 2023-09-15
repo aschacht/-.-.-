@@ -1,27 +1,23 @@
 package Box.Parser;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import Box.Box.Box;
-import Box.Interpreter.Bin;
 import Box.Syntax.Expr;
+import Box.Syntax.Expr.Boxx;
 import Box.Syntax.Expr.Call;
 import Box.Syntax.Expr.Cid;
 import Box.Syntax.Expr.Cocket;
 import Box.Syntax.Expr.Cup;
-import Box.Syntax.Expr.Elbairav;
-import Box.Syntax.Expr.Get;
 import Box.Syntax.Expr.Knot;
 import Box.Syntax.Expr.Lil;
-import Box.Syntax.Expr.Literal;
 import Box.Syntax.Expr.Locket;
 import Box.Syntax.Expr.Lup;
 import Box.Syntax.Expr.Pid;
 import Box.Syntax.Expr.Pocket;
 import Box.Syntax.Expr.Pup;
+import Box.Syntax.Expr.UnknownnwonknU;
 import Box.Syntax.Stmt;
 import Box.Syntax.Stmt.Daer;
 import Box.Syntax.Stmt.Emaner;
@@ -31,8 +27,11 @@ import Box.Syntax.Stmt.Expression;
 import Box.Syntax.Stmt.Nruter;
 import Box.Syntax.Stmt.PassThrough;
 import Box.Syntax.Stmt.Tnirp;
+import Box.Syntax.Stmt.Var;
+import Box.Token.TTDynamic;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Box.Token.TokenTypeEnum;
 
 public class Parser {
 	private static class ParseError extends RuntimeException {
@@ -41,15 +40,6 @@ public class Parser {
 	}
 
 	TokensToTrack tracker;
-
-	boolean callPrint = false;
-	int callPrintCount = 0;
-	boolean callReturn = false;
-	int callReturnCount = 0;
-
-	private int setbackFunctionDetermination;
-
-	private int setbackFunctionDeterminationBuild;
 
 	private boolean forward;
 
@@ -95,11 +85,6 @@ public class Parser {
 			return currentStack.get(currentStack.size() - 1);
 		}
 
-		public void setSize(int currentToSet) {
-			currentStack.remove(currentStack.size() - 1);
-			currentStack.add(currentToSet);
-		}
-
 		public int size() {
 			return (stack.get(stack.size() - 1)).size();
 		}
@@ -117,7 +102,6 @@ public class Parser {
 	}
 
 	public Parser(List<Token> tokens, boolean forward, boolean backward) {
-
 		this.forward = forward;
 		this.backward = backward;
 		tracker = new TokensToTrack((ArrayList<Token>) tokens, 0);
@@ -125,35 +109,18 @@ public class Parser {
 
 	public List<Stmt> parse() {
 
-		if (forward && backward) {
-			List<Stmt> forwardParse = parseForward();
-			List<Stmt> backwardParse = parseBackward(forwardParse);
-			return backwardParse;
-		} else if (forward && !backward) {
-			List<Stmt> forwardParse = parseForward();
-			return forwardParse;
-		} else if (!forward && backward) {
-			List<Stmt> forwardParse = parseForward();
-			List<Stmt> backwardParse = parseBackward(forwardParse);
-			List<Stmt> backwardRemovedForwardsParse = removeForwards(backwardParse);
-			return backwardParse;
-		} else
-			return null;
-	}
+		List<Stmt> forwardStmt = parseForward();
+		List<Stmt> resolveStmt = resolveUnkonwns(forwardStmt);
+		return resolveStmt;
 
-	private List<Stmt> removeForwards(List<Stmt> backwardParse) {
-
-		return null;
 	}
 
 	private List<Stmt> parseForward() {
 		List<Stmt> statements = new ArrayList<>();
-
 		while (!isAtEnd()) {
-			statements.add(declarationForward());
+			statements.add(declaration());
 			fixPreviousStatmentifBackwardsDotFound(statements);
 		}
-
 		return statements;
 	}
 
@@ -175,10 +142,10 @@ public class Parser {
 		}
 	}
 
-	private List<Stmt> parseBackward(List<Stmt> forwardParse) {
+	private List<Stmt> resolveUnkonwns(List<Stmt> forwardParse) {
 
 		for (int i = forwardParse.size() - 1; i >= 0; i--) {
-			Stmt stmt = checkForBackwardsPassThrough(forwardParse.get(i));
+			Stmt stmt = checkForUnknows(forwardParse.get(i));
 			forwardParse.add(i, stmt);
 			forwardParse.remove(i + 1);
 		}
@@ -186,621 +153,871 @@ public class Parser {
 		return forwardParse;
 	}
 
-	private Stmt checkForBackwardsPassThrough(Stmt stmt) {
+	private Stmt checkForUnknows(Stmt stmt) {
 		if (stmt instanceof Stmt.Expression) {
-			Expr expr = checkExpressionForPassThrough(((Stmt.Expression) stmt));
-			return new Stmt.Expression(expr);
+			Stmt stmt2 = determineWhatTypeOfBackwardsStmt(stmt);
+			if (stmt2 instanceof Stmt.Expression) {
+				Stmt stmt3 = checkIfFi(((Stmt.Expression) stmt));
+				if (stmt3 instanceof Stmt.Expression)
+					return new Stmt.Expression(checkExpressionForUnknown(((Stmt.Expression) stmt)));
+				else
+					return stmt3;
+			} else
+				return stmt2;
+
 		}
 		return stmt;
 	}
 
-	private List<Stmt> determinStatementForPassThroughRange(List<Stmt> expression) {
+	private Stmt checkIfFi(Expression expression) {
+		if (expression.expression instanceof Expr.UnknownnwonknU) {
+			Expr.UnknownnwonknU unknownCallOrGet = (UnknownnwonknU) expression.expression;
+			if (matchesIfPattern(unknownCallOrGet)) {
+				return buildIfs(unknownCallOrGet, null);
+
+			} else if (matchesFiPattern(unknownCallOrGet)) {
+
+				return buildFis(unknownCallOrGet, null);
+			}
+		}
+		return expression;
+	}
+
+	private List<Stmt> determinStatementForUnknows(List<Stmt> expression) {
 		List<Stmt> expressionTemp = new ArrayList<>();
 		while (expression.size() > 0) {
 			Stmt stmt = consumeBackwards(expression);
-			if (stmt instanceof Stmt.PassThrough) {
-				Expr expr = ((Stmt.PassThrough) stmt).expression;
-				if (expr instanceof Expr.PassThrough) {
-					if (((Expr.PassThrough) expr).token.type == TokenType.TNIRP) {
-						Tnirp tnirp = checkBackwardsTnirp(expression, ((Expr.PassThrough) expr).token);
-						expressionTemp.add(0, tnirp);
-					} else if (((Expr.PassThrough) expr).token.type == TokenType.NRUTER) {
-						Nruter nruter = checkBackwardsNruter(expression, ((Expr.PassThrough) expr).token);
-						expressionTemp.add(0, nruter);
-					} else if (((Expr.PassThrough) expr).token.type == TokenType.EVAS) {
-						Evas evas = checkBackwardsEvas(expression, ((Expr.PassThrough) expr).token);
-						expressionTemp.add(0, evas);
-					} else if (((Expr.PassThrough) expr).token.type == TokenType.DAER) {
-						Daer daer = checkBackwardsDaer(expression, ((Expr.PassThrough) expr).token);
-						expressionTemp.add(0, daer);
-					} else if (((Expr.PassThrough) expr).token.type == TokenType.EMANER) {
-						Emaner emaner = checkBackwardsEmaner(expression, ((Expr.PassThrough) expr).token);
-						expressionTemp.add(0, emaner);
-					} else if (((Expr.PassThrough) expr).token.type == TokenType.EVOM) {
-						Evom evom = checkBackwardsEvom(expression, ((Expr.PassThrough) expr).token);
-						expressionTemp.add(0, evom);
-					}
-				}
-			} else {
-				expressionTemp.add(0, stmt);
-			}
+			Stmt stmtDetermined = determineWhatTypeOfBackwardsStmt(stmt);
+			expressionTemp.add(0, stmtDetermined);
 		}
 		return expressionTemp;
 	}
 
-	private Evom checkBackwardsEvom(List<Stmt> expression, Token token) {
-		Stmt dot = consumeBackwards(expression);
-		if (dot instanceof Stmt.PassThrough) {
-			Expr expr = ((Stmt.PassThrough) dot).expression;
-			if (expr instanceof Expr.PassThrough) {
-				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
-					Stmt pocketStmt = consumeBackwards(expression);
-					if (pocketStmt instanceof Stmt.PassThrough) {
-						Expr pocketExpr = ((Stmt.PassThrough) pocketStmt).expression;
-						if (pocketExpr instanceof Expr.Pocket) {
-							List<Stmt> expression2 = ((Expr.Pocket) pocketExpr).expression;
-							if (expression2.size() == 1 && expression2.get(0) instanceof Stmt.Expression) {
+	private Stmt determineWhatTypeOfBackwardsStmt(Stmt stmt) {
+		if (stmt instanceof Stmt.Expression) {
+			Expr expr = ((Stmt.Expression) stmt).expression;
+			if (expr instanceof Expr.UnknownnwonknU) {
 
-								if (((Stmt.Expression) expression2.get(0)).expression instanceof Expr.Literal) {
-									Expr.Literal filePath = ((Expr.Literal) ((Stmt.Expression) expression2
-											.get(0)).expression);
-									Stmt secondDot = consumeBackwards(expression);
-									if (secondDot instanceof Stmt.PassThrough) {
-										Expr exprDot = ((Stmt.PassThrough) secondDot).expression;
-										if (exprDot instanceof Expr.PassThrough) {
-											if (((Expr.PassThrough) exprDot).token.type == TokenType.DOT) {
-												Stmt otniStmt = consumeBackwards(expression);
-												if (otniStmt instanceof Stmt.PassThrough) {
+				if (((Expr.UnknownnwonknU) expr).name.type == TokenType.TNIRP) {
+					return checkBackwardsTnirp(expr);
 
-													if (((Stmt.PassThrough) otniStmt).expression instanceof Expr.PassThrough) {
-														Token token2 = ((Expr.PassThrough) ((Stmt.PassThrough) otniStmt).expression).token;
-														if (token2.type == TokenType.OT) {
-															Stmt thirdDot = consumeBackwards(expression);
-															if (thirdDot instanceof Stmt.PassThrough) {
-																Expr expr3Dot = ((Stmt.PassThrough) thirdDot).expression;
-																if (expr3Dot instanceof Expr.PassThrough) {
-																	if (((Expr.PassThrough) expr3Dot).token.type == TokenType.DOT) {
-																		Stmt fileNameStmt = consumeBackwards(
-																				expression);
-																		if (fileNameStmt instanceof Stmt.PassThrough) {
-																			Expr fileNameExpr = ((Stmt.PassThrough) fileNameStmt).expression;
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.NRUTER) {
+					return checkBackwardsNruter(expr);
 
-																			if (fileNameExpr instanceof Expr.Pocket) {
-																				List<Stmt> fileName = ((Expr.Pocket) fileNameExpr).expression;
-																				if (fileName.size() == 1 && fileName
-																						.get(0) instanceof Stmt.Expression) {
-																					if (((Stmt.Expression) fileName.get(
-																							0)).expression instanceof Expr.Literal) {
-																						Expr.Literal fileNameLiteral = ((Expr.Literal) ((Stmt.Expression) fileName
-																								.get(0)).expression);
-																						return new Evom(token, filePath,
-																								fileNameLiteral);
-																					}
-																				}
-																			}
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.DAER) {
+					return checkBackwardsDaer(expr);
 
-																		}
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.EVAS) {
+					return checkBackwardsEvas(expr);
 
-																	}
-																}
-															}
-														}
-													}
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.EMANER) {
+					return checkBackwardsEmaner(expr);
 
-												}
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.EVOM) {
+					return checkBackwardsEvom(expr);
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.PRINT) {
+					return checkForwardsPrint(expr);
 
-											}
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.RETURN) {
+					return checkForwardsReturn(expr);
 
-										}
-									}
-								}
-							}
-						}
-					}
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.READ) {
+					return checkForwardsRead(expr);
+
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.SAVE) {
+					return checkForwardSave(expr);
+
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.RENAME) {
+					return checkForwardsRename(expr);
+
+				} else if (((Expr.UnknownnwonknU) expr).name.type == TokenType.MOVE) {
+					return checkForwardsMove(expr);
 				}
-
+			} else {
+				return stmt;
 			}
 		}
-
-		return null;
+		return stmt;
 	}
 
-	private Emaner checkBackwardsEmaner(List<Stmt> expression, Token token) {
-		Stmt dot = consumeBackwards(expression);
-		if (dot instanceof Stmt.PassThrough) {
-			Expr expr = ((Stmt.PassThrough) dot).expression;
-			if (expr instanceof Expr.PassThrough) {
-				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
-					Stmt pocketStmt = consumeBackwards(expression);
-					if (pocketStmt instanceof Stmt.PassThrough) {
-						Expr pocketExpr = ((Stmt.PassThrough) pocketStmt).expression;
-						if (pocketExpr instanceof Expr.Pocket) {
-							List<Stmt> expression2 = ((Expr.Pocket) pocketExpr).expression;
-							if (expression2.size() == 1 && expression2.get(0) instanceof Stmt.Expression) {
+	private Stmt checkForwardsMove(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 4)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few after move.");
+		Expr nameOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee).callee;
+		Expr nameOfFileForMoveAndRename = checkNameOfFileForMoveAndRename(nameOfFile);
 
-								if (((Stmt.Expression) expression2.get(0)).expression instanceof Expr.Literal) {
-									Expr.Literal filePath = ((Expr.Literal) ((Stmt.Expression) expression2
-											.get(0)).expression);
-									Stmt secondDot = consumeBackwards(expression);
-									if (secondDot instanceof Stmt.PassThrough) {
-										Expr exprDot = ((Stmt.PassThrough) secondDot).expression;
-										if (exprDot instanceof Expr.PassThrough) {
-											if (((Expr.PassThrough) exprDot).token.type == TokenType.DOT) {
-												Stmt otniStmt = consumeBackwards(expression);
-												if (otniStmt instanceof Stmt.PassThrough) {
+		Expr intoKeyword = ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee;
+		if (!(((Expr.UnknownnwonknU) intoKeyword).name.type == TokenType.TO))
+			throw error(((Expr.UnknownnwonknU) intoKeyword).name, "to not found");
 
-													if (((Stmt.PassThrough) otniStmt).expression instanceof Expr.PassThrough) {
-														Token token2 = ((Expr.PassThrough) ((Stmt.PassThrough) otniStmt).expression).token;
-														if (token2.type == TokenType.OT) {
-															Stmt thirdDot = consumeBackwards(expression);
-															if (thirdDot instanceof Stmt.PassThrough) {
-																Expr expr3Dot = ((Stmt.PassThrough) thirdDot).expression;
-																if (expr3Dot instanceof Expr.PassThrough) {
-																	if (((Expr.PassThrough) expr3Dot).token.type == TokenType.DOT) {
-																		Stmt fileNameStmt = consumeBackwards(
-																				expression);
-																		if (fileNameStmt instanceof Stmt.PassThrough) {
-																			Expr fileNameExpr = ((Stmt.PassThrough) fileNameStmt).expression;
+		Token newNamOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) expr).callee).name;
+		Expr newFileNameExpr = buildParametersForfileOrPath(newNamOfFile);
 
-																			if (fileNameExpr instanceof Expr.Pocket) {
-																				List<Stmt> fileName = ((Expr.Pocket) fileNameExpr).expression;
-																				if (fileName.size() == 1 && fileName
-																						.get(0) instanceof Stmt.Expression) {
-																					if (((Stmt.Expression) fileName.get(
-																							0)).expression instanceof Expr.Literal) {
-																						Expr.Literal fileNameLiteral = ((Expr.Literal) ((Stmt.Expression) fileName
-																								.get(0)).expression);
-																						return new Emaner(token,
-																								filePath,
-																								fileNameLiteral);
-																					}
-																				}
-																			}
-
-																		}
-
-																	}
-																}
-															}
-														}
-													}
-
-												}
-
-											}
-
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-
-			}
-		}
-
-		return null;
+		return new Stmt.Move(((Expr.UnknownnwonknU) expr).name, nameOfFileForMoveAndRename, newFileNameExpr);
 	}
 
-	private Daer checkBackwardsDaer(List<Stmt> expression, Token token) {
-		Stmt dot = consumeBackwards(expression);
-		if (dot instanceof Stmt.PassThrough) {
-			Expr expr = ((Stmt.PassThrough) dot).expression;
-			if (expr instanceof Expr.PassThrough) {
-				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
-					Stmt pocketStmt = consumeBackwards(expression);
-					if (pocketStmt instanceof Stmt.PassThrough) {
-						Expr pocketExpr = ((Stmt.PassThrough) pocketStmt).expression;
-						if (pocketExpr instanceof Expr.Pocket) {
-							List<Stmt> expression2 = ((Expr.Pocket) pocketExpr).expression;
-							if (expression2.size() == 1 && expression2.get(0) instanceof Stmt.Expression) {
-
-								if (((Stmt.Expression) expression2.get(0)).expression instanceof Expr.Literal) {
-									Expr.Literal filePath = ((Expr.Literal) ((Stmt.Expression) expression2
-											.get(0)).expression);
-									Stmt secondDot = consumeBackwards(expression);
-									if (secondDot instanceof Stmt.PassThrough) {
-										Expr exprDot = ((Stmt.PassThrough) secondDot).expression;
-										if (exprDot instanceof Expr.PassThrough) {
-											if (((Expr.PassThrough) exprDot).token.type == TokenType.DOT) {
-												Stmt otniStmt = consumeBackwards(expression);
-												if (otniStmt instanceof Stmt.PassThrough) {
-
-													if (((Stmt.PassThrough) otniStmt).expression instanceof Expr.PassThrough) {
-														Token token2 = ((Expr.PassThrough) ((Stmt.PassThrough) otniStmt).expression).token;
-														if (token2.type == TokenType.OTNI) {
-															Stmt thirdDot = consumeBackwards(expression);
-															if (thirdDot instanceof Stmt.PassThrough) {
-																Expr expr3Dot = ((Stmt.PassThrough) thirdDot).expression;
-																if (expr3Dot instanceof Expr.PassThrough) {
-																	if (((Expr.PassThrough) expr3Dot).token.type == TokenType.DOT) {
-																		Stmt toDaerOtniStmt = consumeBackwards(
-																				expression);
-																		if (toDaerOtniStmt instanceof Stmt.PassThrough) {
-																			Expr toDaerOtniExpr = ((Stmt.PassThrough) toDaerOtniStmt).expression;
-
-																			if (toDaerOtniExpr instanceof Expr.Boxx) {
-																				return new Daer(token, filePath,
-																						toDaerOtniExpr);
-																			} else if (toDaerOtniExpr instanceof Expr.Cup) {
-																				return new Daer(token, filePath,
-																						toDaerOtniExpr);
-
-																			} else if (toDaerOtniExpr instanceof Expr.Pocket) {
-																				return new Daer(token, filePath,
-																						toDaerOtniExpr);
-
-																			} else if (toDaerOtniExpr instanceof Expr.Knot) {
-																				return new Daer(token, filePath,
-																						toDaerOtniExpr);
-
-																			} else if (toDaerOtniExpr instanceof Expr.Variable) {
-																				return new Daer(token, filePath,
-																						toDaerOtniExpr);
-																			}
-
-																		}
-
-																	}
-																}
-															}
-														}
-													}
-
-												}
-
-											}
-
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-
-			}
+	private Expr checkNameOfFileForMoveAndRename(Expr nameOfFile) {
+		if (!(nameOfFile instanceof Expr.Pocket)) {
+			throw error(null, "file name container not of type Pocket ");
 		}
+		List<Stmt> contents = ((Expr.Pocket) nameOfFile).expression;
+		if (contents.size() > 1) {
+			throw error(null, "to many arguments for file path");
+		}
+		if (contents.size() < 1) {
+			throw error(null, "to few arguments for file path");
+		}
+		if (contents.get(0) instanceof Stmt.Expression) {
+			if (!(((Stmt.Expression) contents.get(0)).expression instanceof Expr.Literal)) {
+				throw error(null, "argument for file name not a literal");
+			} else {
+				return ((Stmt.Expression) contents.get(0)).expression;
+			}
+		} else
+			throw error(null, "argument for file name not a literal");
 
-		return null;
 	}
 
-	private Evas checkBackwardsEvas(List<Stmt> expression, Token token) {
-		Stmt dot = consumeBackwards(expression);
-		if (dot instanceof Stmt.PassThrough) {
-			Expr expr = ((Stmt.PassThrough) dot).expression;
-			if (expr instanceof Expr.PassThrough) {
-				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
-					Stmt pocketStmt = consumeBackwards(expression);
-					if (pocketStmt instanceof Stmt.PassThrough) {
-						Expr pocketExpr = ((Stmt.PassThrough) pocketStmt).expression;
-						if (pocketExpr instanceof Expr.Pocket) {
-							List<Stmt> expression2 = ((Expr.Pocket) pocketExpr).expression;
-							if (expression2.size() == 1 && expression2.get(0) instanceof Stmt.Expression) {
+	private Stmt checkForwardsRename(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 4)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few after rename.");
+		Expr nameOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee).callee;
+		Expr nameOfFileForMoveAndRename = checkNameOfFileForMoveAndRename(nameOfFile);
 
-								if (((Stmt.Expression) expression2.get(0)).expression instanceof Expr.Literal) {
-									Expr.Literal filePath = ((Expr.Literal) ((Stmt.Expression) expression2
-											.get(0)).expression);
-									Stmt secondDot = consumeBackwards(expression);
-									if (secondDot instanceof Stmt.PassThrough) {
-										Expr exprDot = ((Stmt.PassThrough) secondDot).expression;
-										if (exprDot instanceof Expr.PassThrough) {
-											if (((Expr.PassThrough) exprDot).token.type == TokenType.DOT) {
-												Stmt toEvasStmt = consumeBackwards(expression);
-												if (toEvasStmt instanceof Stmt.PassThrough) {
-													Expr expression3 = ((Stmt.PassThrough) toEvasStmt).expression;
+		Expr intoKeyword = ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee;
+		if (!(((Expr.UnknownnwonknU) intoKeyword).name.type == TokenType.TO))
+			throw error(((Expr.UnknownnwonknU) intoKeyword).name, "to not found");
 
-													if (expression3 instanceof Expr.Boxx) {
-														return new Evas(token, filePath, expression3);
-													} else if (expression3 instanceof Expr.Cup) {
-														return new Evas(token, filePath, expression3);
+		Token newNamOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) expr).callee).name;
+		Expr newFileNameExpr = buildParametersForfileOrPath(newNamOfFile);
 
-													} else if (expression3 instanceof Expr.Pocket) {
-														return new Evas(token, filePath, expression3);
-
-													} else if (expression3 instanceof Expr.Knot) {
-														return new Evas(token, filePath, expression3);
-
-													} else if (expression3 instanceof Expr.Variable) {
-														return new Evas(token, filePath, expression3);
-													}
-
-												}
-
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-
-				}
-			}
-		}
-		return null;
+		return new Stmt.Rename(((Expr.UnknownnwonknU) expr).name, nameOfFileForMoveAndRename, newFileNameExpr);
 	}
 
-	private Nruter checkBackwardsNruter(List<Stmt> expression, Token token) {
-		Stmt dot = consumeBackwards(expression);
-		if (dot instanceof Stmt.PassThrough) {
-			Expr expr = ((Stmt.PassThrough) dot).expression;
-			if (expr instanceof Expr.PassThrough) {
-				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
-					Stmt valueStmt = consumeBackwards(expression);
-					if (valueStmt instanceof Stmt.PassThrough) {
-						Expr expr2 = ((Stmt.PassThrough) valueStmt).expression;
+	private Stmt checkForwardSave(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 2)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few after save.");
+		Expr nameOfFile = ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee;
 
-						if (expr2 instanceof Expr.Assignment) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Contains) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Logical) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Binary) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Mono) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Log) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Factorial) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Unary) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Call) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.LiteralChar) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Literal) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Variable) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Pup) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Pid) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Cid) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Pocket) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Cocket) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Locket) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Lil) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Lup) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Cup) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Boxx) {
-							return new Nruter(token, expr2);
-						} else if (expr2 instanceof Expr.Knot) {
-							return new Nruter(token, expr2);
-						}
-					}
+		checkNameOfFile(nameOfFile);
 
-				}
-			}
+		Token objectToReadInto = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) expr).callee).name;
+		Expr objectToReadIntoExpr = buildObjectToReadInto(objectToReadInto);
+		if (!(objectToReadIntoExpr instanceof Expr.Pocket || objectToReadIntoExpr instanceof Expr.Cup
+				|| objectToReadIntoExpr instanceof Expr.Boxx || objectToReadIntoExpr instanceof Expr.Knot
+				|| objectToReadIntoExpr instanceof Expr.Variable)) {
+			throw error(null, "object to read into not of type Pocket Cup Box Knot or Variable");
 		}
-		return null;
+
+		return new Stmt.Save(((Expr.UnknownnwonknU) expr).name, nameOfFile, objectToReadIntoExpr);
 	}
 
-	private Tnirp checkBackwardsTnirp(List<Stmt> expression, Token token) {
-		Stmt dot = consumeBackwards(expression);
-		if (dot instanceof Stmt.PassThrough) {
-			Expr expr = ((Stmt.PassThrough) dot).expression;
-			if (expr instanceof Expr.PassThrough) {
-				if (((Expr.PassThrough) expr).token.type == TokenType.DOT) {
-					Stmt valueStmt = consumeBackwards(expression);
-					if (valueStmt instanceof Stmt.PassThrough) {
-						Expr expr2 = ((Stmt.PassThrough) valueStmt).expression;
+	private Stmt checkForwardsRead(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 4)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few after read");
+		Expr nameOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee).callee;
+		checkNameOfFile(nameOfFile);
 
-						if (expr2 instanceof Expr.Assignment) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Contains) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Logical) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Binary) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Mono) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Log) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Factorial) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Unary) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Call) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.LiteralChar) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Literal) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Variable) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Pup) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Pid) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Cid) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Pocket) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Cocket) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Locket) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Lil) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Lup) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Cup) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Boxx) {
-							return new Tnirp(token, expr2);
-						} else if (expr2 instanceof Expr.Knot) {
-							return new Tnirp(token, expr2);
-						}
-					}
+		Expr intoKeyword = ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee;
+		if (!(((Expr.UnknownnwonknU) intoKeyword).name.type == TokenType.INTO))
+			throw error(((Expr.UnknownnwonknU) intoKeyword).name, "into not found");
 
+		Token objectToReadInto = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) expr).callee).name;
+		Expr objectToReadIntoExpr = buildObjectToReadInto(objectToReadInto);
+		if (!(objectToReadIntoExpr instanceof Expr.Pocket || objectToReadIntoExpr instanceof Expr.Cup
+				|| objectToReadIntoExpr instanceof Expr.Boxx || objectToReadIntoExpr instanceof Expr.Knot
+				|| objectToReadIntoExpr instanceof Expr.Variable)) {
+			throw error(null, "object to read into not of type Pocket Cup Box Knot or Variable");
+		}
+
+		return new Stmt.Read(((Expr.UnknownnwonknU) expr).name, nameOfFile, objectToReadIntoExpr);
+	}
+
+	private void checkNameOfFile(Expr nameOfFile) {
+		if (!(nameOfFile instanceof Expr.Pocket)) {
+			throw error(null, "file name container not of type Pocket ");
+		}
+		List<Stmt> contents = ((Expr.Pocket) nameOfFile).expression;
+		if (contents.size() > 1) {
+			throw error(null, "to many arguments for file path");
+		}
+		if (contents.size() < 1) {
+			throw error(null, "to few arguments for file path");
+		}
+		if (contents.get(0) instanceof Stmt.Expression) {
+			if (!(((Stmt.Expression) contents.get(0)).expression instanceof Expr.Literal)) {
+				throw error(null, "argument for file name not a literal");
+			}
+		}
+	}
+
+	private Stmt checkForwardsReturn(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 1)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few after return.");
+
+		Expr objectToReturn = ((Expr.UnknownnwonknU) expr).callee;
+
+		return new Stmt.Return(((Expr.UnknownnwonknU) expr).name, objectToReturn);
+	}
+
+	private Stmt checkForwardsPrint(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 1)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few after print.");
+
+		Expr objectToPrint = ((Expr.UnknownnwonknU) expr).callee;
+
+		return new Stmt.Print(((Expr.UnknownnwonknU) expr).name, objectToPrint);
+	}
+
+	private Evom checkBackwardsEvom(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 4)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few before .daer");
+		Token nameOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) expr).callee).name;
+
+		Expr fileExpr = buildParametersForfileOrPath(nameOfFile);
+
+		Expr intoKeyword = ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee;
+		if (!(((Expr.UnknownnwonknU) intoKeyword).name.type == TokenType.OT))
+			throw error(((Expr.UnknownnwonknU) intoKeyword).name, "otni not found");
+
+		Expr newNamOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee).callee;
+		Expr newFileNameExpr = null;
+		if (newNamOfFile instanceof Expr.Pocket) {
+			List<Stmt> newNameStmts = ((Expr.Pocket) newNamOfFile).expression;
+			if (newNameStmts.size() != 1) {
+				throw error(null, "to many or to few arguments for file path");
+			}
+			if (newNameStmts.get(0) instanceof Stmt.Expression) {
+				newFileNameExpr = ((Stmt.Expression) newNameStmts.get(0)).expression;
+				if (!(newFileNameExpr instanceof Expr.Literal)) {
+					throw error(null, "argument for file name not a literal");
 				}
 			}
 		}
-		return null;
+
+		return new Stmt.Evom(((Expr.UnknownnwonknU) expr).name, fileExpr, newFileNameExpr);
+	}
+
+	private Emaner checkBackwardsEmaner(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 4)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few before .daer");
+		Token nameOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) expr).callee).name;
+
+		Expr fileExpr = buildParametersForfileOrPath(nameOfFile);
+
+		Expr intoKeyword = ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee;
+		if (!(((Expr.UnknownnwonknU) intoKeyword).name.type == TokenType.OT))
+			throw error(((Expr.UnknownnwonknU) intoKeyword).name, "otni not found");
+
+		Expr newNamOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee).callee;
+		Expr newFileNameExpr = null;
+		if (newNamOfFile instanceof Expr.Pocket) {
+			List<Stmt> newNameStmts = ((Expr.Pocket) newNamOfFile).expression;
+			if (newNameStmts.size() != 1) {
+				throw error(null, "to many or to few arguments for file path");
+			}
+			if (newNameStmts.get(0) instanceof Stmt.Expression) {
+				newFileNameExpr = ((Stmt.Expression) newNameStmts.get(0)).expression;
+				if (!(newFileNameExpr instanceof Expr.Literal)) {
+					throw error(null, "argument for file name not a literal");
+				}
+			}
+		}
+
+		return new Stmt.Emaner(((Expr.UnknownnwonknU) expr).name, fileExpr, newFileNameExpr);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Expr buildParametersForfileOrPath(Token nameOfFile) {
+		List<Expr> parameters = new ArrayList<>();
+		if (nameOfFile.type == TokenType.POCKETCONTAINER || nameOfFile.type == TokenType.CUPCONTAINER
+				|| nameOfFile.type == TokenType.BOXCONTAINER || nameOfFile.type == TokenType.KNOTCONTAINER) {
+			ArrayList<Token> arguments = (ArrayList<Token>) nameOfFile.literal;
+			arguments.remove(arguments.size() - 1);
+			arguments.remove(0);
+			arguments.add(new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1));
+			tracker.addSubTokens(arguments);
+			buildParameterList(parameters);
+			tracker.removeSubTokens();
+		} else {
+			ArrayList<Token> arguments = new ArrayList<Token>();
+			arguments.add(nameOfFile);
+			arguments.add(new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1));
+			tracker.addSubTokens(arguments);
+			buildParameterList(parameters);
+			tracker.removeSubTokens();
+
+		}
+		if (parameters.size() != 1) {
+			throw error(null, "to many or to few arguments for file path");
+		}
+		if (!(parameters.get(0) instanceof Expr.Literal || parameters.get(0) instanceof Expr.Variable)) {
+			throw error(null, "argument for file name not a literal");
+		}
+		Expr fileExpr = parameters.get(0);
+		return fileExpr;
+	}
+
+	private Expr buildObjectToReadInto(Token objectToken) {
+		if (objectToken.type == TokenType.IDENTIFIER || objectToken.type == TokenType.POCKETCONTAINER
+				|| objectToken.type == TokenType.CUPCONTAINER || objectToken.type == TokenType.BOXCONTAINER
+				|| objectToken.type == TokenType.KNOTCONTAINER) {
+			List<Expr> parameters = new ArrayList<>();
+			ArrayList<Token> arguments = new ArrayList<Token>();
+
+			arguments.add(objectToken);
+			arguments.add(new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1));
+			tracker.addSubTokens(arguments);
+			buildParameterList(parameters);
+			tracker.removeSubTokens();
+
+			Expr fileExpr = parameters.get(0);
+			return fileExpr;
+		} else
+			throw error(objectToken, "object to read into not of type Pocket Cup Box Knot or Variable");
+
+	}
+
+	private Daer checkBackwardsDaer(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 4)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few before .daer");
+		Token nameOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) expr).callee).name;
+
+		Expr fileExpr = buildParametersForfileOrPath(nameOfFile);
+
+		Expr intoKeyword = ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee;
+		if (!(((Expr.UnknownnwonknU) intoKeyword).name.type == TokenType.OTNI))
+			throw error(((Expr.UnknownnwonknU) intoKeyword).name, "otni not found");
+
+		Expr objectToReadInto = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee).callee;
+		if (!(objectToReadInto instanceof Expr.Pocket || objectToReadInto instanceof Expr.Cup
+				|| objectToReadInto instanceof Expr.Boxx || objectToReadInto instanceof Expr.Knot
+				|| objectToReadInto instanceof Expr.Variable)) {
+			throw error(null, "object to read into not of type Pocket Cup Box Knot or Variable");
+		}
+
+		return new Stmt.Daer(((Expr.UnknownnwonknU) expr).name, fileExpr, objectToReadInto);
+	}
+
+	private int checkDepth(Expr expr, int i) {
+		if (expr instanceof Expr.UnknownnwonknU) {
+			i++;
+			return i + checkDepth(((Expr.UnknownnwonknU) expr).callee, i);
+		}
+		return 1;
+	}
+
+	private Evas checkBackwardsEvas(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 4)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few before .daer");
+		Token nameOfFile = ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) expr).callee).name;
+
+		Expr fileExpr = buildParametersForfileOrPath(nameOfFile);
+
+		Expr objectToReadInto = ((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) (((Expr.UnknownnwonknU) expr).callee)).callee)).callee;
+		if (!(objectToReadInto instanceof Expr.Pocket || objectToReadInto instanceof Expr.Cup
+				|| objectToReadInto instanceof Expr.Boxx || objectToReadInto instanceof Expr.Knot
+				|| objectToReadInto instanceof Expr.Variable)) {
+			throw error(null, "object to read into not of type Pocket Cup Box Knot or Variable");
+		}
+
+		return new Stmt.Evas(((Expr.UnknownnwonknU) expr).name, fileExpr, objectToReadInto);
+	}
+
+	private Nruter checkBackwardsNruter(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 1)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few before .nruter");
+
+		Expr objectToReturn = ((Expr.UnknownnwonknU) expr).callee;
+
+		return new Stmt.Nruter(((Expr.UnknownnwonknU) expr).name, objectToReturn);
+	}
+
+	private Tnirp checkBackwardsTnirp(Expr expr) {
+		int depth = checkDepth(((Expr.UnknownnwonknU) expr).callee, 0);
+		if (depth != 1)
+			throw error(((Expr.UnknownnwonknU) expr).name, "to many of to few before .nruter");
+
+		Expr objectToPrint = ((Expr.UnknownnwonknU) expr).callee;
+
+		return new Stmt.Tnirp(((Expr.UnknownnwonknU) expr).name, objectToPrint);
 	}
 
 	private Stmt consumeBackwards(List<Stmt> expression) {
 		return expression.remove(expression.size() - 1);
 	}
 
-	private Expr checkExpressionForPassThrough(Expression expression) {
+	private Expr checkExpressionForUnknown(Expression expression) {
 		if (expression.expression instanceof Expr.Knot) {
-			return checkKnotForBackwardsPassThrough(((Expr.Knot) expression.expression));
+			return checkKnotForUnknows(((Expr.Knot) expression.expression));
 		} else if (expression.expression instanceof Expr.Cup) {
-			return checkCupForBackwardsPassThrough(((Expr.Cup) expression.expression));
+			return checkCupForUnknows(((Expr.Cup) expression.expression));
 		} else if (expression.expression instanceof Expr.Pocket) {
-			return checkPocketForBackwardsPassThrough(((Expr.Pocket) expression.expression));
+			return checkPocketForUnknows(((Expr.Pocket) expression.expression));
 		} else if (expression.expression instanceof Expr.Pup) {
-			return checkPupForBackwardsPassThrough(((Expr.Pup) expression.expression));
+			return checkPupForUnknows(((Expr.Pup) expression.expression));
 		} else if (expression.expression instanceof Expr.Cocket) {
-			return checkCocketForBackwardsPassThrough(((Expr.Cocket) expression.expression));
+			return checkCocketForUnknows(((Expr.Cocket) expression.expression));
 		} else if (expression.expression instanceof Expr.Lup) {
-			return checkLupForBackwardsPassThrough(((Expr.Lup) expression.expression));
+			return checkLupForUnknows(((Expr.Lup) expression.expression));
 		} else if (expression.expression instanceof Expr.Locket) {
-			return checkLocketForBackwardsPassThrough(((Expr.Locket) expression.expression));
+			return checkLocketForUnknows(((Expr.Locket) expression.expression));
 		} else if (expression.expression instanceof Expr.Lil) {
-			return checkLilForBackwardsPassThrough(((Expr.Lil) expression.expression));
+			return checkLilForUnknows(((Expr.Lil) expression.expression));
 		} else if (expression.expression instanceof Expr.Pid) {
-			return checkPidForBackwardsPassThrough(((Expr.Pid) expression.expression));
+			return checkPidForUnknows(((Expr.Pid) expression.expression));
 		} else if (expression.expression instanceof Expr.Cid) {
-			return checkCidForBackwardsPassThrough(((Expr.Cid) expression.expression));
+			return checkCidForUnknows(((Expr.Cid) expression.expression));
+		} else if (expression.expression instanceof Expr.UnknownnwonknU) {
+			return checkUnknownIffICallllaCGetteGForUnknows(((Expr.UnknownnwonknU) expression.expression));
 		} else {
 			return expression.expression;
 		}
 	}
 
-	private Expr checkCidForBackwardsPassThrough(Cid cid) {
+	private Expr checkUnknownIffICallllaCGetteGForUnknows(UnknownnwonknU unknownCallOrGet) {
+
+		if (checkCall(unknownCallOrGet) && !checkllaC(unknownCallOrGet)) {
+
+			return checkCreateCall(unknownCallOrGet);
+
+		} else if (checkllaC(unknownCallOrGet) && !checkCall(unknownCallOrGet)) {
+
+			return checkCreateLlac(unknownCallOrGet);
+
+		} else if (checkCall(unknownCallOrGet) && checkllaC(unknownCallOrGet)) {
+			Expr llac = checkCreateLlac(unknownCallOrGet);
+			Expr call = checkCreateCall(unknownCallOrGet);
+			return new Expr.UnKnown(call, llac);
+		} else {
+			Expr get = createGets(unknownCallOrGet);
+			Expr teg = createTegs(unknownCallOrGet, null);
+			return new Expr.UnKnown(get, teg);
+		}
+	}
+
+	private Stmt buildFis(UnknownnwonknU unknownCallOrGet, Stmt stmt) {
+		if (unknownCallOrGet.name.type == TokenType.POCKETCONTAINER
+				&& unknownCallOrGet.callee instanceof Expr.UnknownnwonknU) {
+			if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.CUPCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.Cup) {
+				Expr fiCup = buildContainer(((Expr.UnknownnwonknU) unknownCallOrGet.callee));
+				Expr fiPocket = buildContainer(unknownCallOrGet);
+
+				stmt = new Stmt.Fi(fiPocket, fiCup, stmt, ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee);
+			} else if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.CUPCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.UnknownnwonknU) {
+				Expr fiPocket = buildContainer(unknownCallOrGet);
+				Expr fiCup = buildContainer(((Expr.UnknownnwonknU) unknownCallOrGet.callee));
+				stmt = new Stmt.Fi(fiPocket, fiCup, stmt, null);
+				stmt = buildFis(((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee), stmt);
+
+			}
+		} else if (unknownCallOrGet.name.type == TokenType.POCKETCONTAINER
+				&& unknownCallOrGet.callee instanceof Expr.Cup) {
+			Expr fiPocket = buildContainer(unknownCallOrGet);
+			stmt = new Stmt.Fi(fiPocket, unknownCallOrGet.callee, stmt, null);
+
+		}
+		return stmt;
+	}
+
+	private Stmt buildIfs(UnknownnwonknU unknownCallOrGet, Stmt.If nugget) {
+		if (unknownCallOrGet.name.type == TokenType.CUPCONTAINER
+				&& unknownCallOrGet.callee instanceof Expr.UnknownnwonknU) {
+			if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.CUPCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.Pocket) {
+				Expr ifCup = buildContainer(((Expr.UnknownnwonknU) unknownCallOrGet.callee));
+				Expr elseCup = buildContainer(unknownCallOrGet);
+
+				return new Stmt.If(((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee, ifCup, nugget, elseCup);
+			} else if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.POCKETCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.UnknownnwonknU) {
+				Expr ifPocket = buildContainer(((Expr.UnknownnwonknU) unknownCallOrGet.callee));
+				Expr ifCup = buildContainer(unknownCallOrGet);
+				nugget = new Stmt.If(ifPocket, ifCup, nugget, null);
+				return buildIfs(((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee), nugget);
+			} else if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.CUPCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.UnknownnwonknU) {
+				if (((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee).name.type == TokenType.POCKETCONTAINER
+						&& ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee).callee instanceof Expr.UnknownnwonknU) {
+					Expr ifPocket = buildContainer(
+							((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee));
+					Expr ifCup = buildContainer(((Expr.UnknownnwonknU) unknownCallOrGet.callee));
+					Expr elseCup = buildContainer(unknownCallOrGet);
+
+					nugget = new Stmt.If(ifPocket, ifCup, nugget, elseCup);
+					return buildIfs(
+							((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee).callee),
+							nugget);
+				}
+			}
+		} else if (unknownCallOrGet.name.type == TokenType.CUPCONTAINER
+				&& unknownCallOrGet.callee instanceof Expr.Pocket) {
+			Expr ifCup = buildContainer(unknownCallOrGet);
+			return new Stmt.If(unknownCallOrGet.callee, ifCup, nugget, null);
+
+		}
+		return new Stmt.Expression(unknownCallOrGet);
+	}
+
+	private Expr buildContainer(UnknownnwonknU unknownCallOrGet) {
+		List<Expr> parameters = new ArrayList<>();
+		ArrayList<Token> arguments = new ArrayList<Token>();
+
+		arguments.add(unknownCallOrGet.name);
+		arguments.add(new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1));
+		tracker.addSubTokens(arguments);
+		buildParameterList(parameters);
+		tracker.removeSubTokens();
+		Expr ifCup = parameters.get(0);
+		return ifCup;
+	}
+
+	private boolean matchesFiPattern(UnknownnwonknU unknownCallOrGet) {
+		if (unknownCallOrGet.name.type == TokenType.POCKETCONTAINER
+				&& unknownCallOrGet.callee instanceof Expr.UnknownnwonknU) {
+			if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.CUPCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.Cup) {
+				return true;
+			} else if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.CUPCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.UnknownnwonknU) {
+				return matchesFiPattern(((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee));
+
+			}
+		} else if (unknownCallOrGet.name.type == TokenType.POCKETCONTAINER
+				&& unknownCallOrGet.callee instanceof Expr.Cup) {
+
+			return true;
+
+		}
+		return false;
+	}
+
+	private boolean matchesIfPattern(UnknownnwonknU unknownCallOrGet) {
+		if (unknownCallOrGet.name.type == TokenType.CUPCONTAINER
+				&& unknownCallOrGet.callee instanceof Expr.UnknownnwonknU) {
+			if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.CUPCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.Pocket) {
+				return true;
+			} else if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.POCKETCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.UnknownnwonknU) {
+				return matchesIfPattern(((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee));
+			} else if (((Expr.UnknownnwonknU) unknownCallOrGet.callee).name.type == TokenType.CUPCONTAINER
+					&& ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee instanceof Expr.UnknownnwonknU) {
+				if (((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee).name.type == TokenType.POCKETCONTAINER
+						&& ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee).callee instanceof Expr.UnknownnwonknU)
+					return matchesIfPattern(
+							((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) ((Expr.UnknownnwonknU) unknownCallOrGet.callee).callee).callee));
+			}
+		} else if (unknownCallOrGet.name.type == TokenType.CUPCONTAINER
+				&& unknownCallOrGet.callee instanceof Expr.Pocket) {
+
+			return true;
+
+		}
+		return false;
+	}
+
+	private boolean checkllaC(UnknownnwonknU unknownCallOrGet) {
+
+		return findPocketInUnknownnwokuU(unknownCallOrGet.callee);
+	}
+
+	private boolean findPocketInUnknownnwokuU(Expr callee) {
+		if (callee instanceof Expr.Pocket)
+			return true;
+		else if (callee instanceof Expr.UnknownnwonknU)
+			return findPocketInUnknownnwokuU(((Expr.UnknownnwonknU) callee).callee);
+		else
+			return false;
+	}
+
+	private boolean checkCall(UnknownnwonknU unknownCallOrGet) {
+
+		return unknownCallOrGet.name.type == TokenType.POCKETCONTAINER;
+	}
+
+	private Expr createTegs(Expr callee, Expr nugget) {
+		if (callee instanceof Expr.Variable) {
+
+			return new Expr.Teg(nugget, ((Expr.Variable) callee).name);
+		}
+		Expr createTegs = null;
+		if (nugget == null) {
+			nugget = new Expr.Variable(((Expr.UnknownnwonknU) callee).name);
+			createTegs = createTegs(((Expr.UnknownnwonknU) callee).callee, nugget);
+			return createTegs;
+		} else {
+			if (nugget instanceof Expr.Variable) {
+				createTegs = checkCallee(callee, nugget);
+
+			} else if (nugget instanceof Expr.Pocket) {
+				createTegs = checkCallee(callee, nugget);
+			} else if (nugget instanceof Expr.Boxx) {
+				createTegs = checkCallee(callee, nugget);
+			} else if (nugget instanceof Expr.Cup) {
+				createTegs = checkCallee(callee, nugget);
+			} else if (nugget instanceof Expr.Knot) {
+				createTegs = checkCallee(callee, nugget);
+			} else if (nugget instanceof Expr.Teg) {
+				createTegs = checkCallee(callee, nugget);
+			} else
+				throw error(null, "expected Variable Pocket Box Cup or Knot ");
+
+		}
+		return createTegs;
+
+	}
+
+	private Expr checkCallee(Expr callee, Expr nugget) {
+		if (callee instanceof Expr.Variable) {
+
+			nugget = new Expr.Teg(nugget, ((Expr.Variable) callee).name);
+		} else if (callee instanceof Expr.Pocket) {
+			nugget = new Expr.Teg(nugget, ((Expr.Pocket) callee).identifier);
+
+		} else if (callee instanceof Expr.Boxx) {
+			callee = new Expr.Teg(nugget, ((Expr.Boxx) callee).identifier);
+
+		} else if (callee instanceof Expr.Cup) {
+			nugget = new Expr.Teg(nugget, ((Expr.Cup) callee).identifier);
+
+		} else if (callee instanceof Expr.Knot) {
+			nugget = new Expr.Teg(nugget, ((Expr.Knot) callee).identifier);
+
+		} else if (callee instanceof Expr.UnknownnwonknU) {
+			nugget = new Expr.Teg(nugget, ((Expr.UnknownnwonknU) callee).name);
+		} else
+			throw error(null, "expected Variable Pocket Box Cup or Knot ");
+		return nugget;
+	}
+
+	private Expr createGets(UnknownnwonknU unknownCallOrGet) {
+		if (unknownCallOrGet.callee instanceof Expr.UnknownnwonknU) {
+			return new Expr.Get(createGets(((Expr.UnknownnwonknU) unknownCallOrGet.callee)), unknownCallOrGet.name);
+		}
+		return new Expr.Get(unknownCallOrGet.callee, unknownCallOrGet.name);
+	}
+
+	private Expr checkCreateLlac(Expr callee) {
+		if (callee instanceof Expr.UnknownnwonknU) {
+			return new Expr.Teg(checkCreateLlac(((Expr.UnknownnwonknU) callee).callee),
+					((Expr.UnknownnwonknU) callee).name);
+		} else if (callee instanceof Expr.Pocket) {
+			List<Stmt> expression = ((Expr.Pocket) callee).expression;
+			List<Expr> exprs = new ArrayList<>();
+			for (Stmt stmt : expression) {
+				exprs.add(getExpr(stmt));
+			}
+			if (exprs.contains(null)) {
+				throw error(null, "could not determine parameters");
+			}
+			exprs = removeLash(exprs);
+
+			return new Expr.Llac(callee, null, exprs);
+		}
+		return callee;
+	}
+
+	private List<Expr> removeLash(List<Expr> exprs) {
+		List<Expr> exprsLashFree = new ArrayList<>();
+		for (Expr expr : exprs) {
+			if (!(expr instanceof Expr.Lash))
+				exprsLashFree.add(expr);
+		}
+		return exprsLashFree;
+
+	}
+
+	private Expr getExpr(Stmt stmt) {
+
+		if (stmt instanceof Stmt.Expression) {
+			return ((Stmt.Expression) stmt).expression;
+		} else if (stmt instanceof Stmt.If) {
+			throw error(null, "not Primary");
+		} else if (stmt instanceof Stmt.Print) {
+			return ((Stmt.Print) stmt).expression;
+		} else if (stmt instanceof Stmt.Return) {
+			return ((Stmt.Return) stmt).expression;
+		} else if (stmt instanceof Stmt.Save) {
+			throw error(((Stmt.Save) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Expel) {
+			throw error(((Stmt.Expel) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Read) {
+			throw error(((Stmt.Read) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Consume) {
+			throw error(((Stmt.Consume) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Rename) {
+			throw error(((Stmt.Rename) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Move) {
+			throw error(((Stmt.Move) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Constructor) {
+			throw error(((Stmt.Constructor) stmt).type, "not Primary");
+		} else if (stmt instanceof Stmt.Function) {
+			throw error(null, "not Primary");
+		} else if (stmt instanceof Stmt.Noisserpxe) {
+			return ((Stmt.Noisserpxe) stmt).noisserpex;
+		} else if (stmt instanceof Stmt.Fi) {
+			throw error(null, "not Primary");
+		} else if (stmt instanceof Stmt.Tnirp) {
+			return ((Stmt.Tnirp) stmt).expression;
+		} else if (stmt instanceof Stmt.Nruter) {
+			return ((Stmt.Nruter) stmt).expression;
+		} else if (stmt instanceof Stmt.Evas) {
+			throw error(((Stmt.Evas) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Daer) {
+			throw error(((Stmt.Daer) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Emaner) {
+			throw error(((Stmt.Emaner) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Evom) {
+			throw error(((Stmt.Evom) stmt).keyword, "not Primary");
+		} else if (stmt instanceof Stmt.Rav) {
+			return ((Stmt.Rav) stmt).initializer;
+		} else if (stmt instanceof Stmt.PassThrough) {
+			return ((Stmt.PassThrough) stmt).expression;
+		} else if (stmt instanceof Stmt.UnDetermined) {
+			throw error(null, "not Primary");
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Call checkCreateCall(UnknownnwonknU unknownCallOrGet) {
+		ArrayList<Token> arguments = (ArrayList<Token>) unknownCallOrGet.name.literal;
+		if (unknownCallOrGet.name.type == TokenType.POCKETCONTAINER
+				|| unknownCallOrGet.name.type == TokenType.BOXCONTAINER
+				|| unknownCallOrGet.name.type == TokenType.CUPCONTAINER) {
+			arguments.remove(arguments.size() - 1);
+			arguments.remove(0);
+		}
+		arguments.add(new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1));
+		tracker.addSubTokens(arguments);
+		List<Expr> parameters = new ArrayList<>();
+		buildParameterList(parameters);
+		tracker.removeSubTokens();
+		List<Expr> reverseParameters = reverseParameters(parameters);
+		return new Expr.Call(checkGet(unknownCallOrGet.callee), null, reverseParameters);
+
+	}
+
+	private Expr checkGet(Expr callee) {
+		if (callee instanceof Expr.UnknownnwonknU) {
+			return new Expr.Get(checkGet(((Expr.UnknownnwonknU) callee).callee), ((Expr.UnknownnwonknU) callee).name);
+		}
+		return callee;
+	}
+
+	private List<Expr> reverseParameters(List<Expr> parameters) {
+		List<Expr> reversed = new ArrayList<>();
+		for (int i = parameters.size() - 1; i >= 0; i--) {
+			reversed.add(parameters.get(i));
+		}
+		return reversed;
+	}
+
+	private Expr checkCidForUnknows(Cid cid) {
 		List<Stmt> expression = cid.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		cid.expression = findPassThroughs;
 		return cid;
 	}
 
-	private Expr checkPidForBackwardsPassThrough(Pid pid) {
+	private Expr checkPidForUnknows(Pid pid) {
 		List<Stmt> expression = pid.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		pid.expression = findPassThroughs;
 		return pid;
 	}
 
-	private Expr checkLilForBackwardsPassThrough(Lil lil) {
+	private Expr checkLilForUnknows(Lil lil) {
 		List<Stmt> expression = lil.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		lil.expression = findPassThroughs;
 		return lil;
 	}
 
-	private Expr checkLocketForBackwardsPassThrough(Locket locket) {
+	private Expr checkLocketForUnknows(Locket locket) {
 		List<Stmt> expression = locket.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		locket.expression = findPassThroughs;
 		return locket;
 	}
 
-	private Expr checkLupForBackwardsPassThrough(Lup lup) {
+	private Expr checkLupForUnknows(Lup lup) {
 		List<Stmt> expression = lup.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		lup.expression = findPassThroughs;
 		return lup;
 	}
 
-	private Expr checkCocketForBackwardsPassThrough(Cocket cocket) {
+	private Expr checkCocketForUnknows(Cocket cocket) {
 		List<Stmt> expression = cocket.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		cocket.expression = findPassThroughs;
 		return cocket;
 	}
 
-	private Expr checkPupForBackwardsPassThrough(Pup pup) {
+	private Expr checkPupForUnknows(Pup pup) {
 		List<Stmt> expression = pup.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		pup.expression = findPassThroughs;
 		return pup;
 	}
 
-	private Expr checkPocketForBackwardsPassThrough(Pocket pocket) {
+	private Expr checkPocketForUnknows(Pocket pocket) {
 		List<Stmt> expression = pocket.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		pocket.expression = findPassThroughs;
 		return pocket;
 	}
 
-	private Expr checkCupForBackwardsPassThrough(Cup cup) {
+	private Expr checkCupForUnknows(Cup cup) {
 		List<Stmt> expression = cup.expression;
-		List<Stmt> findPassThroughs = findPassThroughs(expression);
+		List<Stmt> findPassThroughs = findUnknows(expression);
 		cup.expression = findPassThroughs;
 		return cup;
 
 	}
 
-	private List<Stmt> findPassThroughs(List<Stmt> expression) {
+	private List<Stmt> findUnknows(List<Stmt> expression) {
 
 		List<Stmt> tempExpression = new ArrayList<>(expression);
-		return determinStatementForPassThroughRange(tempExpression);
+		return determinStatementForUnknows(tempExpression);
 
 	}
 
-	private Expr checkKnotForBackwardsPassThrough(Knot knot) {
+	private Expr checkKnotForUnknows(Knot knot) {
 		List<Stmt> expression = knot.expression;
 		List<Stmt> expressionTemp = new ArrayList<>();
 		for (Stmt stmt : expression) {
-			expressionTemp.add(checkForBackwardsPassThrough(stmt));
+			expressionTemp.add(checkForUnknows(stmt));
 		}
 		knot.expression = expressionTemp;
 		return knot;
 	}
 
-	private Stmt declarationForward() {
+	private Stmt declaration() {
 		try {
 
-			if (matchFunctionDeclarationSecondAttempt()) {
-				Stmt functionDeclaration = functionDeclaration();
-				return functionDeclaration;
-			}
-			if (matchIf()) {
-				return buildIf();
-			}
-			if (matchFi()) {
-				return buildFi();
+
+			if (match(TokenType.LESSTHEN)) {
+				Stmt forwardVariableDeclaration = variableDeclaration();
+				if (forwardVariableDeclaration != null)
+					return forwardVariableDeclaration;
 			}
 
-			if (match(TokenType.PRINT))
-				return printStatement();
-			if (match(TokenType.RETURN))
-				return returnStatement();
-			if (match(TokenType.SAVE))
-				return saveStatement();
-			if (match(TokenType.READ))
-				return readStatement();
-			if (match(TokenType.RENAME))
-				return renameStatement();
-			if (match(TokenType.MOVE))
-				return moveStatement();
-
-			if (match(TokenType.ENFORCEPARAMETER)) {
-				return variableDeclaration(previous());
-			}
-
-			if (match(TokenType.BOX, TokenType.POCKET, TokenType.CUP, TokenType.KNOT)) {
-				return variableDeclarationOrConstructor(previous());
-			}
-			if (match(TokenType.INTPARAMETER, TokenType.BINPARAMETER, TokenType.BOOLEANPARAMETER,
-					TokenType.STRINGPARAMETER, TokenType.CHARPARAMETER, TokenType.DOUBLEPARAMETER)) {
-				return constructor(previous());
-			}
 			Expr expr = expression();
 
 			Stmt expellorconsumeStatement = expellorconsumeStatement(expr);
@@ -809,428 +1026,10 @@ public class Parser {
 			}
 
 			return expressionStmt(expr);
-
 		} catch (ParseError error) {
 			synchronize();
 			return null;
 		}
-	}
-
-	private Stmt variableDeclaration(Token enforce) {
-		if (match(TokenType.BOX, TokenType.POCKET, TokenType.CUP, TokenType.KNOT)) {
-			Token type = previous();
-			if (check(TokenType.IDENTIFIER)) {
-				Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
-
-				Expr initializer = null;
-				if (match(TokenType.ASIGNMENTEQUALS)) {
-					initializer = expression();
-				}
-				return new Stmt.Var(name, initializer, type, true);
-			}
-		}
-		return null;
-	}
-
-	private Stmt buildFi() {
-		ArrayList<Stmt> totalFi = new ArrayList<Stmt>();
-		boolean shouldbreak = false;
-		Expr pocket = null;
-		Expr cup1 = null;
-		Expr cup2 = null;
-		if (check(TokenType.CUPCONTAINER)) {
-			cup2 = primary();
-
-			while (check(TokenType.DOT)) {
-				consume(TokenType.DOT, "expected '.' .");
-
-				if (check(TokenType.CUPCONTAINER)) {
-					cup1 = primary();
-
-					if (check(TokenType.DOT)) {
-						consume(TokenType.DOT, "expected '.' .");
-
-						if (check(TokenType.POCKETCONTAINER)) {
-							pocket = primary();
-							totalFi.add(new Stmt.Fi(pocket, cup1, null, cup2));
-							if (check(TokenType.DOT)) {
-								while (check(TokenType.DOT)) {
-									consume(TokenType.DOT, "expected '.' .");
-
-									if (check(TokenType.CUPCONTAINER)) {
-										cup1 = primary();
-
-										if (check(TokenType.DOT)) {
-											consume(TokenType.DOT, "expected '.' .");
-
-											if (check(TokenType.POCKETCONTAINER)) {
-												pocket = primary();
-												totalFi.add(new Stmt.Fi(pocket, cup1, null, null));
-												if (check(TokenType.DOT)) {
-
-												} else {
-													shouldbreak = true;
-
-													break;
-												}
-											}
-										}
-									}
-
-								}
-							} else {
-								break;
-							}
-							if (shouldbreak) {
-								break;
-							}
-						}
-
-					}
-
-				} else if (check(TokenType.POCKETCONTAINER)) {
-					pocket = primary();
-					totalFi.add(new Stmt.Fi(pocket, cup2, null, null));
-
-					if (check(TokenType.DOT)) {
-						while (check(TokenType.DOT)) {
-							consume(TokenType.DOT, "expected '.' .");
-
-							if (check(TokenType.CUPCONTAINER)) {
-								cup1 = primary();
-
-								if (check(TokenType.DOT)) {
-									consume(TokenType.DOT, "expected '.' .");
-
-									if (check(TokenType.POCKETCONTAINER)) {
-										pocket = primary();
-										totalFi.add(new Stmt.Fi(pocket, cup1, null, null));
-										if (check(TokenType.DOT)) {
-
-										} else {
-
-											shouldbreak = true;
-											break;
-										}
-									}
-								}
-							}
-
-						}
-					} else {
-						break;
-					}
-					if (shouldbreak) {
-						break;
-					}
-				}
-			}
-		}
-
-		for (int i = 0; i < totalFi.size(); i++) {
-			if (i + 1 < totalFi.size()) {
-				((Stmt.Fi) totalFi.get(i + 1)).fiesleStmt = totalFi.get(i);
-			}
-
-		}
-
-		Stmt builtFi = totalFi.get(totalFi.size() - 1);
-
-		return builtFi;
-	}
-
-	private boolean matchFi() {
-		int setback = 0;
-		boolean isFi = false;
-		boolean shouldbreak = false;
-		if (check(TokenType.CUPCONTAINER)) {
-			consume(TokenType.CUPCONTAINER, "expected cup.");
-			setback++;
-
-			while (check(TokenType.DOT)) {
-				consume(TokenType.DOT, "expected '.' .");
-				setback++;
-				if (check(TokenType.CUPCONTAINER)) {
-					consume(TokenType.CUPCONTAINER, "expected cup.");
-					setback++;
-					if (check(TokenType.DOT)) {
-						consume(TokenType.DOT, "expected '.' .");
-						setback++;
-						if (check(TokenType.POCKETCONTAINER)) {
-							consume(TokenType.POCKETCONTAINER, "expected cup.");
-							setback++;
-							if (check(TokenType.DOT)) {
-								while (check(TokenType.DOT)) {
-									consume(TokenType.DOT, "expected '.' .");
-									setback++;
-									if (check(TokenType.CUPCONTAINER)) {
-										consume(TokenType.CUPCONTAINER, "expected cup.");
-										setback++;
-										if (check(TokenType.DOT)) {
-											consume(TokenType.DOT, "expected '.' .");
-											setback++;
-											if (check(TokenType.POCKETCONTAINER)) {
-												consume(TokenType.POCKETCONTAINER, "expected cup.");
-												setback++;
-												if (check(TokenType.DOT)) {
-
-												} else {
-													shouldbreak = true;
-													isFi = true;
-													break;
-												}
-											}
-										}
-									}
-
-								}
-							} else {
-								isFi = true;
-							}
-							if (shouldbreak) {
-								break;
-							}
-						}
-
-					}
-
-				} else if (check(TokenType.POCKETCONTAINER)) {
-					consume(TokenType.POCKETCONTAINER, "expected cup.");
-					setback++;
-					if (check(TokenType.DOT)) {
-						while (check(TokenType.DOT)) {
-							consume(TokenType.DOT, "expected '.' .");
-							setback++;
-							if (check(TokenType.CUPCONTAINER)) {
-								consume(TokenType.CUPCONTAINER, "expected cup.");
-								setback++;
-								if (check(TokenType.DOT)) {
-									consume(TokenType.DOT, "expected '.' .");
-									setback++;
-									if (check(TokenType.POCKETCONTAINER)) {
-										consume(TokenType.POCKETCONTAINER, "expected cup.");
-										setback++;
-										if (check(TokenType.DOT)) {
-
-										} else {
-											isFi = true;
-											shouldbreak = true;
-											break;
-										}
-									}
-								}
-							}
-
-						}
-					} else {
-						isFi = true;
-					}
-					if (shouldbreak) {
-						break;
-					}
-				}
-			}
-		}
-		tracker.setSize(tracker.getCurrent() - setback);
-		return isFi;
-	}
-
-	private Stmt buildIf() {
-		ArrayList<Stmt> totalIf = new ArrayList<Stmt>();
-		Expr cup1 = null;
-		Expr cup2 = null;
-		if (check(TokenType.POCKETCONTAINER)) {
-			Expr pocket = primary();
-
-			while (check(TokenType.DOT)) {
-				consume(TokenType.DOT, "expected '.' .");
-
-				if (check(TokenType.CUPCONTAINER)) {
-					cup1 = primary();
-
-					if (check(TokenType.DOT)) {
-						consume(TokenType.DOT, "expected '.' .");
-
-						if (check(TokenType.POCKETCONTAINER)) {
-							totalIf.add(new Stmt.If(pocket, cup1, null, null));
-							pocket = primary();
-
-						} else if (check(TokenType.CUPCONTAINER)) {
-							cup2 = primary();
-
-							if (check(TokenType.DOT)) {
-								break;
-							} else {
-								totalIf.add(new Stmt.If(pocket, cup1, null, cup2));
-							}
-						}
-					} else {
-						totalIf.add(new Stmt.If(pocket, cup1, null, null));
-						break;
-					}
-				}
-			}
-		}
-
-		for (int i = totalIf.size() - 1; i >= 0; i--) {
-			if (i - 1 >= 0) {
-				((Stmt.If) totalIf.get(i - 1)).elseIfStmt = totalIf.get(i);
-			}
-
-		}
-
-		Stmt builtIf = totalIf.get(0);
-
-		return builtIf;
-	}
-
-	private boolean matchIf() {
-		int setback = 0;
-		boolean isIf = false;
-		if (check(TokenType.POCKETCONTAINER)) {
-			consume(TokenType.POCKETCONTAINER, "expected pocket.");
-			setback++;
-
-			while (check(TokenType.DOT)) {
-				consume(TokenType.DOT, "expected '.' .");
-				setback++;
-				if (check(TokenType.CUPCONTAINER)) {
-					consume(TokenType.CUPCONTAINER, "expected cup.");
-					setback++;
-					if (check(TokenType.DOT)) {
-						consume(TokenType.DOT, "expected '.' .");
-						setback++;
-						if (check(TokenType.POCKETCONTAINER)) {
-							consume(TokenType.POCKETCONTAINER, "expected pocket.");
-							setback++;
-						} else if (check(TokenType.CUPCONTAINER)) {
-							consume(TokenType.CUPCONTAINER, "expected cup.");
-							setback++;
-							if (check(TokenType.DOT)) {
-								isIf = false;
-								break;
-							} else {
-								isIf = true;
-							}
-						}
-					} else {
-						isIf = true;
-						break;
-					}
-				}
-			}
-		}
-		tracker.setSize(tracker.getCurrent() - setback);
-		return isIf;
-
-	}
-
-	private Stmt constructor(Token type) {
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.CUPCONTAINER) || check(TokenType.POCKETCONTAINER)
-				|| check(TokenType.BOXCONTAINER) || check(TokenType.IDENTIFIER) || check(TokenType.REIFITNEDI)) {
-			Expr prototype = expression();
-
-			Expr numberToBuild = expression();
-			boolean shouldEnforce = false;
-			if (check(TokenType.ENFORCEPARAMETER)) {
-				consume(TokenType.ENFORCEPARAMETER, "Expect enforce after Integer .");
-				shouldEnforce = true;
-			}
-
-			if (numberToBuild instanceof Expr.Literal) {
-				return new Stmt.Constructor(type, prototype, (Integer) ((Expr.Literal) numberToBuild).value,
-						shouldEnforce);
-			} else {
-				return new Stmt.Constructor(type, prototype, (Integer) ((Expr.Laretil) numberToBuild).value,
-						shouldEnforce);
-
-			}
-		} else if (check(TokenType.INTNUM)) {
-			Expr numberToBuild = expression();
-			boolean shouldEnforce = false;
-			if (check(TokenType.ENFORCEPARAMETER)) {
-				consume(TokenType.ENFORCEPARAMETER, "Expect enforce after Integer .");
-				shouldEnforce = true;
-			}
-
-			if (numberToBuild instanceof Expr.Literal) {
-				return new Stmt.Constructor(type, null, (Integer) ((Expr.Literal) numberToBuild).value, shouldEnforce);
-			} else {
-				return new Stmt.Constructor(type, null, (Integer) ((Expr.Laretil) numberToBuild).value, shouldEnforce);
-
-			}
-		}
-		return null;
-	}
-
-	private Stmt moveStatement() {
-		Token keyword = previous();
-		consume(TokenType.DOT, "expected '.' after move");
-		Expr expr = expression();
-		Expr.Literal pathAndFileName = null;
-		if (expr instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr).expression;
-			pathAndFileName = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		consume(TokenType.DOT, "expected '.' after file path and file name.");
-		consume(TokenType.TO, "expected 'to' after '.' .");
-		consume(TokenType.DOT, "expected '.' after 'to'.");
-		Expr expr2 = expression();
-		Expr.Literal path = null;
-		if (expr2 instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr2).expression;
-			path = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		return new Stmt.Move(keyword, pathAndFileName, path);
-	}
-
-	private Stmt renameStatement() {
-		Token keyword = previous();
-		consume(TokenType.DOT, "expected '.' after rename");
-		Expr expr = expression();
-		Expr.Literal path = null;
-		if (expr instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr).expression;
-			path = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		consume(TokenType.DOT, "expected '.' after file path and file name.");
-		consume(TokenType.TO, "expected 'to' after '.' .");
-		consume(TokenType.DOT, "expected '.' after 'to'.");
-		Expr expr2 = expression();
-		Expr.Literal file = null;
-		if (expr2 instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr2).expression;
-			file = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		return new Stmt.Rename(keyword, path, file);
-	}
-
-	private Stmt readStatement() {
-		Token keyword = previous();
-		consume(TokenType.DOT, "expected '.' after read");
-		Expr expr = expression();
-		Expr.Literal path = null;
-		if (expr instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr).expression;
-			path = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		consume(TokenType.DOT, "expected '.' after file path.");
-		consume(TokenType.INTO, "expected into after '.' .");
-		consume(TokenType.DOT, "expected '.' after into.");
-		Expr expr2 = expression();
-		Expr objectToReadInto = null;
-		if (expr2 instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr2).expression;
-			if (expressions.get(0) instanceof Stmt.Expression) {
-				objectToReadInto = ((Stmt.Expression) expressions.get(0)).expression;
-			}
-
-			if (expressions.get(0) instanceof Stmt.Noisserpxe) {
-				objectToReadInto = ((Stmt.Noisserpxe) expressions.get(0)).noisserpex;
-			}
-		}
-
-		return new Stmt.Read(keyword, path, objectToReadInto);
 	}
 
 	private Stmt expellorconsumeStatement(Expr expr) {
@@ -1258,1360 +1057,305 @@ public class Parser {
 		return new Stmt.PassThrough(expr);
 	}
 
-	private Stmt saveStatement() {
-		Token keyword = previous();
-		consume(TokenType.DOT, "expected '.' after save");
-		Expr expr = expression();
-		Expr.Literal path = null;
-		if (expr instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr).expression;
-			path = (Expr.Literal) ((Stmt.Expression) expressions.get(0)).expression;
-		}
-		consume(TokenType.DOT, "expected '.' after filePath");
-		expr = expression();
-		Expr experInPocket = null;
-		if (expr instanceof Expr.Pocket) {
-			List<Stmt> expressions = ((Expr.Pocket) expr).expression;
-			if (expressions.size() > 0) {
-				if (expressions.get(0) instanceof Stmt.Expression) {
-					experInPocket = ((Stmt.Expression) expressions.get(0)).expression;
-				}
-				if (expressions.get(0) instanceof Stmt.Noisserpxe) {
-					experInPocket = ((Stmt.Noisserpxe) expressions.get(0)).noisserpex;
+	private Stmt variableDeclaration() {
+		if (match(TokenType.BOX, TokenType.POCKET, TokenType.CUP, TokenType.KNOT, TokenType.XOB, TokenType.TEKCOP,
+				TokenType.PUC, TokenType.TONK)) {
+			ArrayList<IntegerTokenTypePairs> forwardPairs = new ArrayList<IntegerTokenTypePairs>();
+			Token type = previous();
+			if (match(TokenType.INTNUM)) {
+				Token previous = previous();
+				forwardPairs.add(new IntegerTokenTypePairs(((Integer) previous.literal), type));
+			} else {
+				forwardPairs.add(new IntegerTokenTypePairs(1, type));
+			}
+
+			while (match(TokenType.INTNUM) || matchVariableTypes()) {
+				Token previous = previous();
+				if (previous.type == TokenType.INTNUM) {
+					if (matchVariableTypes()) {
+						Token newType = previous();
+						Integer value = ((Integer) previous.literal);
+						forwardPairs.add(new IntegerTokenTypePairs(value, newType));
+					} else
+						throw error(previous, "expected int or Variable Type");
+				} else {
+					if (match(TokenType.INTNUM)) {
+						Token value = previous();
+						forwardPairs.add(new IntegerTokenTypePairs(((Integer) value.literal), previous));
+					} else {
+						forwardPairs.add(new IntegerTokenTypePairs(1, previous));
+					}
 				}
 			}
-		}
 
-		return new Stmt.Save(keyword, path, experInPocket);
+			if (match(TokenType.IDENTIFIER, TokenType.BOXCONTAINER, TokenType.POCKETCONTAINER, TokenType.CUPCONTAINER,
+					TokenType.KNOTCONTAINER)) {
+				Var forward = null;
+				Var backward = null;
+				Token containerOrIdentifier = previous();
+				backward = createBackwardsVar(containerOrIdentifier);
+
+				forward = createForwardVar(forwardPairs, containerOrIdentifier);
+
+				if (match(TokenType.GREATERTHEN)) {
+					if (backward == null) {
+						Var buildInitilizer = buildInitilizer(containerOrIdentifier);
+						if (buildInitilizer == null) {
+							Token typeInitilizer = new Token(TokenType.BOX, "box", null, null, null,
+									containerOrIdentifier.column, containerOrIdentifier.line,
+									containerOrIdentifier.start, containerOrIdentifier.finish);
+							return new Stmt.VarFB(forward,
+									new Stmt.Var(containerOrIdentifier, typeInitilizer, 1, null));
+						}
+						return new Stmt.VarFB(forward, buildInitilizer);
+					} else
+						return new Stmt.VarFB(forward, backward);
+				}
+			}
+		} else if (match(TokenType.IDENTIFIER, TokenType.BOXCONTAINER, TokenType.POCKETCONTAINER,
+				TokenType.CUPCONTAINER, TokenType.KNOTCONTAINER)) {
+
+			Var backward = null;
+			Token containerOrIdentifier = previous();
+			backward = createBackwardsVar(containerOrIdentifier);
+
+			if (match(TokenType.GREATERTHEN)) {
+				Var buildInitilizer = buildInitilizer(containerOrIdentifier);
+				Token type = new Token(TokenType.BOX, "box", null, null, null, containerOrIdentifier.column,
+						containerOrIdentifier.line, containerOrIdentifier.start, containerOrIdentifier.finish);
+				if (backward == null) {
+					if (buildInitilizer == null) {
+						return new Stmt.VarFB(new Stmt.Var(containerOrIdentifier, type, 1, null),
+								new Stmt.Var(containerOrIdentifier, type, 1, null));
+					}
+					return new Stmt.VarFB(buildInitilizer, buildInitilizer);
+				} else
+					return new Stmt.VarFB(buildInitilizer, backward);
+			}
+		}
+		return null;
 	}
 
-	private Stmt variableDeclarationOrConstructor(Token type) {
-		if (check(TokenType.IDENTIFIER) || check(TokenType.REIFITNEDI)) {
-			Token name = null;
-			if (check(TokenType.IDENTIFIER))
-				name = consume(TokenType.IDENTIFIER, "Expect variable name.");
-			else
-				name = consume(TokenType.REIFITNEDI, "Expect variable name.");
+	private Var createBackwardsVar(Token containerOrIdentifier) {
+		if (match(TokenType.INTNUM) || matchVariableTypes()) {
 
-			Expr initializer = null;
-			if (match(TokenType.ASIGNMENTEQUALS)) {
-				initializer = expression();
-			}
-			return new Stmt.Var(name, initializer, type, false);
-		} else if (check(TokenType.KNOTCONTAINER) || check(TokenType.CUPCONTAINER) || check(TokenType.POCKETCONTAINER)
-				|| check(TokenType.BOXCONTAINER) || check(TokenType.IDENTIFIER) || check(TokenType.REIFITNEDI)) {
-			Expr prototype = expression();
+			Token type = previous();
 
-			Expr numberToBuild = expression();
-			;
-			boolean shouldEnforce = false;
-			if (check(TokenType.ENFORCEPARAMETER)) {
-				consume(TokenType.ENFORCEPARAMETER, "Expect enforce after Integer .");
-				shouldEnforce = true;
-			}
-			if (numberToBuild instanceof Expr.Literal) {
-				return new Stmt.Constructor(type, prototype, (Integer) ((Expr.Literal) numberToBuild).value,
-						shouldEnforce);
+			ArrayList<IntegerTokenTypePairs> typesAndAmountsAfterFirst = new ArrayList<IntegerTokenTypePairs>();
+
+			if (type.type == TokenType.INTNUM) {
+				if (matchVariableTypes()) {
+					Token previous = previous();
+					Integer forwardInteger = (Integer) type.literal;
+					Integer reverseInteger = reverseTheInteger(forwardInteger);
+					typesAndAmountsAfterFirst.add(new IntegerTokenTypePairs(reverseInteger, previous));
+				} else
+					throw error(type, "expected int of Variable Type");
+
 			} else {
-				return new Stmt.Constructor(type, prototype, (Integer) ((Expr.Laretil) numberToBuild).value,
-						shouldEnforce);
-
+				typesAndAmountsAfterFirst.add(new IntegerTokenTypePairs(1, type));
 			}
 
-		} else if (check(TokenType.INTNUM)) {
-			Expr numberToBuild = expression();
-			boolean shouldEnforce = false;
-			if (check(TokenType.ENFORCEPARAMETER)) {
-				consume(TokenType.ENFORCEPARAMETER, "Expect enforce after Integer .");
-				shouldEnforce = true;
+			while (match(TokenType.INTNUM) || matchVariableTypes()) {
+				Token previous = previous();
+				if (previous.type == TokenType.INTNUM) {
+					if (matchVariableTypes()) {
+						Token newType = previous();
+						Integer forwardInteger = (Integer) previous.literal;
+						Integer reverseInteger = reverseTheInteger(forwardInteger);
+						typesAndAmountsAfterFirst.add(new IntegerTokenTypePairs(reverseInteger, newType));
+					} else
+						throw error(previous, "expected int of Variable Type");
+				} else {
+					if (match(TokenType.INTNUM)) {
+						Token value = previous();
+						Integer forwardInteger = (Integer) value.literal;
+						Integer reverseInteger = reverseTheInteger(forwardInteger);
+						typesAndAmountsAfterFirst.add(new IntegerTokenTypePairs(reverseInteger, previous));
+					} else {
+						typesAndAmountsAfterFirst.add(new IntegerTokenTypePairs(1, previous));
+					}
+				}
 			}
-			if (numberToBuild instanceof Expr.Literal) {
-				return new Stmt.Constructor(type, null, (Integer) ((Expr.Literal) numberToBuild).value, shouldEnforce);
+
+			Var initilizer = buildInitilizer(containerOrIdentifier);
+			IntegerTokenTypePairs integerTokenTypePairs = typesAndAmountsAfterFirst.get(0);
+			typesAndAmountsAfterFirst.remove(0);
+			Var init = null;
+			if (initilizer == null) {
+				init = new Stmt.Var(integerTokenTypePairs.getType(), integerTokenTypePairs.getType(), 1, null);
 			} else {
-				return new Stmt.Constructor(type, null, (Integer) ((Expr.Laretil) numberToBuild).value, shouldEnforce);
 
+				init = new Stmt.Var(null, integerTokenTypePairs.getType(), integerTokenTypePairs.getAmount(),
+						initilizer);
 			}
+
+			while (typesAndAmountsAfterFirst.size() > 0) {
+				IntegerTokenTypePairs pairs = typesAndAmountsAfterFirst.get(0);
+				typesAndAmountsAfterFirst.remove(0);
+				init = new Stmt.Var(null, pairs.getType(), pairs.getAmount(), init);
+			}
+
+			return init;
 
 		}
 		return null;
 	}
 
-	private boolean matchFunctionDeclarationSecondAttempt() {
-		this.setbackFunctionDetermination = 0;
-		boolean properlyFillyFormed = false;
-		properlyFillyFormed = checkKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-		tracker.setSize(tracker.getCurrent() - this.setbackFunctionDetermination);
+	private Integer reverseTheInteger(Integer x) {
 
-		boolean fullyFormedMissingFirstKnot = false;
-		setbackFunctionDetermination = 0;
-		fullyFormedMissingFirstKnot = checkIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
-		boolean fullyFormedMisingFirstKnotIdentBinNum = false;
-		setbackFunctionDetermination = 0;
-		fullyFormedMisingFirstKnotIdentBinNum = checkPocketOrKnotDotBinNumDotIdentDotKnot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
-		boolean properlyFillyFormedMissingLastKnot = false;
-		setbackFunctionDetermination = 0;
-		properlyFillyFormedMissingLastKnot = checkKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
-		boolean properlyFillyFormedMissingBinNumIdentAndLastKnot = false;
-		setbackFunctionDetermination = 0;
-		properlyFillyFormedMissingBinNumIdentAndLastKnot = checkKnotDotIdentDotBinNumDotPocketOrKnotDot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
+		boolean is_negative = x < 0;
+		String x_string = String.valueOf(x);
+		if (x_string.charAt(0) == '-') {
+			x_string = x_string.substring(1);
+		}
 
-		return properlyFillyFormed || fullyFormedMissingFirstKnot || fullyFormedMisingFirstKnotIdentBinNum
-				|| properlyFillyFormedMissingLastKnot || properlyFillyFormedMissingBinNumIdentAndLastKnot;
+		StringBuilder sb = new StringBuilder(x_string);
+		String reversed_x_string = sb.reverse().toString();
+		reversed_x_string = (is_negative ? '-' + reversed_x_string : reversed_x_string);
 
+		long reversed_number = Long.parseLong(reversed_x_string);
+
+		if (reversed_number > Integer.MAX_VALUE || reversed_number < Integer.MIN_VALUE) {
+			return 0;
+		}
+
+		return (int) reversed_number;
 	}
 
-	private boolean checkKnotDotIdentDotBinNumDotPocketOrKnotDot() {
-		if (match(TokenType.KNOTCONTAINER, TokenType.CUPCONTAINER)) {
-			setbackFunctionDetermination++;
-			return checkDotIdentDotBinNumDotPocketOrKnotDot();
+	private Var buildInitilizer(Token containerOrIdentifier) {
+		Var initilizer;
+		if (containerOrIdentifier.type == TokenType.IDENTIFIER) {
+			initilizer = null;
+		} else if (containerOrIdentifier.type == TokenType.POCKETCONTAINER) {
+			ArrayList<Token> tokens2 = new ArrayList<>();
+			tokens2.add(containerOrIdentifier);
+			tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
+
+			tracker.addSubTokens(tokens2);
+			Stmt declaration = declaration();
+			tracker.removeSubTokens();
+			Pocket pocket = (Pocket) ((Stmt.Expression) declaration).expression;
+			Token name = pocket.identifier;
+			Token type = new Token(TokenType.POCKET, "pkt", null, null, null, pocket.identifier.column,
+					pocket.identifier.line, pocket.identifier.start, pocket.reifitnedi.finish);
+			initilizer = new Stmt.Var(name, type, 1, declaration);
+
+		} else if (containerOrIdentifier.type == TokenType.CUPCONTAINER) {
+			ArrayList<Token> tokens2 = new ArrayList<>();
+			tokens2.add(containerOrIdentifier);
+			tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
+
+			tracker.addSubTokens(tokens2);
+			Stmt declaration = declaration();
+			tracker.removeSubTokens();
+			Cup cup = (Cup) ((Stmt.Expression) declaration).expression;
+			Token name = cup.identifier;
+			Token type = new Token(TokenType.CUP, "cup", null, null, null, cup.identifier.column, cup.identifier.line,
+					cup.identifier.start, cup.reifitnedi.finish);
+			initilizer = new Stmt.Var(name, type, 1, declaration);
+
+		} else if (containerOrIdentifier.type == TokenType.BOXCONTAINER) {
+			ArrayList<Token> tokens2 = new ArrayList<>();
+			tokens2.add(containerOrIdentifier);
+			tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
+
+			tracker.addSubTokens(tokens2);
+			Stmt declaration = declaration();
+			tracker.removeSubTokens();
+			Boxx box = (Boxx) ((Stmt.Expression) declaration).expression;
+			Token name = box.identifier;
+			Token type = new Token(TokenType.BOX, "box", null, null, null, box.identifier.column, box.identifier.line,
+					box.identifier.start, box.reifitnedi.finish);
+			initilizer = new Stmt.Var(name, type, 1, declaration);
+
+		} else {
+			ArrayList<Token> tokens2 = new ArrayList<>();
+			tokens2.add(containerOrIdentifier);
+			tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
+
+			tracker.addSubTokens(tokens2);
+			Stmt declaration = declaration();
+			tracker.removeSubTokens();
+			Knot knot = (Knot) ((Stmt.Expression) declaration).expression;
+			Token name = knot.identifier;
+			Token type = new Token(TokenType.KNOT, "knt", null, null, null, knot.identifier.column,
+					knot.identifier.line, knot.identifier.start, knot.reifitnedi.finish);
+			initilizer = new Stmt.Var(name, type, 1, declaration);
 
 		}
-		return false;
+		return initilizer;
 	}
 
-	private boolean checkDotIdentDotBinNumDotPocketOrKnotDot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkIdentDotBinNumDotPocketOrKnotDot();
+	private Var buildInitilizer(Expr containerOrIdentifier) {
+		Var initilizer = null;
+		if (containerOrIdentifier instanceof Expr.Variable) {
+			initilizer = null;
+		} else if (containerOrIdentifier instanceof Expr.Pocket) {
+
+			Pocket pocket = (Pocket) containerOrIdentifier;
+			Token name = pocket.identifier;
+			Token type = new Token(TokenType.POCKET, "pkt", null, null, null, pocket.identifier.column,
+					pocket.identifier.line, pocket.identifier.start, pocket.reifitnedi.finish);
+
+			initilizer = new Stmt.Var(name, type, 1, new Stmt.Expression(containerOrIdentifier));
+
+		} else if (containerOrIdentifier instanceof Expr.Cup) {
+
+			Cup cup = (Cup) containerOrIdentifier;
+			Token name = cup.identifier;
+			Token type = new Token(TokenType.CUP, "cup", null, null, null, cup.identifier.column, cup.identifier.line,
+					cup.identifier.start, cup.reifitnedi.finish);
+
+			initilizer = new Stmt.Var(name, type, 1, new Stmt.Expression(containerOrIdentifier));
+
+		} else if (containerOrIdentifier instanceof Expr.Boxx) {
+			Boxx box = (Boxx) containerOrIdentifier;
+			Token name = box.identifier;
+			Token type = new Token(TokenType.BOX, "box", null, null, null, box.identifier.column, box.identifier.line,
+					box.identifier.start, box.reifitnedi.finish);
+
+			initilizer = new Stmt.Var(name, type, 1, new Stmt.Expression(containerOrIdentifier));
+
+		} else if (containerOrIdentifier instanceof Expr.Knot) {
+			Knot knot = (Knot) containerOrIdentifier;
+			Token name = knot.identifier;
+			Token type = new Token(TokenType.KNOT, "knt", null, null, null, knot.identifier.column,
+					knot.identifier.line, knot.identifier.start, knot.reifitnedi.finish);
+
+			initilizer = new Stmt.Var(name, type, 1, new Stmt.Expression(containerOrIdentifier));
 
 		}
-		return false;
+		return initilizer;
 	}
 
-	private boolean checkIdentDotBinNumDotPocketOrKnotDot() {
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDetermination++;
-			return checkDotBinNumDotPocketOrKnotDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDotBinNumDotPocketOrKnotDot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkBinNumDotPocketOrKnotDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkBinNumDotPocketOrKnotDot() {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDetermination++;
-			return checkDotPocketOrKnotDot();
-
-		} else if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			return checkPocketOrKnotDot();
-		}
-		return false;
-	}
-
-	private boolean checkDotPocketOrKnotDot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkPocketOrKnotDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkPocketOrKnotDot() {
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			setbackFunctionDetermination++;
-			boolean properlyFormed = checkKnotORPocket();
-			if (properlyFormed)
-				return checkDot();
-			else
-				return false;
-		}
-		return false;
-	}
-
-	private boolean checkKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot() {
-		if (match(TokenType.KNOTCONTAINER, TokenType.CUPCONTAINER)) {
-			setbackFunctionDetermination++;
-			return checkDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot() {
-		if (match(TokenType.KNOTCONTAINER, TokenType.CUPCONTAINER)) {
-			setbackFunctionDetermination++;
-			return checkDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot() {
-
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-
-		}
-
-		return false;
-	}
-
-	private boolean checkDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot() {
-
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot() {
-
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDetermination++;
-			return checkDotBinNumDotPocketOrKnotDotBinNumDotIdentDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot() {
-
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDetermination++;
-			return checkDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDotBinNumDotPocketOrKnotDotBinNumDotIdentDot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkBinNumDotPocketOrKnotDotBinNumDotIdentDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot() {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDetermination++;
-			return checkDotPocketOrKnotDotBinNumDotIdentDotKnot();
-
-		} else if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			return checkPocketOrKnotDotBinNumDotIdentDotKnot();
-		}
-
-		return false;
-	}
-
-	private boolean checkBinNumDotPocketOrKnotDotBinNumDotIdentDot() {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDetermination++;
-			return checkDotPocketOrKnotDotBinNumDotIdentDot();
-
-		} else if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			return checkPocketOrKnotDotBinNumDotIdentDot();
-		}
-
-		return false;
-	}
-
-	private boolean checkDotPocketOrKnotDotBinNumDotIdentDot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkPocketOrKnotDotBinNumDotIdentDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDotPocketOrKnotDotBinNumDotIdentDotKnot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkPocketOrKnotDotBinNumDotIdentDotKnot();
-
-		}
-		return false;
-	}
-
-	private boolean checkPocketOrKnotDotBinNumDotIdentDot() {
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			setbackFunctionDetermination++;
-			boolean properlyFormed = checkKnotORPocket();
-			if (properlyFormed)
-				return checkDotBinNumDotIdentDot();
-			else
-				return false;
-		}
-		return false;
-	}
-
-	private boolean checkPocketOrKnotDotBinNumDotIdentDotKnot() {
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			setbackFunctionDetermination++;
-			boolean properlyFormed = checkKnotORPocket();
-			if (properlyFormed)
-				return checkDotBinNumDotIdentDotKnot();
-			else
-				return false;
-		}
-		return false;
-	}
-
-	private boolean checkDotBinNumDotIdentDotKnot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkBinNumDotIdentDotKnot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDotBinNumDotIdentDot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkBinNumDotIdentDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkBinNumDotIdentDotKnot() {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDetermination++;
-			return checkDotIdentDotKnot();
-
-		} else if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDetermination++;
-			return checkDotKnot();
-		}
-		return false;
-	}
-
-	private boolean checkBinNumDotIdentDot() {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDetermination++;
-			return checkDotIdentDot();
-
-		} else if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDetermination++;
-			return checkDot();
-		}
-		return false;
-	}
-
-	private boolean checkDotIdentDotKnot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkIdentDotKnot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDotIdentDot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkIdentDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkIdentDotKnot() {
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDetermination++;
-			return checkDotKnot();
-
-		}
-		return false;
-	}
-
-	private boolean checkIdentDot() {
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDetermination++;
-			return checkDot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDotKnot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return checkKnot();
-
-		}
-		return false;
-	}
-
-	private boolean checkDot() {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDetermination++;
-			return false;
-
-		}
-		return true;
-	}
-
-	private boolean checkKnot() {
-		if (match(TokenType.KNOTCONTAINER, TokenType.CUPCONTAINER)) {
-			setbackFunctionDetermination++;
-
-			return true;
-
-		}
-
-		return false;
-	}
-
-	@SuppressWarnings("unchecked")
-	private boolean checkKnotORPocket() {
-		if (check(TokenType.KNOTCONTAINER)) {
-			Token knot = consume(TokenType.KNOTCONTAINER, "expected KnotContainer");
-			ArrayList<Token> tokes = ((ArrayList<Token>) knot.literal);
-			if (tokes.size() == 2) {
-				if (tokes.get(0).type != TokenType.POCKETCONTAINER || tokes.get(1).type != TokenType.POCKETCONTAINER) {
-
-					return false;
-
-				}
-
-				ArrayList<Token> toke0 = ((ArrayList<Token>) tokes.get(0).literal);
-
-				for (int i = 0; i < toke0.size(); i++) {
-					if (toke0.get(i).type == TokenType.IDENTIFIER) {
-
-					} else if (toke0.get(i).type == TokenType.REIFITNEDI) {
-
-					} else if (toke0.get(i).type == TokenType.COMMA) {
-
-					} else if (toke0.get(i).type == TokenType.TEMPLID) {
-
-					} else if (toke0.get(i).type == TokenType.OPENPAREN) {
-
-					} else if (toke0.get(i).type == TokenType.CLOSEDPAREN) {
-
-					} else {
-
-						return false;
-					}
-				}
-
-				ArrayList<Token> toke1 = ((ArrayList<Token>) tokes.get(1).literal);
-
-				for (int i = 0; i < toke1.size(); i++) {
-					if (toke1.get(i).type == TokenType.IDENTIFIER) {
-
-					} else if (toke1.get(i).type == TokenType.REIFITNEDI) {
-
-					} else if (toke1.get(i).type == TokenType.COMMA) {
-
-					} else if (toke1.get(i).type == TokenType.TEMPLID) {
-
-					} else if (toke1.get(i).type == TokenType.OPENPAREN) {
-
-					} else if (toke1.get(i).type == TokenType.CLOSEDPAREN) {
-
-					} else {
-
-						return false;
-					}
-				}
-
-			}
-		} else if (check(TokenType.POCKETCONTAINER)) {
-			Token pocket = consume(TokenType.POCKETCONTAINER, "expected KnotContainer");
-			ArrayList<Token> tokes = ((ArrayList<Token>) pocket.literal);
-			if (tokes.size() != 0) {
-				for (int i = 0; i < tokes.size(); i++) {
-					if (tokes.get(i).type == TokenType.IDENTIFIER) {
-
-					} else if (tokes.get(i).type == TokenType.REIFITNEDI) {
-
-					} else if (tokes.get(i).type == TokenType.COMMA) {
-
-					} else if (tokes.get(i).type == TokenType.REIFITNEDI) {
-
-					} else if (tokes.get(i).type == TokenType.TEMPLID) {
-
-					} else if (tokes.get(i).type == TokenType.OPENPAREN) {
-
-					} else if (tokes.get(i).type == TokenType.CLOSEDPAREN) {
-
-					} else {
-
-						return false;
-					}
-				}
-			}
-		}
-		return true;
-	}
-
-	private class KnotProperties {
-		private Token method1Kont = null;
-		private Token identifierMethod1 = null;
-		private Token method1BinNumber = null;
-		private Token parameterContainer = null;
-		private Token method2BinNumber = null;
-		private Token identifierMethod2 = null;
-		private Token method2Knot = null;
-
-		private Expr knot0 = null;
-		private Expr identRe0 = null;
-		private Expr binNum0 = null;
-		private Expr binNum1 = null;
-		private Expr identRe1 = null;
-		private Expr knot1 = null;
-		private List<Expr> parameters = new ArrayList<Expr>();
-		private List<Expr> sretemarap = new ArrayList<Expr>();
-
-		KnotProperties(Token knot0, Token IdentOrRe0, Token binNum0, Token parameters, Token binNum1, Token IdentOrRe1,
-				Token knot1) {
-			method1Kont = knot0;
-			identifierMethod1 = IdentOrRe0;
-			method1BinNumber = binNum0;
-			parameterContainer = parameters;
-			method2BinNumber = binNum1;
-			identifierMethod2 = IdentOrRe1;
-			method2Knot = knot1;
-
-			generateKnots();
-			generateParameters();
-			if (identifierMethod1 != null) {
-				ArrayList<Token> tokens0 = new ArrayList<Token>();
-				tokens0.add(identifierMethod1);
-				tokens0.add(new Token(TokenType.EOF, "", null, null, null, tokens0.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens0);
-				ArrayList<Stmt> identifier1 = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				if (identifier1.get(0) instanceof Stmt.Expression) {
-					this.setIdentRe0(((Stmt.Expression) identifier1.get(0)).expression);
-				}
-				if (identifier1.get(0) instanceof Stmt.Noisserpxe) {
-					this.setIdentRe0(((Stmt.Noisserpxe) identifier1.get(0)).noisserpex);
-				}
-			}
-
-			if (method1BinNumber != null) {
-				ArrayList<Token> tokens1 = new ArrayList<Token>();
-				tokens1.add(method1BinNumber);
-				tokens1.add(new Token(TokenType.EOF, "", null, null, null, tokens1.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens1);
-				ArrayList<Stmt> binNumber1 = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				if (binNumber1.get(0) instanceof Stmt.Expression) {
-					this.setBinNum0(((Stmt.Expression) binNumber1.get(0)).expression);
-				}
-				if (binNumber1.get(0) instanceof Stmt.Noisserpxe) {
-					this.setBinNum0(((Stmt.Noisserpxe) binNumber1.get(0)).noisserpex);
-				}
-			}
-			if (method2BinNumber != null) {
-				ArrayList<Token> tokens2 = new ArrayList<Token>();
-				tokens2.add(method2BinNumber);
-				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens2);
-				ArrayList<Stmt> binNumber2 = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				if (binNumber2.get(0) instanceof Stmt.Expression) {
-					this.setBinNum1(((Stmt.Expression) binNumber2.get(0)).expression);
-				}
-				if (binNumber2.get(0) instanceof Stmt.Noisserpxe) {
-					this.setBinNum1(((Stmt.Noisserpxe) binNumber2.get(0)).noisserpex);
-				}
-			}
-
-			if (identifierMethod2 != null) {
-				ArrayList<Token> tokens3 = new ArrayList<Token>();
-				tokens3.add(identifierMethod2);
-				tokens3.add(new Token(TokenType.EOF, "", null, null, null, tokens3.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens3);
-				ArrayList<Stmt> identifier2 = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				if (identifier2.get(0) instanceof Stmt.Expression) {
-					this.setIdentRe1(((Stmt.Expression) identifier2.get(0)).expression);
-				}
-				if (identifier2.get(0) instanceof Stmt.Noisserpxe) {
-					this.setIdentRe1(((Stmt.Noisserpxe) identifier2.get(0)).noisserpex);
-				}
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		private void generateKnots() {
-
-			if (method1Kont != null) {
-				ArrayList<Token> tokens1 = (ArrayList<Token>) method1Kont.literal;
-				tokens1.add(new Token(TokenType.EOF, "", null, null, null, tokens1.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens1);
-				ArrayList<Stmt> cupsAndPockets = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				ArrayList<Token> tokens1ungrpuped = (ArrayList<Token>) method1Kont.literalUnGrouped;
-				tokens1ungrpuped
-						.add(new Token(TokenType.EOF, "", null, null, null, tokens1ungrpuped.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens1ungrpuped);
-				ArrayList<Stmt> cupsAndPocketsungrouped = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				Token identifier = null;
-				Token reifitnedi = null;
-				if (cupsAndPockets.size() > 0) {
-					if (cupsAndPockets.get(0) instanceof Stmt.Expression) {
-						Expr expression = ((Stmt.Expression) cupsAndPockets.get(0)).expression;
-						if (expression instanceof Expr.Cup) {
-							identifier = ((Expr.Cup) expression).identifier;
-						}
-						if (expression instanceof Expr.Pocket) {
-							identifier = ((Expr.Pocket) expression).identifier;
-						}
-					}
-					if (cupsAndPockets.get(0) instanceof Stmt.Noisserpxe) {
-						Expr expression = ((Stmt.Noisserpxe) cupsAndPockets.get(0)).noisserpex;
-						if (expression instanceof Expr.Cup) {
-							identifier = ((Expr.Cup) expression).identifier;
-						}
-						if (expression instanceof Expr.Pocket) {
-							identifier = ((Expr.Pocket) expression).identifier;
-						}
-					}
-					if (cupsAndPockets.get(cupsAndPockets.size() - 1) instanceof Stmt.Expression) {
-						Expr expression = ((Stmt.Expression) cupsAndPockets.get(cupsAndPockets.size() - 1)).expression;
-						if (expression instanceof Expr.Cup) {
-							reifitnedi = ((Expr.Cup) expression).reifitnedi;
-						}
-						if (expression instanceof Expr.Pocket) {
-							reifitnedi = ((Expr.Pocket) expression).reifitnedi;
-						}
-					}
-					if (cupsAndPockets.get(cupsAndPockets.size() - 1) instanceof Stmt.Noisserpxe) {
-						Expr expression = ((Stmt.Noisserpxe) cupsAndPockets.get(cupsAndPockets.size() - 1)).noisserpex;
-						if (expression instanceof Expr.Cup) {
-							reifitnedi = ((Expr.Cup) expression).reifitnedi;
-						}
-						if (expression instanceof Expr.Pocket) {
-							reifitnedi = ((Expr.Pocket) expression).reifitnedi;
-						}
-					}
-				}
-				setKnot0(new Expr.Knot(identifier, cupsAndPockets, cupsAndPocketsungrouped, method1Kont.lexeme,
-						reifitnedi));
-			}
-
-			if (method2Knot != null) {
-				ArrayList<Token> tokens2 = (ArrayList<Token>) method2Knot.literal;
-				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens2);
-				ArrayList<Stmt> cupsAndPockets = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				ArrayList<Token> tokens2ungrouped = (ArrayList<Token>) method2Knot.literalUnGrouped;
-				tokens2ungrouped
-						.add(new Token(TokenType.EOF, "", null, null, null, tokens2ungrouped.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens2ungrouped);
-				ArrayList<Stmt> cupsAndPocketsungrouped = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				Token identifier = null;
-				Token reifitnedi = null;
-				if (cupsAndPockets.size() > 0) {
-					if (cupsAndPockets.get(0) instanceof Stmt.Expression) {
-						Expr expression = ((Stmt.Expression) cupsAndPockets.get(0)).expression;
-						if (expression instanceof Expr.Cup) {
-							identifier = ((Expr.Cup) expression).identifier;
-						}
-						if (expression instanceof Expr.Pocket) {
-							identifier = ((Expr.Pocket) expression).identifier;
-						}
-					}
-					if (cupsAndPockets.get(0) instanceof Stmt.Noisserpxe) {
-						Expr expression = ((Stmt.Noisserpxe) cupsAndPockets.get(0)).noisserpex;
-						if (expression instanceof Expr.Cup) {
-							identifier = ((Expr.Cup) expression).identifier;
-						}
-						if (expression instanceof Expr.Pocket) {
-							identifier = ((Expr.Pocket) expression).identifier;
-						}
-					}
-					if (cupsAndPockets.get(cupsAndPockets.size() - 1) instanceof Stmt.Expression) {
-						Expr expression = ((Stmt.Expression) cupsAndPockets.get(cupsAndPockets.size() - 1)).expression;
-						if (expression instanceof Expr.Cup) {
-							reifitnedi = ((Expr.Cup) expression).reifitnedi;
-						}
-						if (expression instanceof Expr.Pocket) {
-							reifitnedi = ((Expr.Pocket) expression).reifitnedi;
-						}
-					}
-					if (cupsAndPockets.get(cupsAndPockets.size() - 1) instanceof Stmt.Noisserpxe) {
-						Expr expression = ((Stmt.Noisserpxe) cupsAndPockets.get(cupsAndPockets.size() - 1)).noisserpex;
-						if (expression instanceof Expr.Cup) {
-							reifitnedi = ((Expr.Cup) expression).reifitnedi;
-						}
-						if (expression instanceof Expr.Pocket) {
-							reifitnedi = ((Expr.Pocket) expression).reifitnedi;
-						}
-					}
-				}
-				setKnot1(new Expr.Knot(identifier, cupsAndPockets, cupsAndPocketsungrouped, method2Knot.lexeme,
-						reifitnedi));
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		private void generateParameters() {
-			if (parameterContainer.type == TokenType.POCKETCONTAINER) {
-				ArrayList<Token> tokens2 = (ArrayList<Token>) parameterContainer.literal;
-				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens2);
-				ArrayList<Stmt> pockets = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				ArrayList<Expr> parms = new ArrayList<Expr>();
-
-				for (int i = 0; i < pockets.size(); i++) {
-					if (pockets.get(i) instanceof Stmt.Expression) {
-						Expr expression3 = ((Stmt.Expression) pockets.get(i)).expression;
-						if (expression3 instanceof Expr.Lash) {
-
-						} else if (expression3 instanceof Expr.PocketOpenRight) {
-
-						} else if (expression3 instanceof Expr.PocketOpenLeft) {
-
-						} else {
-							parms.add(expression3);
-						}
-					}
-					if (pockets.get(i) instanceof Stmt.Noisserpxe) {
-						Expr expression3 = ((Stmt.Noisserpxe) pockets.get(i)).noisserpex;
-						if (expression3 instanceof Expr.Lash) {
-
-						} else if (expression3 instanceof Expr.PocketOpenRight) {
-
-						} else if (expression3 instanceof Expr.PocketOpenLeft) {
-
-						} else {
-							parms.add(expression3);
-						}
-					}
-
-				}
-				parameters = parms;
-			} else if (parameterContainer.type == TokenType.KNOTCONTAINER) {
-				ArrayList<Token> tokens2 = (ArrayList<Token>) parameterContainer.literal;
-				tokens2.add(new Token(TokenType.EOF, "", null, null, null, tokens2.size(), -1, -1, -1));
-
-				tracker.addSubTokens(tokens2);
-				ArrayList<Stmt> pockets = (ArrayList<Stmt>) parseForward();
-				tracker.removeSubTokens();
-
-				ArrayList<Expr> parms = new ArrayList<Expr>();
-				if (pockets.get(0) instanceof Stmt.Expression) {
-					Expr expression = ((Stmt.Expression) pockets.get(0)).expression;
-					if (expression instanceof Expr.Pocket) {
-						List<Stmt> expression2 = ((Expr.Pocket) expression).expression;
-						for (int i = 0; i < expression2.size(); i++) {
-							if (expression2.get(i) instanceof Stmt.Expression) {
-								Expr expression3 = ((Stmt.Expression) expression2.get(i)).expression;
-								if (expression3 instanceof Expr.Lash) {
-
-								} else if (expression3 instanceof Expr.Lid) {
-
-								} else if (expression3 instanceof Expr.PocketOpenRight) {
-
-								} else if (expression3 instanceof Expr.PocketOpenLeft) {
-
-								} else {
-									parms.add(expression3);
-								}
-							}
-							if (expression2.get(i) instanceof Stmt.Noisserpxe) {
-								Expr expression3 = ((Stmt.Noisserpxe) expression2.get(i)).noisserpex;
-								if (expression3 instanceof Expr.Lash) {
-
-								} else if (expression3 instanceof Expr.Lid) {
-
-								} else if (expression3 instanceof Expr.PocketOpenRight) {
-
-								} else if (expression3 instanceof Expr.PocketOpenLeft) {
-
-								} else {
-									parms.add(expression3);
-								}
-							}
-						}
-					}
-				}
-				parameters = parms;
-				ArrayList<Expr> smrap = new ArrayList<Expr>();
-				if (pockets.get(1) instanceof Stmt.Expression) {
-					Expr expression = ((Stmt.Expression) pockets.get(1)).expression;
-					if (expression instanceof Expr.Pocket) {
-						List<Stmt> expression2 = ((Expr.Pocket) expression).expression;
-						for (int i = 0; i < expression2.size(); i++) {
-							if (expression2.get(i) instanceof Stmt.Expression) {
-								Expr expression3 = ((Stmt.Expression) expression2.get(i)).expression;
-								if (expression3 instanceof Expr.Lash) {
-
-								} else if (expression3 instanceof Expr.Lid) {
-
-								} else {
-									smrap.add(expression3);
-								}
-							}
-							if (expression2.get(i) instanceof Stmt.Noisserpxe) {
-								Expr expression3 = ((Stmt.Noisserpxe) expression2.get(i)).noisserpex;
-								if (expression3 instanceof Expr.Lash) {
-
-								}
-								if (expression3 instanceof Expr.Lid) {
-
-								} else {
-									smrap.add(expression3);
-								}
-							}
-						}
-					}
-
-					sretemarap = smrap;
-
-				}
-
-			}
-		}
-
-		public void setKnot0(Expr knot0) {
-			this.knot0 = knot0;
-		}
-
-		public void setIdentRe0(Expr identRe0) {
-			this.identRe0 = identRe0;
-		}
-
-		public void setBinNum0(Expr binNum0) {
-			this.binNum0 = binNum0;
-		}
-
-		public void setBinNum1(Expr binNum1) {
-			this.binNum1 = binNum1;
-		}
-
-		public void setIdentRe1(Expr identRe1) {
-			this.identRe1 = identRe1;
-		}
-
-		public void setKnot1(Expr knot1) {
-			this.knot1 = knot1;
-		}
-
-	}
-
-	private Stmt functionDeclaration() {
-
-		setbackFunctionDetermination = 0;
-		boolean properlyFillyFormedBool = false;
-		properlyFillyFormedBool = checkKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
-
-		int properlyFillyFormedsetback = 0;
-		KnotProperties properlyFillyFormed = null;
-		if (properlyFillyFormedBool) {
-			setbackFunctionDeterminationBuild = 0;
-			properlyFillyFormed = buildKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-			properlyFillyFormedsetback = setbackFunctionDeterminationBuild;
-			tracker.setSize(tracker.getCurrent() - setbackFunctionDeterminationBuild);
-		}
-
-		boolean fullyFormedMissingFirstKnotBool = false;
-		setbackFunctionDetermination = 0;
-		fullyFormedMissingFirstKnotBool = checkIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
-
-		int fullyFormedMissingFirstKnotsetback = 0;
-		KnotProperties fullyFormedMissingFirstKnot = null;
-		if (fullyFormedMissingFirstKnotBool) {
-			setbackFunctionDeterminationBuild = 0;
-			fullyFormedMissingFirstKnot = buildIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(null);
-			fullyFormedMissingFirstKnotsetback = setbackFunctionDeterminationBuild;
-			tracker.setSize(tracker.getCurrent() - setbackFunctionDeterminationBuild);
-		}
-
-		boolean fullyFormedMisingFirstKnotIdentBinNumBool = false;
-		setbackFunctionDetermination = 0;
-		fullyFormedMisingFirstKnotIdentBinNumBool = checkPocketOrKnotDotBinNumDotIdentDotKnot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
-
-		int fullyFormedMisingFirstKnotIdentBinNumsetback = 0;
-		KnotProperties fullyFormedMisingFirstKnotIdentBinNum = null;
-		if (fullyFormedMisingFirstKnotIdentBinNumBool) {
-			setbackFunctionDeterminationBuild = 0;
-			fullyFormedMisingFirstKnotIdentBinNum = buildPocketOrKnotDotBinNumDotIdentDotKnot(null, null, null);
-			fullyFormedMisingFirstKnotIdentBinNumsetback = setbackFunctionDeterminationBuild;
-			tracker.setSize(tracker.getCurrent() - setbackFunctionDeterminationBuild);
-		}
-
-		boolean properlyFillyFormedMissingLastKnotBool = false;
-		setbackFunctionDetermination = 0;
-		properlyFillyFormedMissingLastKnotBool = checkKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
-
-		int properlyFillyFormedMissingLastKnotsetback = 0;
-		KnotProperties properlyFillyFormedMissingLastKnot = null;
-
-		if (properlyFillyFormedMissingLastKnotBool) {
-			setbackFunctionDeterminationBuild = 0;
-			properlyFillyFormedMissingLastKnot = buildKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot();
-			properlyFillyFormedMissingLastKnotsetback = setbackFunctionDeterminationBuild;
-			tracker.setSize(tracker.getCurrent() - setbackFunctionDeterminationBuild);
-		}
-
-		boolean properlyFillyFormedMissingBinNumIdentAndLastKnotBool = false;
-		setbackFunctionDetermination = 0;
-		properlyFillyFormedMissingBinNumIdentAndLastKnotBool = checkKnotDotIdentDotBinNumDotPocketOrKnotDot();
-		tracker.setSize(tracker.getCurrent() - setbackFunctionDetermination);
-
-		int properlyFillyFormedMissingBinNumIdentAndLastKnotsetback = 0;
-		KnotProperties properlyFillyFormedMissingBinNumIdentAndLastKnot = null;
-		if (properlyFillyFormedMissingBinNumIdentAndLastKnotBool) {
-			setbackFunctionDeterminationBuild = 0;
-			properlyFillyFormedMissingBinNumIdentAndLastKnot = buildKnotDotIdentDotBinNumDotPocketOrKnotDot();
-			properlyFillyFormedMissingBinNumIdentAndLastKnotsetback = setbackFunctionDeterminationBuild;
-			tracker.setSize(tracker.getCurrent() - setbackFunctionDeterminationBuild);
-		}
-		if (properlyFillyFormed != null) {
-			tracker.setSize(tracker.getCurrent() + properlyFillyFormedsetback);
-			return new Stmt.Function(properlyFillyFormed.knot0, properlyFillyFormed.identRe0,
-					properlyFillyFormed.binNum0, properlyFillyFormed.parameters, properlyFillyFormed.sretemarap,
-					properlyFillyFormed.binNum1, properlyFillyFormed.identRe1, properlyFillyFormed.knot1);
-
-		} else if (fullyFormedMissingFirstKnot != null) {
-			tracker.setSize(tracker.getCurrent() + fullyFormedMissingFirstKnotsetback);
-			return new Stmt.Function(fullyFormedMissingFirstKnot.knot0, fullyFormedMissingFirstKnot.identRe0,
-					fullyFormedMissingFirstKnot.binNum0, fullyFormedMissingFirstKnot.parameters,
-					fullyFormedMissingFirstKnot.sretemarap, fullyFormedMissingFirstKnot.binNum1,
-					fullyFormedMissingFirstKnot.identRe1, fullyFormedMissingFirstKnot.knot1);
-		} else if (fullyFormedMisingFirstKnotIdentBinNum != null) {
-			tracker.setSize(tracker.getCurrent() + fullyFormedMisingFirstKnotIdentBinNumsetback);
-			return new Stmt.Function(fullyFormedMisingFirstKnotIdentBinNum.knot0,
-					fullyFormedMisingFirstKnotIdentBinNum.identRe0, fullyFormedMisingFirstKnotIdentBinNum.binNum0,
-					fullyFormedMisingFirstKnotIdentBinNum.parameters, fullyFormedMisingFirstKnotIdentBinNum.sretemarap,
-					fullyFormedMisingFirstKnotIdentBinNum.binNum1, fullyFormedMisingFirstKnotIdentBinNum.identRe1,
-					fullyFormedMisingFirstKnotIdentBinNum.knot1);
-		} else if (properlyFillyFormedMissingLastKnot != null) {
-
-			tracker.setSize(tracker.getCurrent() + properlyFillyFormedMissingLastKnotsetback);
-			return new Stmt.Function(properlyFillyFormedMissingLastKnot.knot0,
-					properlyFillyFormedMissingLastKnot.identRe0, properlyFillyFormedMissingLastKnot.binNum0,
-					properlyFillyFormedMissingLastKnot.parameters, properlyFillyFormedMissingLastKnot.sretemarap,
-					properlyFillyFormedMissingLastKnot.binNum1, properlyFillyFormedMissingLastKnot.identRe1,
-					properlyFillyFormedMissingLastKnot.knot1);
-		} else if (properlyFillyFormedMissingBinNumIdentAndLastKnot != null) {
-			tracker.setSize(tracker.getCurrent() + properlyFillyFormedMissingBinNumIdentAndLastKnotsetback);
-			return new Stmt.Function(properlyFillyFormedMissingBinNumIdentAndLastKnot.knot0,
-					properlyFillyFormedMissingBinNumIdentAndLastKnot.identRe0,
-					properlyFillyFormedMissingBinNumIdentAndLastKnot.binNum0,
-					properlyFillyFormedMissingBinNumIdentAndLastKnot.parameters,
-					properlyFillyFormedMissingBinNumIdentAndLastKnot.sretemarap,
-					properlyFillyFormedMissingBinNumIdentAndLastKnot.binNum1,
-					properlyFillyFormedMissingBinNumIdentAndLastKnot.identRe1,
-					properlyFillyFormedMissingBinNumIdentAndLastKnot.knot1);
+	private Var createForwardVar(ArrayList<IntegerTokenTypePairs> forwardPairs, Token containerOrIdentifier) {
+		Var initilizer = buildInitilizer(containerOrIdentifier);
+		IntegerTokenTypePairs integerTokenTypePairs = forwardPairs.get(forwardPairs.size() - 1);
+		forwardPairs.remove(forwardPairs.size() - 1);
+		Var init = null;
+		if (initilizer == null) {
+			init = new Stmt.Var(containerOrIdentifier, integerTokenTypePairs.getType(), 1, null);
 		} else {
 
-			Box.error(tracker.getToken().column, tracker.getToken().line, "malformed function definition");
-			return null;
+			init = new Stmt.Var(null, integerTokenTypePairs.getType(), integerTokenTypePairs.getAmount(), initilizer);
 		}
 
-	}
-
-	private KnotProperties buildKnotDotIdentDotBinNumDotPocketOrKnotDot() {
-		if (match(TokenType.KNOTCONTAINER)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotIdentDotBinNumDotPocketOrKnotDot(previous());
-
+		while (forwardPairs.size() > 0) {
+			IntegerTokenTypePairs pairs = forwardPairs.get(forwardPairs.size() - 1);
+			forwardPairs.remove(forwardPairs.size() - 1);
+			init = new Stmt.Var(null, pairs.getType(), pairs.getAmount(), init);
 		}
-
-		return null;
+		return init;
 	}
 
-	private KnotProperties buildDotIdentDotBinNumDotPocketOrKnotDot(Token knotContainer) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildIdentDotBinNumDotPocketOrKnotDot(knotContainer);
+	private boolean matchVariableTypes() {
 
-		}
-
-		return null;
+		return match(TokenType.BOX, TokenType.POCKET, TokenType.CUP, TokenType.KNOT, TokenType.XOB, TokenType.TEKCOP,
+				TokenType.PUC, TokenType.TONK);
 	}
 
-	private KnotProperties buildIdentDotBinNumDotPocketOrKnotDot(Token knotContainer) {
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotBinNumDotPocketOrKnotDot(knotContainer, previous());
 
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotBinNumDotPocketOrKnotDot(Token knotContainer, Token identOrRe) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildBinNumDotPocketOrKnotDot(knotContainer, identOrRe);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildBinNumDotPocketOrKnotDot(Token knotContainer, Token identOrRe) {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotPocketOrKnotDot(knotContainer, identOrRe, previous());
-
-		} else if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			return buildPocketOrKnotDot(knotContainer, identOrRe, null);
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotPocketOrKnotDot(Token knotContainer0, Token identOrRe0, Token binNum0) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildPocketOrKnotDot(knotContainer0, identOrRe0, binNum0);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildPocketOrKnotDot(Token knotContainer0, Token identOrRe0, Token binNum0) {
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			setbackFunctionDeterminationBuild++;
-			Token parameters = buildKnotORPocket();
-
-			return buildDot(knotContainer0, identOrRe0, binNum0, parameters, null, null);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot() {
-		if (match(TokenType.KNOTCONTAINER)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot(previous());
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildKnotDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot() {
-		if (match(TokenType.KNOTCONTAINER)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(previous());
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(Token knot0) {
-
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(knot0);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot(Token knot0) {
-
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot(knot0);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDot(Token knot0) {
-
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotBinNumDotPocketOrKnotDotBinNumDotIdentDot(knot0, previous());
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildIdentDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(Token knot0) {
-
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(knot0, previous());
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(Token knot0, Token identOrRe0) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(knot0, identOrRe0);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotBinNumDotPocketOrKnotDotBinNumDotIdentDot(Token knot0, Token identOrRe0) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildBinNumDotPocketOrKnotDotBinNumDotIdentDot(knot0, identOrRe0);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildBinNumDotPocketOrKnotDotBinNumDotIdentDotKnot(Token knot0, Token identOrRe0) {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotPocketOrKnotDotBinNumDotIdentDotKnot(knot0, identOrRe0, previous());
-
-		} else if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			return buildPocketOrKnotDotBinNumDotIdentDotKnot(knot0, identOrRe0, null);
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildBinNumDotPocketOrKnotDotBinNumDotIdentDot(Token knot0, Token identOrRe0) {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotPocketOrKnotDotBinNumDotIdentDot(knot0, identOrRe0, previous());
-
-		} else if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			return buildPocketOrKnotDotBinNumDotIdentDot(knot0, identOrRe0, null);
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotPocketOrKnotDotBinNumDotIdentDot(Token knot0, Token identOrRe0, Token binNum0) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildPocketOrKnotDotBinNumDotIdentDot(knot0, identOrRe0, binNum0);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotPocketOrKnotDotBinNumDotIdentDotKnot(Token knot0, Token identOrRe0, Token binNum0) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildPocketOrKnotDotBinNumDotIdentDotKnot(knot0, identOrRe0, binNum0);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildPocketOrKnotDotBinNumDotIdentDot(Token knot0, Token identOrRe0, Token binNum0) {
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			setbackFunctionDeterminationBuild++;
-			Token parameters = buildKnotORPocket();
-
-			return buildDotBinNumDotIdentDot(knot0, identOrRe0, binNum0, parameters);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildPocketOrKnotDotBinNumDotIdentDotKnot(Token knot0, Token identOrRe0, Token binNum0) {
-		if (check(TokenType.KNOTCONTAINER) || check(TokenType.POCKETCONTAINER)) {
-			setbackFunctionDeterminationBuild++;
-			Token parameters = buildKnotORPocket();
-
-			return buildDotBinNumDotIdentDotKnot(knot0, identOrRe0, binNum0, parameters);
-
-		}
-
-		return null;
-	}
-
-	private Token buildKnotORPocket() {
-		if (check(TokenType.KNOTCONTAINER))
-			return consume(TokenType.KNOTCONTAINER, "expected parameters");
-		else if (check(TokenType.POCKETCONTAINER))
-			return consume(TokenType.POCKETCONTAINER, "expected parameters");
-		return null;
-	}
-
-	private KnotProperties buildDotBinNumDotIdentDotKnot(Token knot0, Token identOrRe0, Token binNum0,
-			Token parameters) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildBinNumDotIdentDotKnot(knot0, identOrRe0, binNum0, parameters);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotBinNumDotIdentDot(Token knot0, Token identOrRe0, Token binNum0, Token parameters) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildBinNumDotIdentDot(knot0, identOrRe0, binNum0, parameters);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildBinNumDotIdentDotKnot(Token knot0, Token identOrRe0, Token binNum0, Token parameters) {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotIdentDotKnot(knot0, identOrRe0, binNum0, parameters, previous());
-
-		} else if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotKnot(knot0, identOrRe0, binNum0, parameters, null, previous());
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildBinNumDotIdentDot(Token knot0, Token identOrRe0, Token binNum0, Token parameters) {
-		if (match(TokenType.BINNUM)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotIdentDot(knot0, identOrRe0, binNum0, parameters, previous());
-
-		} else if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDot(knot0, identOrRe0, binNum0, parameters, null, previous());
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotIdentDotKnot(Token knot0, Token identOrRe0, Token binNum0, Token parameters,
-			Token binNum1) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildIdentDotKnot(knot0, identOrRe0, binNum0, parameters, binNum1);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotIdentDot(Token knot0, Token identOrRe0, Token binNum0, Token parameters,
-			Token binNum1) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildIdentDot(knot0, identOrRe0, binNum0, parameters, binNum1);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildIdentDotKnot(Token knot0, Token identOrRe0, Token binNum0, Token parameters,
-			Token binNum1) {
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDotKnot(knot0, identOrRe0, binNum0, parameters, binNum1, previous());
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildIdentDot(Token knot0, Token identOrRe0, Token binNum0, Token parameters,
-			Token binNum1) {
-		if (match(TokenType.IDENTIFIER, TokenType.REIFITNEDI)) {
-			setbackFunctionDeterminationBuild++;
-			return buildDot(knot0, identOrRe0, binNum0, parameters, binNum1, previous());
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDotKnot(Token knot0, Token identOrRe0, Token binNum0, Token parameters, Token binNum1,
-			Token identOrRe1) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-			return buildKnot(knot0, identOrRe0, binNum0, parameters, binNum1, identOrRe1);
-
-		}
-
-		return null;
-	}
-
-	private KnotProperties buildDot(Token knotContainer0, Token identOrRe0, Token binNum0, Token parameters,
-			Token binNum1, Token identOrRe1) {
-		if (match(TokenType.DOT)) {
-			setbackFunctionDeterminationBuild++;
-
-			return null;
-
-		}
-		return new KnotProperties(knotContainer0, identOrRe0, binNum0, parameters, binNum1, identOrRe1, null);
-	}
-
-	private KnotProperties buildKnot(Token knot0, Token identOrRe0, Token binNum0, Token parameters, Token binNum1,
-			Token identOrRe1) {
-		if (match(TokenType.KNOTCONTAINER)) {
-			setbackFunctionDeterminationBuild++;
-
-			return new KnotProperties(knot0, identOrRe0, binNum0, parameters, binNum1, identOrRe1, previous());
-
-		}
-
-		return null;
-	}
 
 	private void synchronize() {
 		advance();
@@ -2619,6 +1363,8 @@ public class Parser {
 			if (previous().type == TokenType.SEMICOLON)
 				return;
 
+			
+			
 			switch (peek().type) {
 			case PRINT:
 			case RETURN:
@@ -2632,23 +1378,19 @@ public class Parser {
 
 	}
 
-	private Stmt printStatement() {
-		Token keyword = previous();
-		consume(TokenType.DOT, "expected '.' after print.");
-		Expr expr = expression();
-		return new Stmt.Print(keyword, expr);
-	}
-
-	private Stmt returnStatement() {
-		Token keyword = previous();
-		consume(TokenType.DOT, "expected '.' after return.");
-		Expr expr = expression();
-		return new Stmt.Return(keyword, expr);
-	}
-
 	private Stmt expressionStmt(Expr expr) {
 		if (expr instanceof Expr.PassThrough)
 			return new Stmt.PassThrough(expr);
+		if (expr instanceof Expr.Variable) {
+			Var buildInitilizer = buildInitilizer(expr);
+			if (buildInitilizer == null) {
+				Token name = ((Expr.Variable) expr).name;
+				Var var = new Stmt.Var(name, new Token(TokenType.BOX, null, null, null, null, name.column, name.line,
+						name.start, name.finish), 1, null);
+				return new Stmt.VarFB(var, var);
+			}
+			return new Stmt.VarFB(buildInitilizer, buildInitilizer);
+		}
 		return new Stmt.Expression(expr);
 	}
 
@@ -2678,13 +1420,9 @@ public class Parser {
 			if (expr instanceof Expr.Variable) {
 				Token name = ((Expr.Variable) expr).name;
 				return new Expr.Assignment(name, value);
-			} else if (expr instanceof Expr.Get) {
-				Expr.Get get = (Expr.Get) expr;
-				return new Expr.Set(get.object, get.name, value);
-
-			} else if (expr instanceof Expr.GetBoxCupPocket) {
-				Expr.GetBoxCupPocket get = (Expr.GetBoxCupPocket) expr;
-				return new Expr.SetBoxCupPocket(get.object, get.name, value);
+			} else if (expr instanceof Expr.UnknownnwonknU) {
+				Expr.UnknownnwonknU get = (Expr.UnknownnwonknU) expr;
+				return new Expr.Set(get, get.name, value);
 			}
 
 			error(equals, "Invalid assignment target.");
@@ -2706,7 +1444,25 @@ public class Parser {
 			Expr expr2 = logicalOr();
 
 			return new Expr.Contains(expr, open, expr2);
+		}
+		if (match(TokenType.NEPO)) {
+			Token nepo = previous();
+			if (match(TokenType.SNIATNOC)) {
 
+				Expr expr2 = logicalOr();
+
+				return new Expr.Sniatnoc(expr2, true, expr);
+			} else {
+				error(nepo, "expected 'sniatnoc'.");
+			}
+
+		}
+
+		if (match(TokenType.SNIATNOC)) {
+
+			Expr expr2 = logicalOr();
+
+			return new Expr.Sniatnoc(expr2, false, expr);
 		}
 
 		return expr;
@@ -2737,7 +1493,7 @@ public class Parser {
 
 	private Expr equality() {
 		Expr expr = addSub();
-		while (match(TokenType.NOTEQUALS, TokenType.EQUALSEQUALS)) {
+		while (match(TokenType.NOTEQUALS, TokenType.EQUALSEQUALS, TokenType.EQUALSNOT)) {
 			Token operator = previous();
 			Expr right = addSub();
 			expr = new Expr.Binary(expr, operator, right);
@@ -2747,7 +1503,7 @@ public class Parser {
 
 	private Expr addSub() {
 		Expr expr = comparison();
-		while (match(TokenType.PLUSEQUALS, TokenType.MINUSEQUALS)) {
+		while (match(TokenType.PLUSEQUALS, TokenType.MINUSEQUALS, TokenType.EQUALSPLUS, TokenType.EQUALSMINUS)) {
 			Token operator = previous();
 			Expr right = comparison();
 			expr = new Expr.Binary(expr, operator, right);
@@ -2758,7 +1514,8 @@ public class Parser {
 
 	private Expr comparison() {
 		Expr expr = term();
-		while (match(TokenType.GREATERTHENEQUAL, TokenType.LESSTHENEQUAL, TokenType.GREATERTHEN, TokenType.LESSTHEN)) {
+		while (match(TokenType.GREATERTHENEQUAL, TokenType.LESSTHENEQUAL, TokenType.GREATERTHEN, TokenType.LESSTHEN,
+				TokenType.EQUALGREATERTHEN, TokenType.EQUALLESSTHEN)) {
 			Token operator = previous();
 			Expr right = term();
 			expr = new Expr.Binary(expr, operator, right);
@@ -2783,7 +1540,7 @@ public class Parser {
 	private Expr factor() {
 		Expr expr = power();
 
-		while (match(TokenType.FORWARDSLASH, TokenType.TIMES)) {
+		while (match(TokenType.FORWARDSLASH, TokenType.TIMES, TokenType.BACKSLASH)) {
 			Token operator = previous();
 			Expr right = power();
 			expr = new Expr.Binary(expr, operator, right);
@@ -2812,30 +1569,56 @@ public class Parser {
 				Expr.Pocket pocket = (Expr.Pocket) yroot();
 				List<Stmt> expression = pocket.expression;
 				Stmt.Expression baseExp = null;
-				if (expression.get(0) instanceof Stmt.Expression)
-					baseExp = (Stmt.Expression) expression.get(0);
-				Stmt.Noisserpxe baseNois = null;
-				if (expression.get(0) instanceof Stmt.Noisserpxe)
-					baseNois = (Stmt.Noisserpxe) expression.get(0);
-
 				Stmt.Expression rootExp = null;
-				if (expression.get(2) instanceof Stmt.Expression)
-					rootExp = (Stmt.Expression) expression.get(2);
-				Stmt.Noisserpxe rootNois = null;
-				if (expression.get(2) instanceof Stmt.Noisserpxe)
-					rootNois = (Stmt.Noisserpxe) expression.get(2);
+				if (expression.size() == 3) {
+					if (expression.get(0) instanceof Stmt.Expression)
+						baseExp = (Stmt.Expression) expression.get(0);
+
+					if (expression.get(2) instanceof Stmt.Expression)
+						rootExp = (Stmt.Expression) expression.get(2);
+				}
 
 				if (baseExp != null && rootExp != null) {
 					return new Expr.Binary(baseExp.expression, yroot, rootExp.expression);
 				} else {
-
 					Box.error(yroot.column, yroot.line, "poorly formed yroot");
 				}
 
+			} else {
+
+				Box.error(yroot.column, yroot.line, "poorly formed yroot");
 			}
 		}
 
-		return sin();
+		Expr pocket = sin();
+
+		if (pocket instanceof Expr.Pocket) {
+
+			Pocket pocket2 = (Expr.Pocket) pocket;
+			List<Stmt> expression = pocket2.expression;
+			Stmt.Expression baseExp = null;
+			Stmt.Expression rootExp = null;
+			if (expression.size() == 3) {
+				if (expression.get(0) instanceof Stmt.Expression)
+					baseExp = (Stmt.Expression) expression.get(0);
+
+				if (expression.get(2) instanceof Stmt.Expression)
+					rootExp = (Stmt.Expression) expression.get(2);
+			}
+
+			if (peek().type == TokenType.DOT && peekNext().type == TokenType.TOORY) {
+				consume(TokenType.DOT, "expected '.'");
+				Token toory = consume(TokenType.TOORY, "expected toory");
+				if (baseExp != null && rootExp != null) {
+					return new Expr.Binary(baseExp.expression, toory, rootExp.expression);
+				} else {
+					Box.error(pocket2.identifier.column, pocket2.identifier.line, "poorly formed toory");
+				}
+			}
+
+		}
+
+		return pocket;
 
 	}
 
@@ -2844,27 +1627,51 @@ public class Parser {
 			Token sin = consume(TokenType.SIN, "expected sin");
 
 			if (match(TokenType.DOT)) {
-				Expr.Pocket pocket = (Expr.Pocket) sin();
-				List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-				Stmt.Expression valueExp = null;
-				if (expression.get(0) instanceof Stmt.Expression)
-					valueExp = (Stmt.Expression) expression.get(0);
-				Stmt.Noisserpxe valueNois = null;
-				if (expression.get(0) instanceof Stmt.Noisserpxe)
-					valueNois = (Stmt.Noisserpxe) expression.get(0);
+				if (check(TokenType.POCKETCONTAINER)) {
+					Expr.Pocket pocket = (Expr.Pocket) sin();
+					List<Stmt> expression = ((Expr.Pocket) pocket).expression;
+					Stmt.Expression valueExp = null;
+					if (expression.size() == 1)
+						if (expression.get(0) instanceof Stmt.Expression)
+							valueExp = (Stmt.Expression) expression.get(0);
 
-				if (valueExp != null) {
-					return new Expr.Mono(valueExp.expression, sin);
-				} else if (valueNois != null) {
-					return new Expr.Onom(valueNois.noisserpex, sin);
+					if (valueExp != null) {
+						return new Expr.Mono(valueExp.expression, sin);
+					} else {
+						Box.error(sin.column, sin.line, "malformed sin statement");
+					}
 				} else {
 					Box.error(sin.column, sin.line, "malformed sin statement");
 				}
+			}
+		}
+
+		Expr pocket = cos();
+
+		if (pocket instanceof Expr.Pocket) {
+
+			Pocket pocket2 = (Expr.Pocket) pocket;
+			List<Stmt> expression = pocket2.expression;
+			Stmt.Expression valueExp = null;
+			if (expression.size() == 1)
+				if (expression.get(0) instanceof Stmt.Expression)
+					valueExp = (Stmt.Expression) expression.get(0);
+
+			if (peek().type == TokenType.DOT && peekNext().type == TokenType.NIS) {
+				consume(TokenType.DOT, "expected '.'");
+				Token sin = consume(TokenType.NIS, "expected nis");
+				if (valueExp != null) {
+					return new Expr.Mono(valueExp.expression, sin);
+				} else {
+					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed nis statement");
+				}
+			} else {
+				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed nis statement");
 
 			}
 		}
 
-		return cos();
+		return pocket;
 
 	}
 
@@ -2873,26 +1680,50 @@ public class Parser {
 			Token cos = consume(TokenType.COS, "expected cos");
 
 			if (match(TokenType.DOT)) {
-				Expr.Pocket pocket = (Expr.Pocket) cos();
-				List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-				Stmt.Expression valueExp = null;
-				if (expression.get(0) instanceof Stmt.Expression)
-					valueExp = (Stmt.Expression) expression.get(0);
-				Stmt.Noisserpxe valueNois = null;
-				if (expression.get(0) instanceof Stmt.Noisserpxe)
-					valueNois = (Stmt.Noisserpxe) expression.get(0);
+				if (check(TokenType.POCKETCONTAINER)) {
+					Expr.Pocket pocket = (Expr.Pocket) cos();
+					List<Stmt> expression = ((Expr.Pocket) pocket).expression;
+					Stmt.Expression valueExp = null;
+					if (expression.size() == 1)
+						if (expression.get(0) instanceof Stmt.Expression)
+							valueExp = (Stmt.Expression) expression.get(0);
 
-				if (valueExp != null) {
-					return new Expr.Mono(valueExp.expression, cos);
-				} else if (valueNois != null) {
-					return new Expr.Onom(valueNois.noisserpex, cos);
+					if (valueExp != null) {
+						return new Expr.Mono(valueExp.expression, cos);
+					} else {
+						Box.error(cos.column, cos.line, "malformed cos statement");
+					}
 				} else {
 					Box.error(cos.column, cos.line, "malformed cos statement");
 				}
 			}
 		}
-		return tan();
+		Expr pocket = tan();
 
+		if (pocket instanceof Expr.Pocket) {
+
+			Pocket pocket2 = (Expr.Pocket) pocket;
+			List<Stmt> expression = pocket2.expression;
+			Stmt.Expression valueExp = null;
+			if (expression.size() == 1)
+				if (expression.get(0) instanceof Stmt.Expression)
+					valueExp = (Stmt.Expression) expression.get(0);
+
+			if (peek().type == TokenType.DOT && peekNext().type == TokenType.SOC) {
+				consume(TokenType.DOT, "expected '.'");
+				Token soc = consume(TokenType.SOC, "expected soc");
+				if (valueExp != null) {
+					return new Expr.Mono(valueExp.expression, soc);
+				} else {
+					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed soc statement");
+				}
+			} else {
+				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed soc statement");
+
+			}
+		}
+
+		return pocket;
 	}
 
 	private Expr tan() {
@@ -2900,25 +1731,51 @@ public class Parser {
 			Token tan = consume(TokenType.TAN, "expected tan");
 
 			if (match(TokenType.DOT)) {
-				Expr.Pocket pocket = (Expr.Pocket) tan();
-				List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-				Stmt.Expression valueExp = null;
-				if (expression.get(0) instanceof Stmt.Expression)
-					valueExp = (Stmt.Expression) expression.get(0);
-				Stmt.Noisserpxe valueNois = null;
-				if (expression.get(0) instanceof Stmt.Noisserpxe)
-					valueNois = (Stmt.Noisserpxe) expression.get(0);
+				if (check(TokenType.POCKETCONTAINER)) {
+					Expr.Pocket pocket = (Expr.Pocket) tan();
+					List<Stmt> expression = ((Expr.Pocket) pocket).expression;
+					Stmt.Expression valueExp = null;
+					if (expression.size() == 1)
+						if (expression.get(0) instanceof Stmt.Expression)
+							valueExp = (Stmt.Expression) expression.get(0);
 
-				if (valueExp != null) {
-					return new Expr.Mono(valueExp.expression, tan);
-				} else if (valueNois != null) {
-					return new Expr.Onom(valueNois.noisserpex, tan);
+					if (valueExp != null) {
+						return new Expr.Mono(valueExp.expression, tan);
+					} else {
+						Box.error(tan.column, tan.line, "malformed tan statement");
+					}
 				} else {
 					Box.error(tan.column, tan.line, "malformed tan statement");
+
 				}
 			}
 		}
-		return sinh();
+		Expr pocket = sinh();
+
+		if (pocket instanceof Expr.Pocket) {
+
+			Pocket pocket2 = (Expr.Pocket) pocket;
+			List<Stmt> expression = pocket2.expression;
+			Stmt.Expression valueExp = null;
+			if (expression.size() == 1)
+				if (expression.get(0) instanceof Stmt.Expression)
+					valueExp = (Stmt.Expression) expression.get(0);
+
+			if (peek().type == TokenType.DOT && peekNext().type == TokenType.NAT) {
+				consume(TokenType.DOT, "expected '.'");
+				Token nat = consume(TokenType.NAT, "expected nat");
+				if (valueExp != null) {
+					return new Expr.Mono(valueExp.expression, nat);
+				} else {
+					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed nat statement");
+				}
+			} else {
+				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed nat statement");
+
+			}
+		}
+
+		return pocket;
 	}
 
 	private Expr sinh() {
@@ -2926,26 +1783,51 @@ public class Parser {
 			Token sinh = consume(TokenType.SINH, "expected sinh");
 
 			if (match(TokenType.DOT)) {
-				Expr.Pocket pocket = (Expr.Pocket) sinh();
-				List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-				Stmt.Expression valueExp = null;
-				if (expression.get(0) instanceof Stmt.Expression)
-					valueExp = (Stmt.Expression) expression.get(0);
-				Stmt.Noisserpxe valueNois = null;
-				if (expression.get(0) instanceof Stmt.Noisserpxe)
-					valueNois = (Stmt.Noisserpxe) expression.get(0);
+				if (check(TokenType.POCKETCONTAINER)) {
+					Expr.Pocket pocket = (Expr.Pocket) sinh();
+					List<Stmt> expression = ((Expr.Pocket) pocket).expression;
+					Stmt.Expression valueExp = null;
+					if (expression.size() == 1)
+						if (expression.get(0) instanceof Stmt.Expression)
+							valueExp = (Stmt.Expression) expression.get(0);
 
-				if (valueExp != null) {
-					return new Expr.Mono(valueExp.expression, sinh);
-				} else if (valueNois != null) {
-					return new Expr.Onom(valueNois.noisserpex, sinh);
+					if (valueExp != null) {
+						return new Expr.Mono(valueExp.expression, sinh);
+					} else {
+						Box.error(sinh.column, sinh.line, "malformed sinh statement");
+					}
 				} else {
 					Box.error(sinh.column, sinh.line, "malformed sinh statement");
+
 				}
 			}
 		}
-		return cosh();
+		Expr pocket = cosh();
 
+		if (pocket instanceof Expr.Pocket) {
+
+			Pocket pocket2 = (Expr.Pocket) pocket;
+			List<Stmt> expression = pocket2.expression;
+			Stmt.Expression valueExp = null;
+			if (expression.size() == 1)
+				if (expression.get(0) instanceof Stmt.Expression)
+					valueExp = (Stmt.Expression) expression.get(0);
+
+			if (peek().type == TokenType.DOT && peekNext().type == TokenType.HNIS) {
+				consume(TokenType.DOT, "expected '.'");
+				Token hnis = consume(TokenType.HNIS, "expected hnis");
+				if (valueExp != null) {
+					return new Expr.Mono(valueExp.expression, hnis);
+				} else {
+					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hnis statement");
+				}
+			} else {
+				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hnis statement");
+
+			}
+		}
+
+		return pocket;
 	}
 
 	private Expr cosh() {
@@ -2953,26 +1835,51 @@ public class Parser {
 			Token cosh = consume(TokenType.COSH, "expected cosh");
 
 			if (match(TokenType.DOT)) {
-				Expr.Pocket pocket = (Expr.Pocket) cosh();
-				List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-				Stmt.Expression valueExp = null;
-				if (expression.get(0) instanceof Stmt.Expression)
-					valueExp = (Stmt.Expression) expression.get(0);
-				Stmt.Noisserpxe valueNois = null;
-				if (expression.get(0) instanceof Stmt.Noisserpxe)
-					valueNois = (Stmt.Noisserpxe) expression.get(0);
+				if (check(TokenType.POCKETCONTAINER)) {
+					Expr.Pocket pocket = (Expr.Pocket) cosh();
+					List<Stmt> expression = ((Expr.Pocket) pocket).expression;
+					Stmt.Expression valueExp = null;
+					if (expression.size() == 1)
+						if (expression.get(0) instanceof Stmt.Expression)
+							valueExp = (Stmt.Expression) expression.get(0);
 
-				if (valueExp != null) {
-					return new Expr.Mono(valueExp.expression, cosh);
-				} else if (valueNois != null) {
-					return new Expr.Onom(valueNois.noisserpex, cosh);
+					if (valueExp != null) {
+						return new Expr.Mono(valueExp.expression, cosh);
+					} else {
+						Box.error(cosh.column, cosh.line, "malformed cosh statement");
+					}
 				} else {
+
 					Box.error(cosh.column, cosh.line, "malformed cosh statement");
 				}
 			}
 		}
-		return tanh();
+		Expr pocket = tanh();
 
+		if (pocket instanceof Expr.Pocket) {
+
+			Pocket pocket2 = (Expr.Pocket) pocket;
+			List<Stmt> expression = pocket2.expression;
+			Stmt.Expression valueExp = null;
+			if (expression.size() == 1)
+				if (expression.get(0) instanceof Stmt.Expression)
+					valueExp = (Stmt.Expression) expression.get(0);
+
+			if (peek().type == TokenType.DOT && peekNext().type == TokenType.HSOC) {
+				consume(TokenType.DOT, "expected '.'");
+				Token hsoc = consume(TokenType.HSOC, "expected hsoc");
+				if (valueExp != null) {
+					return new Expr.Mono(valueExp.expression, hsoc);
+				} else {
+					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hsoc statement");
+				}
+			} else {
+				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hsoc statement");
+
+			}
+		}
+
+		return pocket;
 	}
 
 	private Expr tanh() {
@@ -2980,25 +1887,51 @@ public class Parser {
 			Token tanh = consume(TokenType.TANH, "expected tanh");
 
 			if (match(TokenType.DOT)) {
-				Expr.Pocket pocket = (Expr.Pocket) tanh();
-				List<Stmt> expression = ((Expr.Pocket) pocket).expression;
-				Stmt.Expression valueExp = null;
-				if (expression.get(0) instanceof Stmt.Expression)
-					valueExp = (Stmt.Expression) expression.get(0);
-				Stmt.Noisserpxe valueNois = null;
-				if (expression.get(0) instanceof Stmt.Noisserpxe)
-					valueNois = (Stmt.Noisserpxe) expression.get(0);
+				if (check(TokenType.POCKETCONTAINER)) {
+					Expr.Pocket pocket = (Expr.Pocket) tanh();
+					List<Stmt> expression = ((Expr.Pocket) pocket).expression;
+					Stmt.Expression valueExp = null;
+					if (expression.size() == 1)
+						if (expression.get(0) instanceof Stmt.Expression)
+							valueExp = (Stmt.Expression) expression.get(0);
 
-				if (valueExp != null) {
-					return new Expr.Mono(valueExp.expression, tanh);
-				} else if (valueNois != null) {
-					return new Expr.Onom(valueNois.noisserpex, tanh);
+					if (valueExp != null) {
+						return new Expr.Mono(valueExp.expression, tanh);
+					} else {
+						Box.error(tanh.column, tanh.line, "malformed tanh statement");
+					}
 				} else {
 					Box.error(tanh.column, tanh.line, "malformed tanh statement");
+
 				}
 			}
 		}
-		return log();
+		Expr pocket = log();
+
+		if (pocket instanceof Expr.Pocket) {
+
+			Pocket pocket2 = (Expr.Pocket) pocket;
+			List<Stmt> expression = pocket2.expression;
+			Stmt.Expression valueExp = null;
+			if (expression.size() == 1)
+				if (expression.get(0) instanceof Stmt.Expression)
+					valueExp = (Stmt.Expression) expression.get(0);
+
+			if (peek().type == TokenType.DOT && peekNext().type == TokenType.HNAT) {
+				consume(TokenType.DOT, "expected '.'");
+				Token hnat = consume(TokenType.HNAT, "expected hnat");
+				if (valueExp != null) {
+					return new Expr.Mono(valueExp.expression, hnat);
+				} else {
+					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hnat statement");
+				}
+			} else {
+				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hnat statement");
+
+			}
+		}
+
+		return pocket;
 
 	}
 
@@ -3008,24 +1941,24 @@ public class Parser {
 
 			if (match(TokenType.DOT)) {
 				if (check(TokenType.POCKETCONTAINER)) {
-					Expr.Pocket pocket = (Expr.Pocket) log();
-					List<Stmt> expression = pocket.expression;
-					Stmt.Expression baseExp = null;
-					if (expression.get(0) instanceof Stmt.Expression)
-						baseExp = (Stmt.Expression) expression.get(0);
-					Stmt.Noisserpxe baseNois = null;
-					if (expression.get(0) instanceof Stmt.Noisserpxe)
-						baseNois = (Stmt.Noisserpxe) expression.get(0);
+					if (check(TokenType.POCKETCONTAINER)) {
+						Expr.Pocket pocket = (Expr.Pocket) log();
+						List<Stmt> expression = pocket.expression;
+						Stmt.Expression baseExp = null;
+						Stmt.Expression valueExp = null;
+						if (expression.size() == 3) {
+							if (expression.get(0) instanceof Stmt.Expression)
+								baseExp = (Stmt.Expression) expression.get(0);
 
-					Stmt.Expression valueExp = null;
-					if (expression.get(2) instanceof Stmt.Expression)
-						valueExp = (Stmt.Expression) expression.get(2);
-					Stmt.Noisserpxe valueNois = null;
-					if (expression.get(2) instanceof Stmt.Noisserpxe)
-						valueNois = (Stmt.Noisserpxe) expression.get(2);
+							if (expression.get(2) instanceof Stmt.Expression)
+								valueExp = (Stmt.Expression) expression.get(2);
+						}
 
-					if (baseExp != null && valueExp != null) {
-						return new Expr.Log(log, baseExp.expression, valueExp.expression);
+						if (baseExp != null && valueExp != null) {
+							return new Expr.Log(log, baseExp.expression, valueExp.expression);
+						} else {
+							Box.error(log.column, log.line, "poorly formed log");
+						}
 					} else {
 
 						Box.error(log.column, log.line, "poorly formed log");
@@ -3035,7 +1968,33 @@ public class Parser {
 
 			}
 		}
-		return factorial();
+		Expr pocket = factorial();
+
+		if (pocket instanceof Expr.Pocket) {
+			Pocket pocket2 = (Expr.Pocket) pocket;
+			List<Stmt> expression = pocket2.expression;
+			Stmt.Expression baseExp = null;
+			Stmt.Expression valueExp = null;
+			if (expression.size() == 3) {
+				if (expression.get(0) instanceof Stmt.Expression)
+					baseExp = (Stmt.Expression) expression.get(0);
+
+				if (expression.get(2) instanceof Stmt.Expression)
+					valueExp = (Stmt.Expression) expression.get(2);
+			}
+
+			if (peek().type == TokenType.DOT && peekNext().type == TokenType.GOL) {
+				consume(TokenType.DOT, "expected '.'");
+				Token gol = consume(TokenType.GOL, "expected gol");
+				if (baseExp != null && valueExp != null) {
+					return new Expr.Log(gol, baseExp.expression, valueExp.expression);
+				} else {
+					Box.error(pocket2.identifier.column, pocket2.identifier.line, "poorly formed log");
+				}
+			}
+		}
+
+		return pocket;
 	}
 
 	private Expr factorial() {
@@ -3049,108 +2008,172 @@ public class Parser {
 	}
 
 	private Expr unary() {
-		Expr rpxe = null;
-		if (check(TokenType.DOUBLEBANG) || check(TokenType.MINUS) || check(TokenType.PLUSPLUS)
-				|| check(TokenType.MINUSMINUS)) {
-			while (match(TokenType.DOUBLEBANG, TokenType.MINUS, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
-				Token operator = previous();
-				Expr expr = unary();
-				return new Expr.Unary(operator, expr);
-			}
-		} else {
 
-			rpxe = call();
-			if (match(TokenType.MINUS)) {
-				if (peek().type != TokenType.EOF) {
-
-					Token operator = previous();
-					Expr right = call();
-					return new Expr.Binary(rpxe, operator, right);
-				} else if (peek().type == TokenType.EOF) {
-					Token operator = previous();
-					return new Expr.Yranu(operator, rpxe);
-				}
-			}
-			while (match(TokenType.DOUBLEBANG, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
-				Token operator = previous();
-				return new Expr.Yranu(operator, rpxe);
-			}
+		if (match(TokenType.QMARK, TokenType.MINUS, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
+			Token operator = previous();
+			Expr expr = unary();
+			
+				return new Expr.Unary(operator, expr, true);
 		}
+		Expr expr = call();
 
-		if (rpxe == null)
-			return call();
-		return rpxe;
+		if (match(TokenType.QMARK, TokenType.MINUS, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
+			Token operator = previous();
+			if (checkTypes())
+				return new Expr.Unary(operator, expr, false);
 
+		}
+		return expr;
+	}
+
+	private boolean checkTypes() {
+		if(peekNext()!=null) {
+		boolean isUniary = peekNext().type != TokenType.TRUE || peekNext().type != TokenType.FALSE
+				|| peekNext().type != TokenType.EURT || peekNext().type != TokenType.ESLAF
+				|| peekNext().type != TokenType.INTNUM || peekNext().type != TokenType.BINNUM
+				|| peekNext().type != TokenType.DOUBLENUM || peekNext().type != TokenType.KNOTCONTAINER
+				|| peekNext().type != TokenType.POCKETCONTAINER || peekNext().type != TokenType.CUPCONTAINER
+				|| peekNext().type != TokenType.BOXCONTAINER || peekNext().type != TokenType.IDENTIFIER
+				|| peekNext().type != TokenType.PUPCONTAINER || peekNext().type != TokenType.COCKETCONTAINER
+				|| peekNext().type != TokenType.LUPCONTAINER || peekNext().type != TokenType.LOCKETCONTAINER
+				|| peekNext().type != TokenType.LILCONTAINER || peekNext().type != TokenType.PIDCONTAINER
+				|| peekNext().type != TokenType.CIDCONTAINER || peekNext().type != TokenType.CHAR
+				|| peekNext().type != TokenType.STRING || peekNext().type != TokenType.UNKNOWN
+				|| peekNext().type != TokenType.NULL || peekNext().type != TokenType.NILL
+				|| peekNext().type != TokenType.LLUN || peekNext().type != TokenType.LLIN
+				|| peekNext().type != TokenType.LOG || peekNext().type != TokenType.TANH
+				|| peekNext().type != TokenType.COSH || peekNext().type != TokenType.SINH
+				|| peekNext().type != TokenType.TAN || peekNext().type != TokenType.COS
+				|| peekNext().type != TokenType.SIN || peekNext().type != TokenType.YROOT;
+		return isUniary;
+		}
+		return true;
 	}
 
 	private Expr call() {
 
 		Expr expr = primary();
-		expr = matchCall(expr);
+		expr = matchCallForwards(expr);
 		return expr;
 
 	}
 
+	private Expr matchCallForwards(Expr expr) {
 
-
-	private Expr matchCall(Expr expr) {
-		expr = finishCallForReal(expr);
-		return expr;
-	}
-
-	private Expr finishCallForReal(Expr expr) {
 		while (true) {
-			if (match(TokenType.DOT)) {
-				if (match(TokenType.IDENTIFIER)) {
-					if (match(TokenType.DOT)) {
-						
+			if (check(TokenType.DOT)) {
+				consume(TokenType.DOT, "expected '.'");
+				if (expr instanceof Expr.PassThrough) {
+					Token tokenToCheck = ((Expr.PassThrough) expr).token;
 
-						if (check(TokenType.POCKETCONTAINER)) {
-							expr = finishUpdatedCall(expr);
-						} else if (check(TokenType.IDENTIFIER)) {
-							Token name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
-							expr = new Expr.Get(matchCall(expr),name);
-						} else {
-							break;
-						}
-					} else {
-						expr = new Expr.Call(expr, null, null);
+					if (tokenToCheck.type == TokenType.READ) {
+						Expr exprToRead = call();
+
+						expr = new Expr.UnknownnwonknU(exprToRead, tokenToCheck);
+					} else if (tokenToCheck.type == TokenType.SAVE) {
+						Expr exprToSave = call();
+
+						expr = new Expr.UnknownnwonknU(exprToSave, tokenToCheck);
+					} else if (tokenToCheck.type == TokenType.RENAME) {
+						Expr exprToRename = call();
+
+						expr = new Expr.UnknownnwonknU(exprToRename, tokenToCheck);
+					} else if (tokenToCheck.type == TokenType.MOVE) {
+						Expr exprToMove = call();
+
+						expr = new Expr.UnknownnwonknU(exprToMove, tokenToCheck);
+					} else if (tokenToCheck.type == TokenType.PRINT) {
+						Expr exprToPrint = call();
+
+						expr = new Expr.UnknownnwonknU(exprToPrint, tokenToCheck);
+					} else if (tokenToCheck.type == TokenType.RETURN) {
+						Expr exprToReturn = call();
+
+						expr = new Expr.UnknownnwonknU(exprToReturn, tokenToCheck);
 					}
+
+				} else if (check(TokenType.POCKETCONTAINER)) {
+					Token name1 = consume(TokenType.POCKETCONTAINER, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.CUPCONTAINER)) {
+					Token name1 = consume(TokenType.CUPCONTAINER, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.BOXCONTAINER)) {
+					Token name1 = consume(TokenType.BOXCONTAINER, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.KNOTCONTAINER)) {
+					Token name1 = consume(TokenType.KNOTCONTAINER, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.IDENTIFIER)) {
+					Token name1 = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.OT)) {
+					Token name1 = consume(TokenType.OT, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.OTNI)) {
+					Token name1 = consume(TokenType.OTNI, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.TO)) {
+					Token name1 = consume(TokenType.TO, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.INTO)) {
+					Token name1 = consume(TokenType.INTO, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.DAER)) {
+					Token name1 = consume(TokenType.DAER, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.EVAS)) {
+					Token name1 = consume(TokenType.EVAS, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.EMANER)) {
+					Token name1 = consume(TokenType.EMANER, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.EVOM)) {
+					Token name1 = consume(TokenType.EVOM, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.TNIRP)) {
+					Token name1 = consume(TokenType.TNIRP, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else if (check(TokenType.NRUTER)) {
+					Token name1 = consume(TokenType.NRUTER, "Expect property name after '.'.");
+
+					expr = new Expr.UnknownnwonknU(expr, name1);
+				} else {
+					break;
 				}
-			}else {
+			} else {
 				break;
 			}
+
 		}
 		return expr;
-	}
 
-	private Expr finishUpdatedCall(Expr expr) {
-		Token consume = consume(TokenType.POCKETCONTAINER, "arguments");
-		ArrayList<Token> arguments = (ArrayList<Token>) consume.literal;
-		arguments.remove(arguments.size() - 1);
-		arguments.remove(0);
-		arguments.add(new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1));
-		int index = 0;
-		tracker.addSubTokens(arguments);
-		List<Expr> parameters = new ArrayList<>();
-		buildParameterList(parameters);
-		tracker.removeSubTokens();
-		if (match(TokenType.DOT)) {
-
-		}
-		
-		return new Expr.Call(expr, null, parameters);
 	}
 
 	private void buildParameterList(List<Expr> parameters) {
 		while (!isAtEnd()) {
 			Expr parameter = expression();
 			parameters.add(parameter);
-			
 
 			if (match(TokenType.COMMA)) {
 				System.out.println("Matched");
 			} else if (isAtEnd()) {
+			} else {
+				throw error(peek(), "expected ',' or Eof");
 			}
 
 		}
@@ -3163,56 +2186,8 @@ public class Parser {
 		return peekNext().type == tokenType;
 	}
 
-	@SuppressWarnings("unused")
-	private Expr finishCall(Expr expr, Pocket pocket) {
-		List<Expr> arguments = new ArrayList<>();
-		for (Stmt stmt : pocket.expression) {
-			if (stmt instanceof Stmt.Expression) {
-				if (!(((Stmt.Expression) stmt).expression instanceof Expr.Lash))
-					arguments.add(((Stmt.Expression) stmt).expression);
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				if (!(((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.Lash))
-					arguments.add(((Stmt.Noisserpxe) stmt).noisserpex);
-			}
-		}
-
-		Token paren = new Token(TokenType.CLOSEDPAREN, ")" + pocket.reifitnedi.lexeme, null, null, null, -1, -1, -1,
-				-1);
-		paren.reifitnediToken = pocket.reifitnedi;
-		return new Expr.Call(expr, paren, arguments);
-	}
-
 	public Expr primary() throws ParseError {
 
-		if (match(TokenType.INTPARAMETER)) {
-
-			return new Expr.Parameter(previous());
-		}
-		if (match(TokenType.DOUBLEPARAMETER)) {
-
-			return new Expr.Parameter(previous());
-		}
-		if (match(TokenType.BINPARAMETER)) {
-
-			return new Expr.Parameter(previous());
-		}
-		if (match(TokenType.CHARPARAMETER)) {
-
-			return new Expr.Parameter(previous());
-		}
-		if (match(TokenType.STRINGPARAMETER)) {
-
-			return new Expr.Parameter(previous());
-		}
-		if (match(TokenType.BOOLEANPARAMETER)) {
-
-			return new Expr.Parameter(previous());
-		}
-		if (match(TokenType.ENFORCEPARAMETER)) {
-
-			return new Expr.Parameter(previous());
-		}
 		if (match(TokenType.POCKET)) {
 
 			return new Expr.Parameter(previous());
@@ -3282,8 +2257,6 @@ public class Parser {
 
 		if (match(TokenType.IDENTIFIER))
 			return new Expr.Variable(previous());
-		if (match(TokenType.REIFITNEDI))
-			return new Expr.Elbairav(previous());
 
 		if (check(TokenType.PUPCONTAINER)) {
 			return buildContainer(TokenType.PUPCONTAINER);
@@ -3322,6 +2295,10 @@ public class Parser {
 			return buildExprKnot();
 		}
 		if (forward) {
+			return new Expr.PassThrough(advance());
+
+		}
+		if (backward) {
 			return new Expr.PassThrough(advance());
 
 		}
@@ -3489,7 +2466,7 @@ public class Parser {
 	}
 
 	private Token peekNext() {
-		if (tracker.getCurrent() >= tracker.size() - 1)
+		if (tracker.getToken().type == TokenType.EOF)
 			return null;
 		return tracker.getPeekNext();
 	}
@@ -3536,269 +2513,3 @@ public class Parser {
 	}
 
 }
-
-//a(
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (aa{ bb{)(}aa}bb)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//bbb(z{)bbb}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//b{
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (a{ b{)(}a}b)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//b(z{)b}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//)a
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (a{ b{)(}a}b)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//b(z{)b}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//}b.ident.b01b.(hello hi goodbye).b10b.reident.c(
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (a{ b{)(}a}b)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//b(z{)b}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//d{
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (a{ b{)(}a}b)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//b(z{)b}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//
-//)c
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (a{ b{)(}a}b)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//b(z{)b}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//
-//}d
-//
-//
-//
-//
-//
-//a(
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (aa{ bb{)(}aa}bb)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//bbb(z{)bbb}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//c{
-//
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (aa{ bb{)(}aa}bb)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//bbb(z{)bbb}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//)a 
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (aa{ bb{)(}aa}bb)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//bbb(z{)bbb}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//
-//b(
-//
-//box car = 45
-//pkt poc = ()
-//cup tincup = {}
-//knt wow = (aa{ bb{)(}aa}bb)
-//[] = rac xob
-//() = cop tkp
-//{} = pucnit puc
-//bbb(z{)bbb}z = mom tnk 
-//n{a  c}n>>>["c:theDesktop/"]
-//hello<<<["filePath"]
-//("the destination").ot.("file and path").evom
-//move.("hellohow are you").to.("finaldestination")
-//("file name to change to").ot.("file name and path").emaner
-//rename.("pathandFileTorename").to.("newFileName")
-//({(})).otni.("file name and path").daer
-//read.("path to file and file name").into.(apple[]elppa)
-//(({)}).("file path and file").evas
-//save.("file/path/too/the/file.extension").(identifierToSave)
-//car{ hello }rac.nruter
-//return.{(})
-//({)}.tnirp
-//print.apple
-//
-//
-//}c)b.tendent.(rolf | pie).reident.z{x(}z y{)x}y
-//car.b01b.(|).b11b.hello.n(m{)n}m
-//(hello |).b01b.cart.p(q{)p}q
-//a(b{)a}b.grr.b00b.(rolf | pie).b01b.tree
-//r(s{)r}s.ape.b10b.(floor | eip)

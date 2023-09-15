@@ -126,8 +126,7 @@ public enum RunTimeTypes {
 				return RunTimeTypes.Function;
 			else if (type2.type == TokenType.IDENTIFIER)
 				return RunTimeTypes.Any;
-			else if (type2.type == TokenType.REIFITNEDI)
-				return RunTimeTypes.Any;
+			
 		}
 		return RunTimeTypes.Any;
 	}

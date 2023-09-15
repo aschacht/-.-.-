@@ -8,14 +8,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
 import Box.Box.Box;
-import Box.Token.TokenType;
-import Box.math.BoxMath;
 import Box.Syntax.Expr;
 import Box.Syntax.Expr.Assignment;
 import Box.Syntax.Expr.Binary;
@@ -59,15 +56,15 @@ import Box.Syntax.Expr.PocketOpenLeft;
 import Box.Syntax.Expr.PocketOpenRight;
 import Box.Syntax.Expr.Pup;
 import Box.Syntax.Expr.Set;
-import Box.Syntax.Expr.SetBoxCupPocket;
 import Box.Syntax.Expr.Sniatnoc;
 import Box.Syntax.Expr.Teg;
 import Box.Syntax.Expr.TegBoxCupPocket;
 import Box.Syntax.Expr.Tes;
-import Box.Syntax.Expr.TesBoxCupPocket;
 import Box.Syntax.Expr.Tnemngissa;
 import Box.Syntax.Expr.Type;
+import Box.Syntax.Expr.UnKnown;
 import Box.Syntax.Expr.Unary;
+import Box.Syntax.Expr.UnknownnwonknU;
 import Box.Syntax.Expr.Variable;
 import Box.Syntax.Expr.Yranib;
 import Box.Syntax.Expr.Yranu;
@@ -93,8 +90,11 @@ import Box.Syntax.Stmt.Read;
 import Box.Syntax.Stmt.Rename;
 import Box.Syntax.Stmt.Save;
 import Box.Syntax.Stmt.Tnirp;
+import Box.Syntax.Stmt.UnDetermined;
 import Box.Syntax.Stmt.Var;
+import Box.Syntax.Stmt.VarFB;
 import Box.Token.Token;
+import Box.Token.TokenType;
 
 public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -133,9 +133,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		});
 
 	}
-
-
-
 
 	public void interpret(List<Stmt> statements) {
 		try {
@@ -390,28 +387,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	@Override
-	public Object visitCallExpr(Call expr) {
-		fromCall = true;
-		Object callee = evaluate(expr.callee);
-		List<Object> arguments = new ArrayList<>();
-		for (Expr argument : expr.arguments) {
-			arguments.add(evaluate(argument));
-		}
-
-		if (!(callee instanceof BoxCallable)) {
-			throw new RuntimeError(expr.calleeToken, "Can only call functions and classes.");
-		}
-
-		BoxCallable function = (BoxCallable) callee;
-		if (arguments.size() != function.arity()) {
-			throw new RuntimeError(expr.calleeToken,
-					"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
-		}
-
-		return function.call(this, arguments);
-	}
-
-	@Override
 	public Object visitLogicalExpr(Logical expr) {
 		Object left = evaluate(expr.left);
 
@@ -476,33 +451,8 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	@Override
 	public Void visitVarStmt(Var stmt) {
 		Object value = null;
-		if (stmt.initializer != null) {
 
-			if (stmt.initializer instanceof Expr.Boxx) {
-				Expression expression = new Stmt.Expression(stmt.initializer);
-				execute(expression);
-				Object boxInstance = lookUpVariable(((Expr.Boxx) stmt.initializer).identifier, stmt.initializer);
-				value = boxInstance;
-			} else if (stmt.initializer instanceof Expr.Pocket) {
-				Expression expression = new Stmt.Expression(stmt.initializer);
-				execute(expression);
-				Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.initializer).identifier, stmt.initializer);
-				value = pocketInstance;
-			} else if (stmt.initializer instanceof Expr.Cup) {
-				Expression expression = new Stmt.Expression(stmt.initializer);
-				execute(expression);
-				Object cupInstance = lookUpVariable(((Expr.Cup) stmt.initializer).identifier, stmt.initializer);
-				value = cupInstance;
-			} else if (stmt.initializer instanceof Expr.Knot) {
-				Expression expression = new Stmt.Expression(stmt.initializer);
-				execute(expression);
-				Object cupInstance = lookUpVariable(((Expr.Knot) stmt.initializer).identifier, stmt.initializer);
-				value = cupInstance;
-			} else {
-				value = evaluate(stmt.initializer);
-			}
-		}
-		environment.define(stmt.name.lexeme, stmt.enforce, stmt.type, stmt.initializer, value, this);
+//		environment.define(stmt.name.lexeme, stmt.type, stmt.num, stmt.initilizer);
 		return null;
 	}
 
@@ -1546,7 +1496,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		Object right = evaluate(expr.right);
 
 		switch (expr.operator.type) {
-		case DOUBLEBANG:
+		case QMARK:
 			return !isTruthy(right);
 		case MINUS:
 			if (right instanceof Double)
@@ -1800,7 +1750,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		Object right = evaluate(expr.right);
 
 		switch (expr.operator.type) {
-		case DOUBLEBANG:
+		case QMARK:
 			return !isTruthy(right);
 		case MINUS:
 			if (right instanceof Double)
@@ -1983,16 +1933,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			return null;
 		}
 
-	}
-
-	@Override
-	public Object visitGetExpr(Get expr) {
-		fromCall = false;
-		Object object = evaluate(expr.object);
-		if (object instanceof BoxInstance) {
-			return ((BoxInstance) object).get(expr.name);
-		}
-		return null;
 	}
 
 	@Override
@@ -2246,42 +2186,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 						Object knotInstance = lookUpVariable(((Expr.Elbairav) stmt.objecttosave).name,
 								((Expr.Elbairav) stmt.objecttosave));
 						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Get) {
-						Object knotInstance = visitGetExpr(((Expr.Get) stmt.objecttosave));
-						if (knotInstance == null) {
-							Expr elbairav = new Expr.Elbairav(((Expr.Get) stmt.objecttosave).name);
-							Expr objectToCheck = (Expr.Get) stmt.objecttosave;
-							ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-							while (objectToCheck instanceof Expr.Get) {
-
-								toBuildInReverse.add(((Expr.Get) objectToCheck).object);
-								objectToCheck = ((Expr.Get) objectToCheck).object;
-								if (!(objectToCheck instanceof Expr.Get))
-									break;
-							}
-
-							Expr buildInReverse = buildGetInReverseToTeg(elbairav, toBuildInReverse);
-							knotInstance = visitTegExpr(((Expr.Teg) buildInReverse));
-						}
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Teg) {
-						Object knotInstance = visitTegExpr(((Expr.Teg) stmt.objecttosave));
-						if (knotInstance == null) {
-							Expr elbairav = new Expr.Elbairav(((Expr.Teg) stmt.objecttosave).name);
-							Expr objectToCheck = (Expr.Teg) stmt.objecttosave;
-							ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-							while (objectToCheck instanceof Expr.Teg) {
-
-								toBuildInReverse.add(((Expr.Teg) objectToCheck).object);
-								objectToCheck = ((Expr.Teg) objectToCheck).object;
-								if (!(objectToCheck instanceof Expr.Teg))
-									break;
-							}
-
-							Expr buildInReverse = buildTegInReverseToGet(elbairav, toBuildInReverse);
-							knotInstance = visitGetExpr(((Expr.Get) buildInReverse));
-						}
-						str = knotInstance.toString();
 					} else if (stmt.objecttosave instanceof Expr.GetBoxCupPocket) {
 						Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.objecttosave));
 
@@ -2339,42 +2243,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				Object knotInstance = lookUpVariable(((Expr.Elbairav) stmt.toExpell).name,
 						((Expr.Elbairav) stmt.toExpell));
 				str = knotInstance.toString();
-			} else if (stmt.toExpell instanceof Expr.Get) {
-				Object knotInstance = visitGetExpr(((Expr.Get) stmt.toExpell));
-				if (knotInstance == null) {
-					Expr elbairav = new Expr.Elbairav(((Expr.Get) stmt.toExpell).name);
-					Expr objectToCheck = (Expr.Get) stmt.toExpell;
-					ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-					while (objectToCheck instanceof Expr.Get) {
-
-						toBuildInReverse.add(((Expr.Get) objectToCheck).object);
-						objectToCheck = ((Expr.Get) objectToCheck).object;
-						if (!(objectToCheck instanceof Expr.Get))
-							break;
-					}
-
-					Expr buildInReverse = buildGetInReverseToTeg(elbairav, toBuildInReverse);
-					knotInstance = visitTegExpr(((Expr.Teg) buildInReverse));
-				}
-				str = knotInstance.toString();
-			} else if (stmt.toExpell instanceof Expr.Teg) {
-				Object knotInstance = visitTegExpr(((Expr.Teg) stmt.toExpell));
-				if (knotInstance == null) {
-					Expr elbairav = new Expr.Elbairav(((Expr.Teg) stmt.toExpell).name);
-					Expr objectToCheck = (Expr.Teg) stmt.toExpell;
-					ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-					while (objectToCheck instanceof Expr.Teg) {
-
-						toBuildInReverse.add(((Expr.Teg) objectToCheck).object);
-						objectToCheck = ((Expr.Teg) objectToCheck).object;
-						if (!(objectToCheck instanceof Expr.Teg))
-							break;
-					}
-
-					Expr buildInReverse = buildTegInReverseToGet(elbairav, toBuildInReverse);
-					knotInstance = visitGetExpr(((Expr.Get) buildInReverse));
-				}
-				str = knotInstance.toString();
 			} else if (stmt.toExpell instanceof Expr.GetBoxCupPocket) {
 				Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.toExpell));
 
@@ -2429,46 +2297,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			} else if (stmt.objectToReadInto instanceof Expr.Knot) {
 				Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objectToReadInto).identifier,
 						((Expr.Knot) stmt.objectToReadInto));
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.Get) {
-				Object knotInstance = visitGetExpr(((Expr.Get) stmt.objectToReadInto));
-				if (knotInstance == null) {
-					Expr elbairav = new Expr.Elbairav(((Expr.Get) stmt.objectToReadInto).name);
-					Expr objectToCheck = (Expr.Get) stmt.objectToReadInto;
-					ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-					while (objectToCheck instanceof Expr.Get) {
-
-						toBuildInReverse.add(((Expr.Get) objectToCheck).object);
-						objectToCheck = ((Expr.Get) objectToCheck).object;
-						if (!(objectToCheck instanceof Expr.Get))
-							break;
-					}
-
-					Expr buildInReverse = buildGetInReverseToTeg(elbairav, toBuildInReverse);
-					knotInstance = visitTegExpr(((Expr.Teg) buildInReverse));
-				}
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.Teg) {
-				Object knotInstance = visitTegExpr(((Expr.Teg) stmt.objectToReadInto));
-				if (knotInstance == null) {
-					Expr elbairav = new Expr.Elbairav(((Expr.Teg) stmt.objectToReadInto).name);
-					Expr objectToCheck = (Expr.Teg) stmt.objectToReadInto;
-					ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-					while (objectToCheck instanceof Expr.Teg) {
-
-						toBuildInReverse.add(((Expr.Teg) objectToCheck).object);
-						objectToCheck = ((Expr.Teg) objectToCheck).object;
-						if (!(objectToCheck instanceof Expr.Teg))
-							break;
-					}
-
-					Expr buildInReverse = buildTegInReverseToGet(elbairav, toBuildInReverse);
-					knotInstance = visitGetExpr(((Expr.Get) buildInReverse));
-				}
 				if (knotInstance instanceof BoxInstance) {
 					((BoxInstance) knotInstance).setAt(data, 0);
 				}
@@ -2542,46 +2370,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				if (knotInstance instanceof BoxInstance) {
 					((BoxInstance) knotInstance).setAtEnd(data);
 				}
-			} else if (stmt.boxToFill instanceof Expr.Get) {
-				Object knotInstance = visitGetExpr(((Expr.Get) stmt.boxToFill));
-				if (knotInstance == null) {
-					Expr elbairav = new Expr.Elbairav(((Expr.Get) stmt.boxToFill).name);
-					Expr objectToCheck = (Expr.Get) stmt.boxToFill;
-					ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-					while (objectToCheck instanceof Expr.Get) {
-
-						toBuildInReverse.add(((Expr.Get) objectToCheck).object);
-						objectToCheck = ((Expr.Get) objectToCheck).object;
-						if (!(objectToCheck instanceof Expr.Get))
-							break;
-					}
-
-					Expr buildInReverse = buildGetInReverseToTeg(elbairav, toBuildInReverse);
-					knotInstance = visitTegExpr(((Expr.Teg) buildInReverse));
-				}
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAtEnd(data);
-				}
-			} else if (stmt.boxToFill instanceof Expr.Teg) {
-				Object knotInstance = visitTegExpr(((Expr.Teg) stmt.boxToFill));
-				if (knotInstance == null) {
-					Expr elbairav = new Expr.Elbairav(((Expr.Teg) stmt.boxToFill).name);
-					Expr objectToCheck = (Expr.Teg) stmt.boxToFill;
-					ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-					while (objectToCheck instanceof Expr.Teg) {
-
-						toBuildInReverse.add(((Expr.Teg) objectToCheck).object);
-						objectToCheck = ((Expr.Teg) objectToCheck).object;
-						if (!(objectToCheck instanceof Expr.Teg))
-							break;
-					}
-
-					Expr buildInReverse = buildTegInReverseToGet(elbairav, toBuildInReverse);
-					knotInstance = visitGetExpr(((Expr.Get) buildInReverse));
-				}
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAtEnd(data);
-				}
 			} else if (stmt.boxToFill instanceof Expr.GetBoxCupPocket) {
 				Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.boxToFill));
 
@@ -2629,9 +2417,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		}
 		return null;
 	}
-
-
-
 
 	@SuppressWarnings("finally")
 	private Object runContainer(Expr stmt) {
@@ -2757,7 +2542,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		return runContainer(expr);
 	}
 
-	
 	@Override
 	public Object visitCupExpr(Cup stmt) {
 		System.out.println("built Cup");
@@ -2769,6 +2553,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		System.out.println("built Pocket");
 		return runContainer(stmt);
 	}
+
 	private void buildClass(Expr stmt) {
 
 		Object superclass = null;
@@ -2906,7 +2691,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			} else if (pocket != null) {
 				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
 						TokenType.POCKETCONTAINER);
-			}else if (cidStmt != null) {
+			} else if (cidStmt != null) {
 				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
 						TokenType.CIDCONTAINER);
 			} else if (pupStmt != null) {
@@ -2928,16 +2713,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
 						TokenType.COCKETCONTAINER);
 			}
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+
 			if (superclass != null) {
 				environment = environment.enclosing;
 			}
@@ -3235,14 +3011,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function1 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 							method.paramsfun1, environment,
 							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Get)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Teg)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Literal) method.binFun1).value).isValueEqualTo(new Bin("11"))) {
 				if (method.identifierfun1 instanceof Expr.Variable)
@@ -3253,14 +3022,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function1 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 							method.paramsfun0, environment,
 							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Get)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Teg)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
 			}
 			if (((Bin) ((Expr.Literal) method.binFun1).value).isValueEqualTo(new Bin("00"))) {
 				if (method.identifierfun1 instanceof Expr.Variable)
@@ -3271,14 +3032,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 							method.paramsfun1, environment,
 							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Get)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Teg)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Literal) method.binFun1).value).isValueEqualTo(new Bin("01"))) {
 				if (method.identifierfun1 instanceof Expr.Variable)
@@ -3289,14 +3043,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 							method.paramsfun0, environment,
 							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Get)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Teg)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
+
 			}
 		} else if (method.binFun1 instanceof Expr.Laretil) {
 			if (((Bin) ((Expr.Laretil) method.binFun1).value).isValueEqualTo(new Bin("10"))) {
@@ -3308,14 +3055,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function1 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 							method.paramsfun1, environment,
 							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Get)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Teg)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Laretil) method.binFun1).value).isValueEqualTo(new Bin("11"))) {
 				if (method.identifierfun1 instanceof Expr.Variable)
@@ -3326,14 +3066,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function1 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 							method.paramsfun0, environment,
 							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Get)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Teg)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Laretil) method.binFun1).value).isValueEqualTo(new Bin("00"))) {
 				if (method.identifierfun1 instanceof Expr.Variable)
@@ -3344,14 +3077,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 							method.paramsfun1, environment,
 							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Get)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Teg)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Laretil) method.binFun1).value).isValueEqualTo(new Bin("01"))) {
 				if (method.identifierfun1 instanceof Expr.Variable)
@@ -3362,14 +3088,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 							method.paramsfun0, environment,
 							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Get)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Teg)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
+
 			}
 		} else if (method.binFun1 == null) {
 			if (method.identifierfun1 instanceof Expr.Variable)
@@ -3380,14 +3099,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
 						method.paramsfun1, environment,
 						((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-			if (method.identifierfun1 instanceof Expr.Get)
-				function1 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun1).name.lexeme,
-						method.paramsfun1, environment,
-						((Expr.Get) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-			if (method.identifierfun1 instanceof Expr.Teg)
-				function1 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun1).name.lexeme,
-						method.paramsfun1, environment,
-						((Expr.Teg) method.identifierfun1).name.lexeme.equals(theName.lexeme));
+
 		}
 		return function1;
 	}
@@ -3403,14 +3115,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function0 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 							method.paramsfun0, environment,
 							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Get)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Teg)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Literal) method.binFun0).value).isValueEqualTo(new Bin("11"))) {
 				if (method.identifierfun0 instanceof Expr.Variable)
@@ -3421,14 +3126,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function0 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 							method.paramsfun1, environment,
 							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Get)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Teg)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Literal) method.binFun0).value).isValueEqualTo(new Bin("00"))) {
 				if (method.identifierfun0 instanceof Expr.Variable)
@@ -3439,14 +3137,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 							method.paramsfun0, environment,
 							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Get)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Teg)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Literal) method.binFun0).value).isValueEqualTo(new Bin("01"))) {
 				if (method.identifierfun0 instanceof Expr.Variable)
@@ -3457,14 +3148,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 							method.paramsfun1, environment,
 							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Get)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Teg)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 			}
 		} else if (method.binFun0 instanceof Expr.Laretil) {
 			if (((Bin) ((Expr.Laretil) method.binFun0).value).isValueEqualTo(new Bin("10"))) {
@@ -3476,14 +3160,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function0 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 							method.paramsfun0, environment,
 							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Get)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Teg)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Laretil) method.binFun0).value).isValueEqualTo(new Bin("11"))) {
 				if (method.identifierfun0 instanceof Expr.Variable)
@@ -3494,14 +3171,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function0 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 							method.paramsfun1, environment,
 							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Get)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Get) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Teg)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Teg) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Laretil) method.binFun0).value).isValueEqualTo(new Bin("00"))) {
 				if (method.identifierfun0 instanceof Expr.Variable)
@@ -3512,14 +3182,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 							method.paramsfun0, environment,
 							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Get)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 			}
 			if (((Bin) ((Expr.Laretil) method.binFun0).value).isValueEqualTo(new Bin("01"))) {
 				if (method.identifierfun0 instanceof Expr.Variable)
@@ -3530,14 +3193,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 							method.paramsfun1, environment,
 							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Get)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Teg)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 			}
 		} else if (method.binFun0 == null) {
 			if (method.identifierfun0 instanceof Expr.Variable)
@@ -3548,14 +3204,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
 						method.paramsfun0, environment,
 						((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-			if (method.identifierfun0 instanceof Expr.Get)
-				function0 = new BoxFunction(method.knotfun1, ((Expr.Get) method.identifierfun0).name.lexeme,
-						method.paramsfun0, environment,
-						((Expr.Get) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-			if (method.identifierfun0 instanceof Expr.Teg)
-				function0 = new BoxFunction(method.knotfun1, ((Expr.Teg) method.identifierfun0).name.lexeme,
-						method.paramsfun0, environment,
-						((Expr.Teg) method.identifierfun0).name.lexeme.equals(theName.lexeme));
+
 		}
 		return function0;
 	}
@@ -3591,7 +3240,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			Token type = new Token(TokenType.KNOTCONTAINER, "", null, null, null, -1, -1, -1, -1);
 			environment.define(theName.lexeme + "_Knot_Definition", type, null);
 			environment.define(theEman.lexeme + "_Knot_Definition", type, null);
-
 
 			ArrayList<Object> boxPrimarys = new ArrayList<Object>();
 			for (int i = 0; i < stmt.expression.size(); i++) {
@@ -4298,7 +3946,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	@Override
 	public Object visitPocketOpenLeftExpr(PocketOpenLeft expr) {
-		
+
 		return null;
 	}
 
@@ -4396,42 +4044,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 						Object knotInstance = lookUpVariable(((Expr.Elbairav) stmt.objecttosave).name,
 								((Expr.Elbairav) stmt.objecttosave));
 						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Get) {
-						Object knotInstance = visitGetExpr(((Expr.Get) stmt.objecttosave));
-						if (knotInstance == null) {
-							Expr elbairav = new Expr.Elbairav(((Expr.Get) stmt.objecttosave).name);
-							Expr objectToCheck = (Expr.Get) stmt.objecttosave;
-							ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-							while (objectToCheck instanceof Expr.Get) {
-
-								toBuildInReverse.add(((Expr.Get) objectToCheck).object);
-								objectToCheck = ((Expr.Get) objectToCheck).object;
-								if (!(objectToCheck instanceof Expr.Get))
-									break;
-							}
-
-							Expr buildInReverse = buildGetInReverseToTeg(elbairav, toBuildInReverse);
-							knotInstance = visitTegExpr(((Expr.Teg) buildInReverse));
-						}
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Teg) {
-						Object knotInstance = visitTegExpr(((Expr.Teg) stmt.objecttosave));
-						if (knotInstance == null) {
-							Expr elbairav = new Expr.Elbairav(((Expr.Teg) stmt.objecttosave).name);
-							Expr objectToCheck = (Expr.Teg) stmt.objecttosave;
-							ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-							while (objectToCheck instanceof Expr.Teg) {
-
-								toBuildInReverse.add(((Expr.Teg) objectToCheck).object);
-								objectToCheck = ((Expr.Teg) objectToCheck).object;
-								if (!(objectToCheck instanceof Expr.Teg))
-									break;
-							}
-
-							Expr buildInReverse = buildTegInReverseToGet(elbairav, toBuildInReverse);
-							knotInstance = visitGetExpr(((Expr.Get) buildInReverse));
-						}
-						str = knotInstance.toString();
 					} else if (stmt.objecttosave instanceof Expr.GetBoxCupPocket) {
 						Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.objecttosave));
 
@@ -4456,45 +4068,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	private Expr buildTegInReverseToGet(Expr variable, ArrayList<Expr> toBuildInReverse) {
-		if (toBuildInReverse.size() > 0) {
-			if (toBuildInReverse.get(toBuildInReverse.size() - 1) instanceof Expr.Variable) {
-				Expr varToReverse = toBuildInReverse.remove(toBuildInReverse.size() - 1);
-				return new Expr.Get(buildGetInReverseToTeg(variable, toBuildInReverse),
-						((Expr.Variable) varToReverse).name);
-			} else if (toBuildInReverse.get(toBuildInReverse.size() - 1) instanceof Expr.Elbairav) {
-				Expr varToReverse = toBuildInReverse.remove(toBuildInReverse.size() - 1);
-				return new Expr.Get(buildGetInReverseToTeg(variable, toBuildInReverse),
-						((Expr.Elbairav) varToReverse).name);
-			} else if (toBuildInReverse.get(toBuildInReverse.size() - 1) instanceof Expr.Teg) {
-				Expr getToBeReversed = toBuildInReverse.remove(toBuildInReverse.size() - 1);
-				return new Expr.Get(buildGetInReverseToTeg(variable, toBuildInReverse),
-						((Expr.Teg) getToBeReversed).name);
-			}
-		}
-		return variable;
-	}
-
-	private Expr buildGetInReverseToTeg(Expr elbairav, ArrayList<Expr> toBuildInReverse) {
-		if (toBuildInReverse.size() > 0) {
-			if (toBuildInReverse.get(toBuildInReverse.size() - 1) instanceof Expr.Variable) {
-				Expr varToReverse = toBuildInReverse.remove(toBuildInReverse.size() - 1);
-				return new Expr.Teg(buildGetInReverseToTeg(elbairav, toBuildInReverse),
-						((Expr.Variable) varToReverse).name);
-			} else if (toBuildInReverse.get(toBuildInReverse.size() - 1) instanceof Expr.Elbairav) {
-				Expr varToReverse = toBuildInReverse.remove(toBuildInReverse.size() - 1);
-				return new Expr.Teg(buildGetInReverseToTeg(elbairav, toBuildInReverse),
-						((Expr.Elbairav) varToReverse).name);
-			} else if (toBuildInReverse.get(toBuildInReverse.size() - 1) instanceof Expr.Get) {
-				Expr getToBeReversed = toBuildInReverse.remove(toBuildInReverse.size() - 1);
-				return new Expr.Teg(buildGetInReverseToTeg(elbairav, toBuildInReverse),
-						((Expr.Get) getToBeReversed).name);
-			}
-		}
-		return elbairav;
-
 	}
 
 	@Override
@@ -4530,46 +4103,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			} else if (stmt.objectToReadInto instanceof Expr.Knot) {
 				Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objectToReadInto).identifier,
 						((Expr.Knot) stmt.objectToReadInto));
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.Get) {
-				Object knotInstance = visitGetExpr(((Expr.Get) stmt.objectToReadInto));
-				if (knotInstance == null) {
-					Expr elbairav = new Expr.Elbairav(((Expr.Get) stmt.objectToReadInto).name);
-					Expr objectToCheck = (Expr.Get) stmt.objectToReadInto;
-					ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-					while (objectToCheck instanceof Expr.Get) {
-
-						toBuildInReverse.add(((Expr.Get) objectToCheck).object);
-						objectToCheck = ((Expr.Get) objectToCheck).object;
-						if (!(objectToCheck instanceof Expr.Get))
-							break;
-					}
-
-					Expr buildInReverse = buildGetInReverseToTeg(elbairav, toBuildInReverse);
-					knotInstance = visitTegExpr(((Expr.Teg) buildInReverse));
-				}
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.Teg) {
-				Object knotInstance = visitTegExpr(((Expr.Teg) stmt.objectToReadInto));
-				if (knotInstance == null) {
-					Expr elbairav = new Expr.Elbairav(((Expr.Teg) stmt.objectToReadInto).name);
-					Expr objectToCheck = (Expr.Teg) stmt.objectToReadInto;
-					ArrayList<Expr> toBuildInReverse = new ArrayList<>();
-					while (objectToCheck instanceof Expr.Teg) {
-
-						toBuildInReverse.add(((Expr.Teg) objectToCheck).object);
-						objectToCheck = ((Expr.Teg) objectToCheck).object;
-						if (!(objectToCheck instanceof Expr.Teg))
-							break;
-					}
-
-					Expr buildInReverse = buildTegInReverseToGet(elbairav, toBuildInReverse);
-					knotInstance = visitGetExpr(((Expr.Get) buildInReverse));
-				}
 				if (knotInstance instanceof BoxInstance) {
 					((BoxInstance) knotInstance).setAt(data, 0);
 				}
@@ -4991,102 +4524,53 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		return objectToFind;
 	}
 
-	@Override
-	public Object visitSetBoxCupPocketExpr(SetBoxCupPocket expr) {
-		fromCall = false;
-
-		GetBoxCupPocket getBoxCupPocket = new Expr.GetBoxCupPocket(expr.object, expr.name);
-		Object boxInstance = visitGetBoxCupPocketExpr(getBoxCupPocket);
-		Object evaluated = null;
-
-		if (expr.value instanceof Expr.Boxx) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object instance = lookUpVariable(((Expr.Boxx) expr.value).identifier, expr.value);
-			evaluated = instance;
-		} else if (expr.value instanceof Expr.Pocket) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object pocketInstance = lookUpVariable(((Expr.Pocket) expr.value).identifier, expr.value);
-			evaluated = pocketInstance;
-		} else if (expr.value instanceof Expr.Cup) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object cupInstance = lookUpVariable(((Expr.Cup) expr.value).identifier, expr.value);
-			evaluated = cupInstance;
-		} else if (expr.value instanceof Expr.Knot) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object cupInstance = lookUpVariable(((Expr.Knot) expr.value).identifier, expr.value);
-			evaluated = cupInstance;
-		} else {
-			evaluated = evaluate(expr.value);
-		}
-
-		((BoxInstance) boxInstance).setAt(evaluated, 0);
-
-		return null;
-	}
-
-	@Override
-	public Object visitTesBoxCupPocketExpr(TesBoxCupPocket expr) {
-		fromCall = false;
-
-		TegBoxCupPocket tegBoxCupPocket = new Expr.TegBoxCupPocket(expr.object, expr.name);
-		Object boxInstance = visitTegBoxCupPocketExpr(tegBoxCupPocket);
-		Object evaluated = null;
-
-		if (expr.value instanceof Expr.Boxx) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object instance = lookUpVariable(((Expr.Boxx) expr.value).identifier, expr.value);
-			evaluated = instance;
-		} else if (expr.value instanceof Expr.Pocket) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object pocketInstance = lookUpVariable(((Expr.Pocket) expr.value).identifier, expr.value);
-			evaluated = pocketInstance;
-		} else if (expr.value instanceof Expr.Cup) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object cupInstance = lookUpVariable(((Expr.Cup) expr.value).identifier, expr.value);
-			evaluated = cupInstance;
-		} else if (expr.value instanceof Expr.Knot) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object cupInstance = lookUpVariable(((Expr.Knot) expr.value).identifier, expr.value);
-			evaluated = cupInstance;
-		} else {
-			evaluated = evaluate(expr.value);
-		}
-		((BoxInstance) boxInstance).setAt(evaluated, 0);
-		return null;
-	}
-
-
-
-
 	public void setForward(boolean forward) {
-		this.forward= forward;
+		this.forward = forward;
 	}
-
-
-
 
 	public void setBackward(boolean backward) {
-		this.backward =backward;
+		this.backward = backward;
 	}
-
-
-
-
-
-
-
 
 	@Override
 	public Object visitPassThroughExpr(Expr.PassThrough expr) {
-		
+
+		return null;
+	}
+
+	@Override
+	public Void visitUnDeterminedStmt(UnDetermined stmt) {
+
+		return null;
+	}
+
+	@Override
+	public Object visitCallExpr(Call expr) {
+
+		return null;
+	}
+
+	@Override
+	public Object visitGetExpr(Get expr) {
+
+		return null;
+	}
+
+	@Override
+	public Object visitUnKnownExpr(UnKnown expr) {
+
+		return null;
+	}
+
+	@Override
+	public Object visitUnknownnwonknUExpr(UnknownnwonknU expr) {
+
+		return null;
+	}
+
+	@Override
+	public Void visitVarFBStmt(VarFB stmt) {
+
 		return null;
 	}
 

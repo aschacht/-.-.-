@@ -405,7 +405,7 @@ public class Grouper {
 		while (j < OriginalSize) {
 			for (p = 0; p <= tokens.size() - 1; p++) {
 				for (int i = p; i <= tokens.size() - 1; i++) {
-					if (tokens.get(i).type == TokenType.IDENTIFIER || tokens.get(i).type == TokenType.REIFITNEDI) {
+					if (tokens.get(i).type == TokenType.IDENTIFIER) {
 						if (i == 0) {
 
 							if ((tokens.get(i + 1).type == TokenType.OPENBRACE

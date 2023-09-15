@@ -246,10 +246,14 @@ public class Box {
 	}
 
 	public static void error(Token token, String message) {
+		if(token!=null) {
 		if (token.type == TokenType.EOF)
 			report(token.column, token.line, " at end", message);
 		else
 			report(token.column, token.line, " at '" + token.lexeme + "'", message);
+		}else
+			report(-1, -1, " at -1", message);
+			
 	}
 
 	private static void report(int column, int line, String where, String message) {

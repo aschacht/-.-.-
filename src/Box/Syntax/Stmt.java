@@ -18,6 +18,7 @@ public abstract class Stmt {
 	R visitRenameStmt(Rename stmt);
 	R visitMoveStmt(Move stmt);
 	R visitVarStmt(Var stmt);
+	R visitVarFBStmt(VarFB stmt);
 	R visitConstructorStmt(Constructor stmt);
 	R visitFunctionStmt(Function stmt);
 	R visitNoisserpxeStmt(Noisserpxe stmt);
@@ -30,6 +31,7 @@ public abstract class Stmt {
 	R visitEvomStmt(Evom stmt);
 	R visitRavStmt(Rav stmt);
 	R visitPassThroughStmt(PassThrough stmt);
+	R visitUnDeterminedStmt(UnDetermined stmt);
 	}
 public static class Expression extends Stmt {
 	 public Expression(Expr expression) {
@@ -186,11 +188,11 @@ public static class Move extends Stmt {
 	public  Expr newfilePath;
 	}
 public static class Var extends Stmt {
-	 public Var(Token name , Expr initializer , Token type , Boolean enforce) {
+	 public Var(Token name , Token type, int num , Stmt initilizer) {
 	this.name = name;
-	this.initializer = initializer;
 	this.type = type;
-	this.enforce = enforce;
+	this.num = num;
+	this.initilizer = initilizer;
 	}
 
 	@Override
@@ -199,9 +201,23 @@ public static class Var extends Stmt {
 	}
 
 	public  Token name;
-	public  Expr initializer;
 	public  Token type;
-	public  Boolean enforce;
+	public  int num;
+	public  Stmt initilizer;
+	}
+public static class VarFB extends Stmt {
+	 public VarFB(Var forward, Var backward) {
+	this.forward = forward;
+	this.backward = backward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitVarFBStmt(this);
+	}
+
+	public  Var forward;
+	public  Var backward;
 	}
 public static class Constructor extends Stmt {
 	 public Constructor(Token type, Expr prototype , Integer numberToBuild , boolean enforce) {
@@ -398,6 +414,18 @@ public static class PassThrough extends Stmt {
 	}
 
 	public  Expr expression;
+	}
+public static class UnDetermined extends Stmt {
+	 public UnDetermined(ArrayList<Expr> expressions) {
+	this.expressions = expressions;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitUnDeterminedStmt(this);
+	}
+
+	public  ArrayList<Expr> expressions;
 	}
 
  public abstract <R> R accept(Visitor<R> visitor);

@@ -29,12 +29,12 @@ public class GenerateAST {
 				"Logical : Expr left, Token operator, Expr right",
 				"Log		:Token operator , Expr valueBase , Expr value",
 				"Factorial	:Expr value , Token operator",
-				"Unary		: Token operator , Expr right",
+				"Unary		: Token operator , Expr right , boolean preOrPost ",
+				"UnknownnwonknU		: Expr callee , Token name",
 				"Call 		: Expr callee , Token calleeToken , List<Expr> arguments",
 				"Get 		: Expr object , Token name",
 				"GetBoxCupPocket : Expr object , Token name",
 				"Set : Expr object, Token name, Expr value",
-				"SetBoxCupPocket : Expr object, Token name, Expr value",
 				"Literal	: Object value",
 				"LiteralChar	: char value",
 				
@@ -71,7 +71,6 @@ public class GenerateAST {
 				"Teg 		: Expr object , Token name",
 				"TegBoxCupPocket : Expr object , Token name",
 				"Tes		: Expr object , Token name , Expr value",
-				"TesBoxCupPocket		: Expr object , Token name , Expr value",
 				"Laretil	: Object value",
 				"LaretilChar	: char value",
 				"Lairotcaf	:Expr value , Token operator",
@@ -80,7 +79,8 @@ public class GenerateAST {
 				
 				
 				"Parameter	: Token parameter",
-				"PassThrough: Token token"
+				"PassThrough: Token token",
+				"UnKnown	: Expr expressionForward , Expr expressionBackward"
 				
 				
 				));
@@ -97,7 +97,8 @@ public class GenerateAST {
 				"Consume	:Token keyword , Expr boxToFill , Expr filePath",
 				"Rename		:Token keyword , Expr filePathAndName , Expr filenewname",
 				"Move		:Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
-				"Var : Token name , Expr initializer , Token type , Boolean enforce",
+				"Var 		: Token name , Token type, int num , Stmt initilizer",
+				"VarFB 		: Var forward, Var backward",
 				"Constructor :Token type, Expr prototype , Integer numberToBuild , boolean enforce",
 				"Function	:Expr knotfun0 , Expr identifierfun0 , Expr binFun0 , List<Expr> paramsfun0, List<Expr> paramsfun1 , Expr binFun1  , Expr identifierfun1 , Expr knotfun1",
 				
@@ -113,7 +114,11 @@ public class GenerateAST {
 				"Rav : Token name , Expr initializer , Token type , Boolean enforce",
 				
 				
-				"PassThrough : Expr expression"
+				"PassThrough : Expr expression",
+				"UnDetermined : ArrayList<Expr> expressions"
+				
+				
+				
 				));
 
 

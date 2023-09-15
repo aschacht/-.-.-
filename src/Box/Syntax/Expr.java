@@ -15,11 +15,11 @@ public abstract class Expr {
 	R visitLogExpr(Log expr);
 	R visitFactorialExpr(Factorial expr);
 	R visitUnaryExpr(Unary expr);
+	R visitUnknownnwonknUExpr(UnknownnwonknU expr);
 	R visitCallExpr(Call expr);
 	R visitGetExpr(Get expr);
 	R visitGetBoxCupPocketExpr(GetBoxCupPocket expr);
 	R visitSetExpr(Set expr);
-	R visitSetBoxCupPocketExpr(SetBoxCupPocket expr);
 	R visitLiteralExpr(Literal expr);
 	R visitLiteralCharExpr(LiteralChar expr);
 	R visitVariableExpr(Variable expr);
@@ -54,7 +54,6 @@ public abstract class Expr {
 	R visitTegExpr(Teg expr);
 	R visitTegBoxCupPocketExpr(TegBoxCupPocket expr);
 	R visitTesExpr(Tes expr);
-	R visitTesBoxCupPocketExpr(TesBoxCupPocket expr);
 	R visitLaretilExpr(Laretil expr);
 	R visitLaretilCharExpr(LaretilChar expr);
 	R visitLairotcafExpr(Lairotcaf expr);
@@ -62,6 +61,7 @@ public abstract class Expr {
 	R visitEpytExpr(Epyt expr);
 	R visitParameterExpr(Parameter expr);
 	R visitPassThroughExpr(PassThrough expr);
+	R visitUnKnownExpr(UnKnown expr);
 	}
 public static class Assignment extends Expr {
 	 public Assignment(Token name , Expr value) {
@@ -170,9 +170,10 @@ public static class Factorial extends Expr {
 	public  Token operator;
 	}
 public static class Unary extends Expr {
-	 public Unary(Token operator , Expr right) {
+	 public Unary(Token operator , Expr right , boolean preOrPost) {
 	this.operator = operator;
 	this.right = right;
+	this.preOrPost = preOrPost;
 	}
 
 	@Override
@@ -182,6 +183,21 @@ public static class Unary extends Expr {
 
 	public  Token operator;
 	public  Expr right;
+	public  boolean preOrPost;
+	}
+public static class UnknownnwonknU extends Expr {
+	 public UnknownnwonknU(Expr callee , Token name) {
+	this.callee = callee;
+	this.name = name;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitUnknownnwonknUExpr(this);
+	}
+
+	public  Expr callee;
+	public  Token name;
 	}
 public static class Call extends Expr {
 	 public Call(Expr callee , Token calleeToken , List<Expr> arguments) {
@@ -237,22 +253,6 @@ public static class Set extends Expr {
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitSetExpr(this);
-	}
-
-	public  Expr object;
-	public  Token name;
-	public  Expr value;
-	}
-public static class SetBoxCupPocket extends Expr {
-	 public SetBoxCupPocket(Expr object, Token name, Expr value) {
-	this.object = object;
-	this.name = name;
-	this.value = value;
-	}
-
-	@Override
-	public <R> R accept(Visitor<R> visitor) {
-	 	return visitor.visitSetBoxCupPocketExpr(this);
 	}
 
 	public  Expr object;
@@ -849,22 +849,6 @@ public static class Tes extends Expr {
 	public  Token name;
 	public  Expr value;
 	}
-public static class TesBoxCupPocket extends Expr {
-	 public TesBoxCupPocket(Expr object , Token name , Expr value) {
-	this.object = object;
-	this.name = name;
-	this.value = value;
-	}
-
-	@Override
-	public <R> R accept(Visitor<R> visitor) {
-	 	return visitor.visitTesBoxCupPocketExpr(this);
-	}
-
-	public  Expr object;
-	public  Token name;
-	public  Expr value;
-	}
 public static class Laretil extends Expr {
 	 public Laretil(Object value) {
 	this.value = value;
@@ -950,6 +934,20 @@ public static class PassThrough extends Expr {
 	}
 
 	public  Token token;
+	}
+public static class UnKnown extends Expr {
+	 public UnKnown(Expr expressionForward , Expr expressionBackward) {
+	this.expressionForward = expressionForward;
+	this.expressionBackward = expressionBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitUnKnownExpr(this);
+	}
+
+	public  Expr expressionForward;
+	public  Expr expressionBackward;
 	}
 
  public abstract <R> R accept(Visitor<R> visitor);

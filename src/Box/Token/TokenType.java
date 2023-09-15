@@ -1,6 +1,9 @@
 package Box.Token;
 
-public enum TokenType {
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public enum TokenType implements TokenTypeEnum{
 //TokenTypes that have keywords Associated with them
 	TRUE,
 	EURT,
@@ -54,11 +57,6 @@ public enum TokenType {
 	NULL,NILL,
 	LLUN, LLIN,
 	NOT,
-	STRINGPARAMETER,
-	CHARPARAMETER,
-	INTPARAMETER,
-	DOUBLEPARAMETER,
-	BINPARAMETER,
 	KNOT,
 	CUP,
 	POCKET,
@@ -69,10 +67,10 @@ public enum TokenType {
 	
 	///userdefined strings ,chars, or numbers
 	IDENTIFIER,
-	REIFITNEDI,
 	DOUBLENUM,
 	INTNUM,
 	BINNUM,
+	UNKNOWN,
 	CHAR, 
 	STRING,
 
@@ -100,7 +98,7 @@ MINUSMINUS,
 TIMES,
 POWER,
 BANG,
-DOUBLEBANG,
+QMARK,
 TEMPLID,
 SINGLEAND,
 OPENSQUARE,CLOSEDSQUARE,
@@ -134,11 +132,16 @@ CIDCONTAINER,
 ///end of file
 
 
-EOF, BOXXX, SPACE, SPACERETURN, TAB, NEWLINE, BOOLEANPARAMETER, ENFORCEPARAMETER, GNIRTSPARAMETER, RAHCPARAMETER, TNIPARAMETER, ELBUODPARAMETER, NIBPARAMETER, NAELOOBPARAMETER, TONK, PUC, TEKCOP, XOB, ECROFNEPARAMETER, EPYT, TYPE;
+EOF, BOXXX, SPACE, SPACERETURN, TAB, NEWLINE, TONK, PUC, TEKCOP, XOB, EPYT, TYPE, UNDERSCORE, HATTAG , GATTAH;
+
+
+@Override
+public Integer returnTokenType(TokenTypeEnum enumToFindOrdinal) {
 	
+	return null;
+}
 	
-	
-	
+
 	
 	
 	
