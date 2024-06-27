@@ -46,57 +46,171 @@ public class Parser {
 	private boolean backward;
 
 	private class TokensToTrack {
-		List<ArrayList<Token>> stack = new ArrayList<ArrayList<Token>>();
-		List<Integer> currentStack = new ArrayList<Integer>();
+		List<ArrayList<Token>> stackForward = new ArrayList<ArrayList<Token>>();
+		List<ArrayList<Token>> stackBackward = new ArrayList<ArrayList<Token>>();
+		List<Integer> currentStackForward = new ArrayList<Integer>();
+		List<Integer> currentStackBackward = new ArrayList<Integer>();
+		private boolean parseForward = true;
 
 		TokensToTrack(ArrayList<Token> baseTokens, int baseCurrent) {
-			stack.add(baseTokens);
-			currentStack.add(baseCurrent);
+			if (baseTokens.size() > 0) {
+				Token eofToken = baseTokens.get(baseTokens.size() - 1);
+				ArrayList<Token> newBaseToken = new ArrayList<Token>();
 
+				newBaseToken.add(eofToken);
+				for (int i = 0; i < baseTokens.size() - 1; i++) {
+					newBaseToken.add(baseTokens.get(i));
+				}
+				stackForward.add(baseTokens);
+				stackBackward.add(newBaseToken);
+
+				currentStackForward.add(baseCurrent);
+				currentStackBackward.add(newBaseToken.size() - 1);
+			}
 		}
 
 		public void addSubTokens(ArrayList<Token> subTokens) {
-			stack.add(subTokens);
-			currentStack.add(0);
+
+			Token eofToken = null;
+			if (subTokens.size() > 0)
+				eofToken = subTokens.get(subTokens.size() - 1);
+			else {
+				eofToken = new Token(TokenType.EOF, "EOF", null, null, null, 0, 9, 0, 0);
+			}
+
+			if (isParseForward() == false) {
+				ArrayList<Token> newBaseToken = new ArrayList<Token>();
+
+				newBaseToken.add(eofToken);
+				for (int i = 0; i < subTokens.size() - 1; i++) {
+					newBaseToken.add(subTokens.get(i));
+				}
+				stackBackward.add(newBaseToken);
+				currentStackBackward.add(newBaseToken.size() - 1);
+			} else {
+
+				stackForward.add(subTokens);
+				currentStackForward.add(0);
+			}
 		}
 
 		public boolean removeSubTokens() {
-			if (stack.size() > 1) {
-				stack.remove(stack.size() - 1);
-				currentStack.remove(currentStack.size() - 1);
-				return true;
+			if (isParseForward() == true) {
+				if (stackForward.size() > 1) {
+					stackForward.remove(stackForward.size() - 1);
+					currentStackForward.remove(currentStackForward.size() - 1);
+					return true;
+				}
+			} else {
+				if (stackBackward.size() > 1) {
+					stackBackward.remove(stackBackward.size() - 1);
+					currentStackBackward.remove(currentStackBackward.size() - 1);
+					return true;
+				}
 			}
 			return false;
 		}
 
 		public Token getToken() {
-			int currentLocal = currentStack.get(currentStack.size() - 1);
-			return (stack.get(stack.size() - 1)).get(currentLocal);
+			if (isParseForward() == true) {
+				int currentLocal = currentStackForward.get(currentStackForward.size() - 1);
+				return (stackForward.get(stackForward.size() - 1)).get(currentLocal);
+			} else {
+				int currentLocal = currentStackBackward.get(currentStackBackward.size() - 1);
+				return (stackBackward.get(stackBackward.size() - 1)).get(currentLocal);
+			}
 		}
 
 		public void advance() {
-			int currentLocal = currentStack.get(currentStack.size() - 1);
-			currentLocal++;
-			currentStack.remove(currentStack.size() - 1);
-			currentStack.add(currentLocal);
+			if (isParseForward() == true) {
+				int currentLocal = currentStackForward.get(currentStackForward.size() - 1);
+				currentLocal++;
+				currentStackForward.remove(currentStackForward.size() - 1);
+				currentStackForward.add(currentLocal);
+			} else {
+				int currentLocal = currentStackBackward.get(currentStackBackward.size() - 1);
+				currentLocal--;
+				currentStackBackward.remove(currentStackBackward.size() - 1);
+				currentStackBackward.add(currentLocal);
+			}
 		}
 
 		public int getCurrent() {
-			return currentStack.get(currentStack.size() - 1);
+			if (isParseForward() == true) {
+				if (currentStackForward.size() > 0)
+					return currentStackForward.get(currentStackForward.size() - 1);
+				else
+					return 0;
+			} else {
+				if (currentStackBackward.size() > 0)
+					return currentStackBackward.get(currentStackBackward.size() - 1);
+				else
+					return 0;
+			}
 		}
 
 		public int size() {
-			return (stack.get(stack.size() - 1)).size();
+			if (isParseForward() == true) {
+				if (stackForward.size() > 0)
+					return (stackForward.get(stackForward.size() - 1)).size();
+				else
+					return 0;
+			} else {
+				if (stackBackward.size() > 0)
+					return (stackBackward.get(stackBackward.size() - 1)).size();
+				else
+					return 0;
+			}
 		}
 
 		public Token getPrevious() {
-			int currentLocal = currentStack.get(currentStack.size() - 1);
-			return (stack.get(stack.size() - 1)).get(currentLocal - 1);
+			if (isParseForward() == true) {
+				int currentLocal = currentStackForward.get(currentStackForward.size() - 1);
+				return (stackForward.get(stackForward.size() - 1)).get(currentLocal - 1);
+			} else {
+				int currentLocal = currentStackBackward.get(currentStackBackward.size() - 1);
+				return (stackBackward.get(stackBackward.size() - 1)).get(currentLocal + 1);
+			}
 		}
 
 		public Token getPeekNext() {
-			int currentLocal = currentStack.get(currentStack.size() - 1);
-			return (stack.get(stack.size() - 1)).get(currentLocal + 1);
+			if (isParseForward() == true) {
+				int currentLocal = currentStackForward.get(currentStackForward.size() - 1);
+				return (stackForward.get(stackForward.size() - 1)).get(currentLocal + 1);
+			} else {
+				int currentLocal = currentStackBackward.get(currentStackBackward.size() - 1);
+				return (stackBackward.get(stackBackward.size() - 1)).get(currentLocal - 1);
+			}
+		}
+
+		public void parseBackward() {
+			setParseForward(false);
+		}
+
+		public void parseForward() {
+			setParseForward(true);
+		}
+
+		public boolean isParseForward() {
+			return parseForward;
+		}
+
+		public void setParseForward(boolean parseForward) {
+			this.parseForward = parseForward;
+		}
+
+		public void regress() {
+			if (isParseForward() == true) {
+				int currentLocal = currentStackForward.get(currentStackForward.size() - 1);
+				currentLocal--;
+				currentStackForward.remove(currentStackForward.size() - 1);
+				currentStackForward.add(currentLocal);
+			} else {
+				int currentLocal = currentStackBackward.get(currentStackBackward.size() - 1);
+				currentLocal++;
+				currentStackBackward.remove(currentStackBackward.size() - 1);
+				currentStackBackward.add(currentLocal);
+			}
 		}
 
 	}
@@ -107,16 +221,32 @@ public class Parser {
 		tracker = new TokensToTrack((ArrayList<Token>) tokens, 0);
 	}
 
-	public List<Stmt> parse() {
+	public List<List<Stmt>> parse() {
 
 		List<Stmt> forwardStmt = parseForward();
-		List<Stmt> resolveStmt = resolveUnkonwns(forwardStmt);
-		return resolveStmt;
+		List<Stmt> forwardResolveStmt = resolveUnkonwns(forwardStmt);
+		List<Stmt> backwardStmt = parseBackwards();
+		List<Stmt> backwardResolveStmt = resolveUnkonwns(backwardStmt);
+		List<List<Stmt>> statements = new ArrayList<List<Stmt>>();
+		statements.add(forwardResolveStmt);
+		statements.add(backwardResolveStmt);
+		return statements;
 
+	}
+
+	private List<Stmt> parseBackwards() {
+		List<Stmt> statements = new ArrayList<>();
+		tracker.parseBackward();
+		while (!isAtBegin()) {
+			statements.add(noitaralced());
+			fixPreviousStatmentifBackwardsDotFound(statements);
+		}
+		return statements;
 	}
 
 	private List<Stmt> parseForward() {
 		List<Stmt> statements = new ArrayList<>();
+		tracker.parseForward();
 		while (!isAtEnd()) {
 			statements.add(declaration());
 			fixPreviousStatmentifBackwardsDotFound(statements);
@@ -125,17 +255,21 @@ public class Parser {
 	}
 
 	private void fixPreviousStatmentifBackwardsDotFound(List<Stmt> statements) {
-		Stmt stmt = statements.get(statements.size() - 1);
-		if (stmt instanceof Stmt.PassThrough) {
-			Expr expression = ((Stmt.PassThrough) stmt).expression;
-			if (expression instanceof Expr.PassThrough) {
-				if (((Expr.PassThrough) expression).token.type == TokenType.DOT) {
-					Stmt stmtprevious = statements.get(statements.size() - 2);
-					if (stmtprevious instanceof Stmt.Expression) {
-						PassThrough passThroughPrevious = new Stmt.PassThrough(
-								((Stmt.Expression) stmtprevious).expression);
-						statements.add(statements.size() - 2, passThroughPrevious);
-						statements.remove(statements.size() - 2);
+		if (statements.size() > 0) {
+			Stmt stmt = statements.get(statements.size() - 1);
+			if (stmt instanceof Stmt.PassThrough) {
+				Expr expression = ((Stmt.PassThrough) stmt).expression;
+				if (expression instanceof Expr.PassThrough) {
+					if (((Expr.PassThrough) expression).token.type == TokenType.DOT) {
+						if (statements.size() > 1) {
+							Stmt stmtprevious = statements.get(statements.size() - 2);
+							if (stmtprevious instanceof Stmt.Expression) {
+								PassThrough passThroughPrevious = new Stmt.PassThrough(
+										((Stmt.Expression) stmtprevious).expression);
+								statements.add(statements.size() - 2, passThroughPrevious);
+								statements.remove(statements.size() - 2);
+							}
+						}
 					}
 				}
 			}
@@ -798,7 +932,8 @@ public class Parser {
 			nugget = new Expr.Teg(nugget, ((Expr.Knot) callee).identifier);
 
 		} else if (callee instanceof Expr.UnknownnwonknU) {
-			nugget = new Expr.Teg(nugget, ((Expr.UnknownnwonknU) callee).name);
+			nugget = checkCallee(((Expr.UnknownnwonknU) callee).callee,
+					new Expr.Teg(nugget, ((Expr.UnknownnwonknU) callee).name));
 		} else
 			throw error(null, "expected Variable Pocket Box Cup or Knot ");
 		return nugget;
@@ -1011,7 +1146,6 @@ public class Parser {
 	private Stmt declaration() {
 		try {
 
-
 			if (match(TokenType.LESSTHEN)) {
 				Stmt forwardVariableDeclaration = variableDeclaration();
 				if (forwardVariableDeclaration != null)
@@ -1026,6 +1160,18 @@ public class Parser {
 			}
 
 			return expressionStmt(expr);
+		} catch (ParseError error) {
+			synchronize();
+			return null;
+		}
+	}
+
+	private Stmt noitaralced() {
+		try {
+
+			Expr expr = noisserpxe();
+
+			return noisserpxeStmt(expr);
 		} catch (ParseError error) {
 			synchronize();
 			return null;
@@ -1355,16 +1501,12 @@ public class Parser {
 				TokenType.PUC, TokenType.TONK);
 	}
 
-
-
 	private void synchronize() {
 		advance();
 		while (!isAtEnd()) {
 			if (previous().type == TokenType.SEMICOLON)
 				return;
 
-			
-			
 			switch (peek().type) {
 			case PRINT:
 			case RETURN:
@@ -1394,8 +1536,39 @@ public class Parser {
 		return new Stmt.Expression(expr);
 	}
 
+	private Stmt noisserpxeStmt(Expr expr) {
+		if (expr instanceof Expr.PassThrough)
+			return new Stmt.PassThrough(expr);
+		if (expr instanceof Expr.Variable) {
+			Var buildInitilizer = buildInitilizer(expr);
+			if (buildInitilizer == null) {
+				Token name = ((Expr.Variable) expr).name;
+				Var var = new Stmt.Var(name, new Token(TokenType.BOX, null, null, null, null, name.column, name.line,
+						name.start, name.finish), 1, null);
+				return new Stmt.VarFB(var, var);
+			}
+			return new Stmt.VarFB(buildInitilizer, buildInitilizer);
+		}
+		return new Stmt.Noisserpxe(expr);
+	}
+
 	private Expr expression() {
 		return typeExpr();
+	}
+
+	private Expr noisserpxe() {
+		return typeRpxe();
+	}
+
+	public Expr typeRpxe() {
+		Expr expr = tnemngissa();
+		if (check(TokenType.TYPE) && checkNext(TokenType.DOT)) {
+			consume(TokenType.TYPE, "expected type.");
+			consume(TokenType.DOT, "expected '.'.");
+			return new Expr.Type(expr);
+		}
+		return expr;
+
 	}
 
 	public Expr typeExpr() {
@@ -1432,6 +1605,55 @@ public class Parser {
 		return expr;
 	}
 
+	private Expr tnemngissa() {
+
+		Expr expr = sniatnoc();
+
+		if (match(TokenType.ASIGNMENTEQUALS)) {
+			Token equals = previous();
+			Expr value = tnemngissa();
+
+			if (expr instanceof Expr.Variable) {
+				Token name = ((Expr.Variable) value).name;
+				return new Expr.Tnemngissa(name, expr);
+			} else if (expr instanceof Expr.UnknownnwonknU) {
+				Expr.UnknownnwonknU get = (Expr.UnknownnwonknU) value;
+				return new Expr.Set(get, get.name, expr);
+			}
+
+			error(equals, "Invalid assignment target.");
+
+		}
+
+		return expr;
+	}
+
+	private Expr sniatnoc() {
+		Expr expr = rOlacigol();
+
+		if (match(TokenType.NEPO)) {
+			Token nepo = previous();
+			if (match(TokenType.SNIATNOC)) {
+
+				Expr expr2 = rOlacigol();
+
+				return new Expr.Sniatnoc(expr2, true, expr);
+			} else {
+				error(nepo, "expected 'sniatnoc'.");
+			}
+
+		}
+
+		if (match(TokenType.SNIATNOC)) {
+
+			Expr expr2 = rOlacigol();
+
+			return new Expr.Sniatnoc(expr2, false, expr);
+		}
+
+		return expr;
+	}
+
 	private Expr contains() {
 		Expr expr = logicalOr();
 
@@ -1445,25 +1667,6 @@ public class Parser {
 
 			return new Expr.Contains(expr, open, expr2);
 		}
-		if (match(TokenType.NEPO)) {
-			Token nepo = previous();
-			if (match(TokenType.SNIATNOC)) {
-
-				Expr expr2 = logicalOr();
-
-				return new Expr.Sniatnoc(expr2, true, expr);
-			} else {
-				error(nepo, "expected 'sniatnoc'.");
-			}
-
-		}
-
-		if (match(TokenType.SNIATNOC)) {
-
-			Expr expr2 = logicalOr();
-
-			return new Expr.Sniatnoc(expr2, false, expr);
-		}
 
 		return expr;
 	}
@@ -1474,6 +1677,17 @@ public class Parser {
 			Token operator = previous();
 			Expr right = logicalAnd();
 			expr = new Expr.Logical(expr, operator, right);
+		}
+
+		return expr;
+	}
+
+	private Expr rOlacigol() {
+		Expr expr = dnAlacigol();
+		while (match(TokenType.RO)) {
+			Token operator = previous();
+			Expr right = dnAlacigol();
+			expr = new Expr.Logical(right, operator, expr);
 		}
 
 		return expr;
@@ -1491,9 +1705,21 @@ public class Parser {
 
 	}
 
+	private Expr dnAlacigol() {
+		Expr expr = ytilauqe();
+		while (match(TokenType.DNA)) {
+			Token operator = previous();
+			Expr right = ytilauqe();
+			expr = new Expr.Logical(right, operator, expr);
+		}
+
+		return expr;
+
+	}
+
 	private Expr equality() {
 		Expr expr = addSub();
-		while (match(TokenType.NOTEQUALS, TokenType.EQUALSEQUALS, TokenType.EQUALSNOT)) {
+		while (match(TokenType.NOTEQUALS, TokenType.EQUALSEQUALS)) {
 			Token operator = previous();
 			Expr right = addSub();
 			expr = new Expr.Binary(expr, operator, right);
@@ -1501,9 +1727,19 @@ public class Parser {
 		return expr;
 	}
 
+	private Expr ytilauqe() {
+		Expr expr = buSdda();
+		while (match(TokenType.EQUALSNOT, TokenType.EQUALSEQUALS)) {
+			Token operator = previous();
+			Expr right = buSdda();
+			expr = new Expr.Binary(right, operator, expr);
+		}
+		return expr;
+	}
+
 	private Expr addSub() {
 		Expr expr = comparison();
-		while (match(TokenType.PLUSEQUALS, TokenType.MINUSEQUALS, TokenType.EQUALSPLUS, TokenType.EQUALSMINUS)) {
+		while (match(TokenType.PLUSEQUALS, TokenType.MINUSEQUALS)) {
 			Token operator = previous();
 			Expr right = comparison();
 			expr = new Expr.Binary(expr, operator, right);
@@ -1512,10 +1748,20 @@ public class Parser {
 		return expr;
 	}
 
+	private Expr buSdda() {
+		Expr expr = nosirapmoc();
+		while (match(TokenType.EQUALSPLUS, TokenType.EQUALSMINUS)) {
+			Token operator = previous();
+			Expr right = nosirapmoc();
+			expr = new Expr.Binary(right, operator, expr);
+		}
+
+		return expr;
+	}
+
 	private Expr comparison() {
 		Expr expr = term();
-		while (match(TokenType.GREATERTHENEQUAL, TokenType.LESSTHENEQUAL, TokenType.GREATERTHEN, TokenType.LESSTHEN,
-				TokenType.EQUALGREATERTHEN, TokenType.EQUALLESSTHEN)) {
+		while (match(TokenType.GREATERTHENEQUAL, TokenType.LESSTHENEQUAL, TokenType.GREATERTHEN, TokenType.LESSTHEN)) {
 			Token operator = previous();
 			Expr right = term();
 			expr = new Expr.Binary(expr, operator, right);
@@ -1524,14 +1770,50 @@ public class Parser {
 		return expr;
 	}
 
+	private Expr nosirapmoc() {
+		Expr expr = mert();
+		while (match(TokenType.GREATERTHEN, TokenType.LESSTHEN, TokenType.EQUALGREATERTHEN, TokenType.EQUALLESSTHEN)) {
+			Token operator = previous();
+			Expr right = mert();
+			expr = new Expr.Binary(right, operator, expr);
+		}
+
+		return expr;
+	}
+
 	private Expr term() {
 		Expr expr = factor();
 
+		if (isControl(expr))
+			return expr;
 		while (match(TokenType.MINUS, TokenType.PLUS)) {
 			Token operator = previous();
 			Expr right = factor();
-			expr = new Expr.Binary(expr, operator, right);
+			if (!isControl(right))
+				expr = new Expr.Binary(right, operator, expr);
+			else {
+				regress();
+				return expr;
+			}
+		}
 
+		return expr;
+	}
+
+	private Expr mert() {
+		Expr expr = rotcaf();
+		if (isControl(expr))
+			return expr;
+		while (match(TokenType.MINUS, TokenType.PLUS)) {
+			Token operator = previous();
+			Expr right = rotcaf();
+
+			if (!isControl(right))
+				expr = new Expr.Binary(right, operator, expr);
+			else {
+				regress();
+				return expr;
+			}
 		}
 
 		return expr;
@@ -1539,11 +1821,36 @@ public class Parser {
 
 	private Expr factor() {
 		Expr expr = power();
-
-		while (match(TokenType.FORWARDSLASH, TokenType.TIMES, TokenType.BACKSLASH)) {
+		if (isControl(expr))
+			return expr;
+		while (match(TokenType.FORWARDSLASH, TokenType.TIMES)) {
 			Token operator = previous();
 			Expr right = power();
-			expr = new Expr.Binary(expr, operator, right);
+			if (!isControl(right))
+				expr = new Expr.Binary(right, operator, expr);
+			else {
+				regress();
+				return expr;
+			}
+		}
+
+		return expr;
+	}
+
+	private Expr rotcaf() {
+		Expr expr = rewop();
+		if (isControl(expr))
+			return expr;
+		while (match(TokenType.TIMES, TokenType.BACKSLASH)) {
+			Token operator = previous();
+			Expr right = rewop();
+
+			if (!isControl(right))
+				expr = new Expr.Binary(right, operator, expr);
+			else {
+				regress();
+				return expr;
+			}
 		}
 
 		return expr;
@@ -1551,11 +1858,37 @@ public class Parser {
 
 	private Expr power() {
 		Expr expr = yroot();
-
+		if (isControl(expr))
+			return expr;
 		while (match(TokenType.POWER)) {
 			Token operator = previous();
 			Expr right = yroot();
-			expr = new Expr.Binary(expr, operator, right);
+
+			if (!isControl(right))
+				expr = new Expr.Binary(right, operator, expr);
+			else {
+				regress();
+				return expr;
+			}
+		}
+
+		return expr;
+	}
+
+	private Expr rewop() {
+		Expr expr = toory();
+		if (isControl(expr))
+			return expr;
+		while (match(TokenType.POWER)) {
+			Token operator = previous();
+			Expr right = toory();
+
+			if (!isControl(right))
+				expr = new Expr.Binary(right, operator, expr);
+			else {
+				regress();
+				return expr;
+			}
 		}
 
 		return expr;
@@ -1590,7 +1923,13 @@ public class Parser {
 			}
 		}
 
-		Expr pocket = sin();
+		return sin();
+
+	}
+
+	private Expr toory() {
+
+		Expr pocket = nis();
 
 		if (pocket instanceof Expr.Pocket) {
 
@@ -1646,7 +1985,13 @@ public class Parser {
 			}
 		}
 
-		Expr pocket = cos();
+		return cos();
+
+	}
+
+	private Expr nis() {
+
+		Expr pocket = soc();
 
 		if (pocket instanceof Expr.Pocket) {
 
@@ -1665,9 +2010,6 @@ public class Parser {
 				} else {
 					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed nis statement");
 				}
-			} else {
-				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed nis statement");
-
 			}
 		}
 
@@ -1698,7 +2040,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = tan();
+		return tan();
+
+	}
+
+	private Expr soc() {
+
+		Expr pocket = nat();
 
 		if (pocket instanceof Expr.Pocket) {
 
@@ -1717,9 +2065,6 @@ public class Parser {
 				} else {
 					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed soc statement");
 				}
-			} else {
-				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed soc statement");
-
 			}
 		}
 
@@ -1750,7 +2095,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = sinh();
+		return sinh();
+
+	}
+
+	private Expr nat() {
+
+		Expr pocket = hnis();
 
 		if (pocket instanceof Expr.Pocket) {
 
@@ -1769,9 +2120,6 @@ public class Parser {
 				} else {
 					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed nat statement");
 				}
-			} else {
-				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed nat statement");
-
 			}
 		}
 
@@ -1802,7 +2150,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = cosh();
+		return cosh();
+
+	}
+
+	private Expr hnis() {
+
+		Expr pocket = hsoc();
 
 		if (pocket instanceof Expr.Pocket) {
 
@@ -1821,9 +2175,6 @@ public class Parser {
 				} else {
 					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hnis statement");
 				}
-			} else {
-				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hnis statement");
-
 			}
 		}
 
@@ -1854,7 +2205,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = tanh();
+		return tanh();
+
+	}
+
+	private Expr hsoc() {
+
+		Expr pocket = hnat();
 
 		if (pocket instanceof Expr.Pocket) {
 
@@ -1873,9 +2230,6 @@ public class Parser {
 				} else {
 					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hsoc statement");
 				}
-			} else {
-				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hsoc statement");
-
 			}
 		}
 
@@ -1906,7 +2260,13 @@ public class Parser {
 				}
 			}
 		}
-		Expr pocket = log();
+		return log();
+
+	}
+
+	private Expr hnat() {
+
+		Expr pocket = gol();
 
 		if (pocket instanceof Expr.Pocket) {
 
@@ -1925,9 +2285,6 @@ public class Parser {
 				} else {
 					Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hnat statement");
 				}
-			} else {
-				Box.error(pocket2.identifier.column, pocket2.identifier.line, "malformed hnat statement");
-
 			}
 		}
 
@@ -1968,7 +2325,13 @@ public class Parser {
 
 			}
 		}
-		Expr pocket = factorial();
+		return factorial();
+
+	}
+
+	private Expr gol() {
+
+		Expr pocket = lairotcaf();
 
 		if (pocket instanceof Expr.Pocket) {
 			Pocket pocket2 = (Expr.Pocket) pocket;
@@ -1987,7 +2350,7 @@ public class Parser {
 				consume(TokenType.DOT, "expected '.'");
 				Token gol = consume(TokenType.GOL, "expected gol");
 				if (baseExp != null && valueExp != null) {
-					return new Expr.Log(gol, baseExp.expression, valueExp.expression);
+					return new Expr.Gol(gol, baseExp.expression, valueExp.expression);
 				} else {
 					Box.error(pocket2.identifier.column, pocket2.identifier.line, "poorly formed log");
 				}
@@ -1999,10 +2362,22 @@ public class Parser {
 
 	private Expr factorial() {
 		Expr expr = unary();
-
+		if (isControl(expr))
+			return expr;
 		while (match(TokenType.BANG)) {
 			Token operator = previous();
 			expr = new Expr.Factorial(expr, operator);
+		}
+		return expr;
+	}
+
+	private Expr lairotcaf() {
+		Expr expr = yranu();
+		if (isControl(expr))
+			return expr;
+		while (match(TokenType.BANG)) {
+			Token operator = previous();
+			expr = new Expr.Lairotcaf(expr, operator);
 		}
 		return expr;
 	}
@@ -2012,40 +2387,46 @@ public class Parser {
 		if (match(TokenType.QMARK, TokenType.MINUS, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
 			Token operator = previous();
 			Expr expr = unary();
-			
-				return new Expr.Unary(operator, expr, true);
+
+			return new Expr.Unary(operator, expr, true);
 		}
-		Expr expr = call();
+		return call();
+
+	}
+
+	private Expr yranu() {
 
 		if (match(TokenType.QMARK, TokenType.MINUS, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
 			Token operator = previous();
+			Expr expr = yranu();
 			if (checkTypes())
-				return new Expr.Unary(operator, expr, false);
+				return new Expr.Yranu(operator, expr);
 
 		}
+		Expr expr = call();
 		return expr;
 	}
 
 	private boolean checkTypes() {
-		if(peekNext()!=null) {
-		boolean isUniary = peekNext().type != TokenType.TRUE || peekNext().type != TokenType.FALSE
-				|| peekNext().type != TokenType.EURT || peekNext().type != TokenType.ESLAF
-				|| peekNext().type != TokenType.INTNUM || peekNext().type != TokenType.BINNUM
-				|| peekNext().type != TokenType.DOUBLENUM || peekNext().type != TokenType.KNOTCONTAINER
-				|| peekNext().type != TokenType.POCKETCONTAINER || peekNext().type != TokenType.CUPCONTAINER
-				|| peekNext().type != TokenType.BOXCONTAINER || peekNext().type != TokenType.IDENTIFIER
-				|| peekNext().type != TokenType.PUPCONTAINER || peekNext().type != TokenType.COCKETCONTAINER
-				|| peekNext().type != TokenType.LUPCONTAINER || peekNext().type != TokenType.LOCKETCONTAINER
-				|| peekNext().type != TokenType.LILCONTAINER || peekNext().type != TokenType.PIDCONTAINER
-				|| peekNext().type != TokenType.CIDCONTAINER || peekNext().type != TokenType.CHAR
-				|| peekNext().type != TokenType.STRING || peekNext().type != TokenType.UNKNOWN
-				|| peekNext().type != TokenType.NULL || peekNext().type != TokenType.NILL
-				|| peekNext().type != TokenType.LLUN || peekNext().type != TokenType.LLIN
-				|| peekNext().type != TokenType.LOG || peekNext().type != TokenType.TANH
-				|| peekNext().type != TokenType.COSH || peekNext().type != TokenType.SINH
-				|| peekNext().type != TokenType.TAN || peekNext().type != TokenType.COS
-				|| peekNext().type != TokenType.SIN || peekNext().type != TokenType.YROOT;
-		return isUniary;
+		if (peekNext() != null) {
+			boolean isUniary = peekNext().type != TokenType.TRUE || peekNext().type != TokenType.FALSE
+					|| peekNext().type != TokenType.EURT || peekNext().type != TokenType.ESLAF
+					|| peekNext().type != TokenType.INTNUM || peekNext().type != TokenType.BINNUM
+					|| peekNext().type != TokenType.DOUBLENUM || peekNext().type != TokenType.KNOTCONTAINER
+					|| peekNext().type != TokenType.POCKETCONTAINER || peekNext().type != TokenType.CUPCONTAINER
+					|| peekNext().type != TokenType.BOXCONTAINER || peekNext().type != TokenType.IDENTIFIER
+					|| peekNext().type != TokenType.PUPCONTAINER || peekNext().type != TokenType.COCKETCONTAINER
+					|| peekNext().type != TokenType.LUPCONTAINER || peekNext().type != TokenType.LOCKETCONTAINER
+					|| peekNext().type != TokenType.LILCONTAINER || peekNext().type != TokenType.PIDCONTAINER
+					|| peekNext().type != TokenType.CIDCONTAINER || peekNext().type != TokenType.CHAR
+					|| peekNext().type != TokenType.STRING || peekNext().type != TokenType.UNKNOWN
+					|| peekNext().type != TokenType.NULL || peekNext().type != TokenType.NILL
+					|| peekNext().type != TokenType.LLUN || peekNext().type != TokenType.LLIN
+					|| peekNext().type != TokenType.LOG || peekNext().type != TokenType.TANH
+					|| peekNext().type != TokenType.COSH || peekNext().type != TokenType.SINH
+					|| peekNext().type != TokenType.TAN || peekNext().type != TokenType.COS
+					|| peekNext().type != TokenType.SIN || peekNext().type != TokenType.YROOT;
+			return isUniary;
 		}
 		return true;
 	}
@@ -2306,6 +2687,27 @@ public class Parser {
 				"expected false |true | NILL | NULL | string | INT | DOUBLE | pocket | box | cup | knot | '(' | ')' | '{' | '}' | '[' | ']' |',' .");
 	}
 
+	private boolean isControl(Expr expr) {
+		if (expr instanceof Expr.CupOpenLeft)
+			return true;
+
+		if (expr instanceof Expr.PocketOpenLeft)
+			return true;
+
+		if (expr instanceof Expr.BoxOpenLeft)
+			return true;
+
+		if (expr instanceof Expr.PocketOpenRight)
+			return true;
+
+		if (expr instanceof Expr.CupOpenRight)
+			return true;
+
+		if (expr instanceof Expr.BoxOpenRight)
+			return true;
+		return false;
+	}
+
 	@SuppressWarnings("unchecked")
 	private Expr buildExprBox() {
 		List<Expr> primarys = new ArrayList<Expr>();
@@ -2316,16 +2718,23 @@ public class Parser {
 		Token closedSquare = tokes.remove(tokes.size() - 1);
 		Token openSquare = tokes.remove(0);
 		if (tokes.size() - 1 >= 0)
-			tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.get(tokes.size() - 1).column,
-					tokes.get(tokes.size() - 1).line, tokes.get(tokes.size() - 1).start,
-					tokes.get(tokes.size() - 1).finish));
-		else
-			tokes.add(new Token(TokenType.EOF, "", null, null, null, closedSquare.column, closedSquare.line,
-					closedSquare.start, closedSquare.finish));
+			if (tokes.get(tokes.size() - 1).type != TokenType.EOF) {
+				tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.get(tokes.size() - 1).column,
+						tokes.get(tokes.size() - 1).line, tokes.get(tokes.size() - 1).start,
+						tokes.get(tokes.size() - 1).finish));
+			} else if (tokes.get(tokes.size() - 1).type != TokenType.EOF) {
+				tokes.add(new Token(TokenType.EOF, "", null, null, null, closedSquare.column, closedSquare.line,
+						closedSquare.start, closedSquare.finish));
+			}
 
 		tracker.addSubTokens(tokes);
-		statements = (ArrayList<Stmt>) parseForward();
+		statements = null;
+		if (tracker.isParseForward()) {
+			statements = (ArrayList<Stmt>) parseForward();
+		} else {
+			statements = (ArrayList<Stmt>) parseBackwards();
 
+		}
 		tracker.removeSubTokens();
 
 		Token typeToBuild = null;
@@ -2359,23 +2768,39 @@ public class Parser {
 	private Expr buildExprKnot() {
 		Token knotContainer = previous();
 		ArrayList<Token> tokes = (ArrayList<Token>) knotContainer.literal;
-
-		tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.size(), -1, -1, -1));
-
+		if (tokes.get(tokes.size() - 1).type != TokenType.EOF) {
+			tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.size(), -1, -1, -1));
+		}
 		tracker.addSubTokens(tokes);
-		ArrayList<Stmt> statements = (ArrayList<Stmt>) parseForward();
+		ArrayList<Stmt> statements = null;
+		if (tracker.isParseForward()) {
+			statements = (ArrayList<Stmt>) parseForward();
+		} else {
+			statements = (ArrayList<Stmt>) parseBackwards();
+
+		}
 		tracker.removeSubTokens();
 
 		ArrayList<Token> tokesungrouped = (ArrayList<Token>) previous().literalUnGrouped;
-
-		tokesungrouped.add(new Token(TokenType.EOF, "", null, null, null, tokesungrouped.size(), -1, -1, -1));
+		if (tokes.get(tokes.size() - 1).type != TokenType.EOF) {
+			tokesungrouped.add(new Token(TokenType.EOF, "", null, null, null, tokesungrouped.size(), -1, -1, -1));
+		}
 
 		tracker.addSubTokens(tokesungrouped);
-		ArrayList<Stmt> statementsungrouped = (ArrayList<Stmt>) parseForward();
-		tracker.removeSubTokens();
+		ArrayList<Stmt> statementsungrouped = null;
+		if (tracker.isParseForward()) {
+			statementsungrouped = (ArrayList<Stmt>) parseForward();
+		} else {
+			statementsungrouped = (ArrayList<Stmt>) parseBackwards();
 
-		return new Expr.Knot(tokes.get(0).identifierToken, statements, statementsungrouped, knotContainer.lexeme,
-				tokes.get(tokes.size() - 2).reifitnediToken);
+		}
+		tracker.removeSubTokens();
+		if (tracker.isParseForward())
+			return new Expr.Knot(tokes.get(0).identifierToken, statements, statementsungrouped, knotContainer.lexeme,
+					tokes.get(tokes.size() - 2).reifitnediToken);
+		else
+			return new Expr.Tonk(tokes.get(0).identifierToken, statements, statementsungrouped, knotContainer.lexeme,
+					tokes.get(tokes.size() - 2).reifitnediToken);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -2388,15 +2813,25 @@ public class Parser {
 		Token open = tokes.remove(0);
 
 		if (tokes.size() - 1 >= 0)
-			tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.get(tokes.size() - 1).column,
-					tokes.get(tokes.size() - 1).line, tokes.get(tokes.size() - 1).start,
-					tokes.get(tokes.size() - 1).finish));
-		else
-			tokes.add(new Token(TokenType.EOF, "", null, null, null, closed.column, closed.line, closed.start,
-					closed.finish));
+			if (tokes.get(tokes.size() - 1).type != TokenType.EOF) {
+
+				tokes.add(new Token(TokenType.EOF, "", null, null, null, tokes.get(tokes.size() - 1).column,
+						tokes.get(tokes.size() - 1).line, tokes.get(tokes.size() - 1).start,
+						tokes.get(tokes.size() - 1).finish));
+			} else if (tokes.get(tokes.size() - 1).type != TokenType.EOF) {
+
+				tokes.add(new Token(TokenType.EOF, "", null, null, null, closed.column, closed.line, closed.start,
+						closed.finish));
+			}
 
 		tracker.addSubTokens(tokes);
-		statements = (ArrayList<Stmt>) parseForward();
+		statements = null;
+		if (tracker.isParseForward()) {
+			statements = (ArrayList<Stmt>) parseForward();
+		} else {
+			statements = (ArrayList<Stmt>) parseBackwards();
+
+		}
 		tracker.removeSubTokens();
 
 		Token typeToBuild = null;
@@ -2459,20 +2894,43 @@ public class Parser {
 		return peek().type == TokenType.EOF;
 	}
 
+	private boolean isAtBegin() {
+		return peek().type == TokenType.EOF;
+	}
+
 	private Token peek() {
-		if (tracker.getCurrent() >= tracker.size())
-			return null;
-		return tracker.getToken();
+		if (tracker.isParseForward()) {
+			if (tracker.getCurrent() >= tracker.size())
+				return new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1);
+			return tracker.getToken();
+
+		} else {
+
+			if (tracker.getCurrent() <= 0)
+				return new Token(TokenType.EOF, "", null, null, null, -1, -1, -1, -1);
+			return tracker.getToken();
+
+		}
 	}
 
 	private Token peekNext() {
-		if (tracker.getToken().type == TokenType.EOF)
-			return null;
-		return tracker.getPeekNext();
+
+		if (tracker.isParseForward()) {
+			if (tracker.getToken().type == TokenType.EOF)
+				return null;
+			return tracker.getPeekNext();
+
+		} else {
+
+			if (tracker.getToken().type == TokenType.EOF)
+				return null;
+			return tracker.getPeekNext();
+		}
+
 	}
 
 	private Token previous() {
-		if (tracker.getCurrent() == 0)
+		if (tracker.getCurrent() < 0)
 			return null;
 		return tracker.getPrevious();
 	}
@@ -2492,13 +2950,24 @@ public class Parser {
 			tracker.advance();
 		}
 		return previous();
+	}
 
+	private void regress() {
+		if (!isAtEnd()) {
+			tracker.regress();
+		}
 	}
 
 	private boolean check(TokenType tokenType) {
-		if (isAtEnd())
-			return false;
-		return peek().type == tokenType;
+		if (tracker.isParseForward()) {
+			if (isAtEnd())
+				return false;
+			return peek().type == tokenType;
+		} else {
+			if (isAtBegin())
+				return false;
+			return peek().type == tokenType;
+		}
 	}
 
 	private Token consume(TokenType type, String message) throws ParseError {

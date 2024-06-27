@@ -57,6 +57,7 @@ import Box.Syntax.Expr.Teg;
 import Box.Syntax.Expr.TegBoxCupPocket;
 import Box.Syntax.Expr.Tes;
 import Box.Syntax.Expr.Tnemngissa;
+import Box.Syntax.Expr.Tonk;
 import Box.Syntax.Expr.Type;
 import Box.Syntax.Expr.UnKnown;
 import Box.Syntax.Expr.Unary;
@@ -115,11 +116,15 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		scopes.push(new HashMap<String, Boolean>());
 	}
 
-	public void resolve(List<Stmt> statements) {
+	public void resolve(List<List<Stmt>> statementLists) {
 
-		for (Stmt stmt : statements) {
-			resolve(stmt);
-
+		for (List<Stmt> statements : statementLists) {
+			
+			for (Stmt stmt : statements) {
+				resolve(stmt);
+				
+			}
+			
 		}
 
 	}
@@ -173,8 +178,14 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 					define(((Expr.Elbairav) param).name);
 				}
 			}
-		if (((Expr.Knot) stmt.knotfun0) != null)
-			resolve(((Expr.Knot) stmt.knotfun0).expression);
+		if (((Expr.Knot) stmt.knotfun0) != null) {
+			for (Stmt stmtExpression : ((Expr.Knot) stmt.knotfun0).expression) {
+				resolve(stmtExpression);
+				
+			}
+			
+			
+		}
 		endScope();
 		currentFunction = enclosingFunction;
 
@@ -193,8 +204,13 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 					define(((Expr.Elbairav) param).name);
 				}
 			}
-		if (((Expr.Knot) stmt.knotfun1) != null)
-			resolve(((Expr.Knot) stmt.knotfun1).expression);
+		if (((Expr.Knot) stmt.knotfun1) != null) {
+			for (Stmt stmtExpression : ((Expr.Knot) stmt.knotfun1).expression) {
+				resolve(stmtExpression);
+				
+			}
+			
+		}
 		endScope();
 		currentFunction = enclosingFunction;
 	}
@@ -482,7 +498,11 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		declare(expr.identifier);
 		define(expr.identifier);
 		beginScope();
-		resolve(expr.expression);
+		
+		for (Stmt stmtExpression : expr.expression) {
+			resolve(stmtExpression);
+			
+		}
 		endScope();
 		resolveLocal(expr, expr.identifier);
 
@@ -494,7 +514,10 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		declare(expr.identifier);
 		define(expr.identifier);
 		beginScope();
-		resolve(expr.expression);
+		for (Stmt stmtExpression : expr.expression) {
+			resolve(stmtExpression);
+			
+		}
 		endScope();
 		resolveLocal(expr, expr.identifier);
 
@@ -519,7 +542,10 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Object visitKnotExpr(Knot expr) {
 		beginScope();
-		resolve(expr.expression);
+		for (Stmt stmtExpression : expr.expression) {
+			resolve(stmtExpression);
+			
+		}
 		endScope();
 		return null;
 	}
@@ -615,7 +641,7 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Object visitYranuExpr(Yranu expr) {
-		resolve(expr.right);
+		resolve(expr.left);
 		return null;
 	}
 
@@ -813,6 +839,12 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitVarFBStmt(VarFB stmt) {
+		
+		return null;
+	}
+
+	@Override
+	public Object visitTonkExpr(Tonk expr) {
 		
 		return null;
 	}

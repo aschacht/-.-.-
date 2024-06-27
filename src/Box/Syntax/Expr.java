@@ -59,6 +59,7 @@ public abstract class Expr {
 	R visitLairotcafExpr(Lairotcaf expr);
 	R visitElbairavExpr(Elbairav expr);
 	R visitEpytExpr(Epyt expr);
+	R visitTonkExpr(Tonk expr);
 	R visitParameterExpr(Parameter expr);
 	R visitPassThroughExpr(PassThrough expr);
 	R visitUnKnownExpr(UnKnown expr);
@@ -776,9 +777,9 @@ public static class Gol extends Expr {
 	public  Expr valueBase;
 	}
 public static class Yranu extends Expr {
-	 public Yranu(Token operator , Expr right) {
+	 public Yranu(Token operator , Expr left) {
 	this.operator = operator;
-	this.right = right;
+	this.left = left;
 	}
 
 	@Override
@@ -787,7 +788,7 @@ public static class Yranu extends Expr {
 	}
 
 	public  Token operator;
-	public  Expr right;
+	public  Expr left;
 	}
 public static class Llac extends Expr {
 	 public Llac(Expr callee , Token paren , List<Expr> arguments) {
@@ -910,6 +911,26 @@ public static class Epyt extends Expr {
 	}
 
 	public  Expr expression;
+	}
+public static class Tonk extends Expr {
+	 public Tonk(Token identifier , List<Stmt> expression , List<Stmt> unGrouped , String lexeme , Token reifitnedi) {
+	this.identifier = identifier;
+	this.expression = expression;
+	this.unGrouped = unGrouped;
+	this.lexeme = lexeme;
+	this.reifitnedi = reifitnedi;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitTonkExpr(this);
+	}
+
+	public  Token identifier;
+	public  List<Stmt> expression;
+	public  List<Stmt> unGrouped;
+	public  String lexeme;
+	public  Token reifitnedi;
 	}
 public static class Parameter extends Expr {
 	 public Parameter(Token parameter) {

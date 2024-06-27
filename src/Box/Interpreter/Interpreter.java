@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.Map;
 import java.util.Scanner;
 
 import Box.Box.Box;
+import Box.Interpreter.Interpreter.KnotMap;
+
 import Box.Syntax.Expr;
 import Box.Syntax.Expr.Assignment;
 import Box.Syntax.Expr.Binary;
@@ -61,6 +64,7 @@ import Box.Syntax.Expr.Teg;
 import Box.Syntax.Expr.TegBoxCupPocket;
 import Box.Syntax.Expr.Tes;
 import Box.Syntax.Expr.Tnemngissa;
+import Box.Syntax.Expr.Tonk;
 import Box.Syntax.Expr.Type;
 import Box.Syntax.Expr.UnKnown;
 import Box.Syntax.Expr.Unary;
@@ -98,6 +102,27 @@ import Box.Token.TokenType;
 
 public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
+	public class KnotMap<refrence, expression> {
+		ArrayList<refrence> ref = new ArrayList<refrence>();
+		ArrayList<expression> expr = new ArrayList<expression>();
+
+		public void put(refrence lexeme, expression expression) {
+			ref.add(lexeme);
+			expr.add(expression);
+		}
+
+		public refrence getRef(int i) {
+
+			return ref.get(i);
+		}
+
+		public expression getExpr(int i) {
+
+			return expr.get(i);
+		}
+
+	}
+
 	public Environment globals = new Environment();
 	private Environment environment = globals;
 	private Map<Expr, Integer> locals = new HashMap<>();
@@ -134,10 +159,14 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	}
 
-	public void interpret(List<Stmt> statements) {
+	public void interpret(List<List<Stmt>> statementList) {
 		try {
-			for (Stmt stmt : statements) {
-				execute(stmt);
+			for (List<Stmt> statements : statementList) {
+
+				for (Stmt stmt : statements) {
+					execute(stmt);
+				}
+
 			}
 		} catch (RuntimeError e) {
 			Box.runtimeError(e);
@@ -1747,7 +1776,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	@Override
 	public Object visitYranuExpr(Yranu expr) {
-		Object right = evaluate(expr.right);
+		Object right = evaluate(expr.left);
 
 		switch (expr.operator.type) {
 		case QMARK:
@@ -1769,80 +1798,80 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 		case PLUSPLUS:
 			if (right instanceof Double) {
-				Integer distance = locals.get(expr.right);
+				Integer distance = locals.get(expr.left);
 				double value = (double) right + 1.0;
-				if (expr.right instanceof Expr.Variable) {
+				if (expr.left instanceof Expr.Variable) {
 					if (distance != null) {
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
-								value, this);
+						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Expr.Literal(value), value,
+								this);
 					} else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
+				if (expr.left instanceof Expr.Elbairav) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Laretil(value), value,
+						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Laretil(value), value,
 								this);
 					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(value), value, this);
+						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(value), value, this);
 				}
 
 				return (double) right + 1.0;
 			}
 			if (right instanceof Integer) {
-				Integer distance = locals.get(expr.right);
+				Integer distance = locals.get(expr.left);
 				int value = (int) right + 1;
-				if (expr.right instanceof Expr.Variable) {
+				if (expr.left instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
-								value, this);
+						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Expr.Literal(value), value,
+								this);
 					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
+				if (expr.left instanceof Expr.Elbairav) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Expr.Laretil(value),
-								value, this);
+						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Expr.Laretil(value), value,
+								this);
 					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Expr.Laretil(value), value, this);
+						globals.assign(((Expr.Elbairav) expr.left).name, new Expr.Laretil(value), value, this);
 				}
 				return value;
 			}
 			if (right instanceof Bin) {
-				Integer distance = locals.get(expr.right);
+				Integer distance = locals.get(expr.left);
 				Bin value = Bin.add((Bin) right, new Bin("1"));
-				if (expr.right instanceof Expr.Variable) {
+				if (expr.left instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Literal(value), value,
 								this);
 					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
+				if (expr.left instanceof Expr.Elbairav) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Expr.Laretil(value),
-								value, this);
+						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Expr.Laretil(value), value,
+								this);
 					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Expr.Laretil(value), value, this);
+						globals.assign(((Expr.Elbairav) expr.left).name, new Expr.Laretil(value), value, this);
 				}
 				return value;
 			}
 			if (right instanceof ArrayList) {
 				Object findRootForPlusPlus = findRootForPlusPlus(right);
-				Integer distance = locals.get(expr.right);
-				if (expr.right instanceof Expr.Variable) {
+				Integer distance = locals.get(expr.left);
+				if (expr.left instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
+						environment.assignAt(distance, ((Expr.Variable) expr.left).name,
 								new Expr.Literal(findRootForPlusPlus), findRootForPlusPlus, this);
 					else
-						globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
+						globals.assign(((Expr.Variable) expr.left).name, new Expr.Literal(findRootForPlusPlus),
 								findRootForPlusPlus, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
+				if (expr.left instanceof Expr.Elbairav) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name,
+						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name,
 								new Expr.Laretil(findRootForPlusPlus), findRootForPlusPlus, this);
 					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Expr.Laretil(findRootForPlusPlus),
+						globals.assign(((Expr.Elbairav) expr.left).name, new Expr.Laretil(findRootForPlusPlus),
 								findRootForPlusPlus, this);
 				}
 				return findRootForPlusPlus;
@@ -1851,79 +1880,79 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			throw new RuntimeError(expr.operator, "Operand must be a number.");
 		case MINUSMINUS:
 			if (right instanceof Double) {
-				Integer distance = locals.get(expr.right);
+				Integer distance = locals.get(expr.left);
 				double value = (double) right - 1.0;
-				if (expr.right instanceof Expr.Variable) {
+				if (expr.left instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Literal(value), value,
 								this);
 					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
+				if (expr.left instanceof Expr.Elbairav) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Laretil(value), value,
+						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Laretil(value), value,
 								this);
 					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(value), value, this);
+						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(value), value, this);
 				}
 				return value;
 			}
 			if (right instanceof Integer) {
-				Integer distance = locals.get(expr.right);
+				Integer distance = locals.get(expr.left);
 				int value = (int) right - 1;
-				if (expr.right instanceof Expr.Variable) {
+				if (expr.left instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Literal(value), value,
 								this);
 					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
+				if (expr.left instanceof Expr.Elbairav) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Laretil(value), value,
+						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Laretil(value), value,
 								this);
 					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(value), value, this);
+						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(value), value, this);
 				}
 				return value;
 			}
 			if (right instanceof Bin) {
-				Integer distance = locals.get(expr.right);
+				Integer distance = locals.get(expr.left);
 				Bin value = Bin.subtract((Bin) right, new Bin("1"));
-				if (expr.right instanceof Expr.Variable) {
+				if (expr.left instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Literal(value), value,
 								this);
 					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
+				if (expr.left instanceof Expr.Elbairav) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Laretil(value), value,
+						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Laretil(value), value,
 								this);
 					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(value), value, this);
+						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(value), value, this);
 				}
 				return value;
 			}
 			if (right instanceof ArrayList) {
 				Object findRootForMinusMinus = findRootForMinusMinus(right);
-				Integer distance = locals.get(expr.right);
-				if (expr.right instanceof Expr.Variable) {
+				Integer distance = locals.get(expr.left);
+				if (expr.left instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
+						environment.assignAt(distance, ((Expr.Variable) expr.left).name,
 								new Literal(findRootForMinusMinus), findRootForMinusMinus, this);
 					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(findRootForMinusMinus),
+						globals.assign(((Expr.Variable) expr.left).name, new Literal(findRootForMinusMinus),
 								findRootForMinusMinus, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
+				if (expr.left instanceof Expr.Elbairav) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name,
+						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name,
 								new Laretil(findRootForMinusMinus), findRootForMinusMinus, this);
 					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(findRootForMinusMinus),
+						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(findRootForMinusMinus),
 								findRootForMinusMinus, this);
 				}
 				return findRootForMinusMinus;
@@ -2502,55 +2531,55 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	@Override
 	public Object visitPupExpr(Pup expr) {
-		System.out.println("built Pup");
+//		System.out.println("built Pup");
 		return runContainer(expr);
 	}
 
 	@Override
 	public Object visitCocketExpr(Cocket expr) {
-		System.out.println("built Cocket");
+//		System.out.println("built Cocket");
 		return runContainer(expr);
 	}
 
 	@Override
 	public Object visitLocketExpr(Locket expr) {
-		System.out.println("built Locket");
+//		System.out.println("built Locket");
 		return runContainer(expr);
 	}
 
 	@Override
 	public Object visitLupExpr(Lup expr) {
-		System.out.println("built Lup");
+//		System.out.println("built Lup");
 		return runContainer(expr);
 	}
 
 	@Override
 	public Object visitLilExpr(Lil expr) {
-		System.out.println("built Lil");
+//		System.out.println("built Lil");
 		return runContainer(expr);
 	}
 
 	@Override
 	public Object visitPidExpr(Pid expr) {
-		System.out.println("built Pid");
+//		System.out.println("built Pid");
 		return runContainer(expr);
 	}
 
 	@Override
 	public Object visitCidExpr(Cid expr) {
-		System.out.println("built Cid");
+//		System.out.println("built Cid");
 		return runContainer(expr);
 	}
 
 	@Override
 	public Object visitCupExpr(Cup stmt) {
-		System.out.println("built Cup");
+//		System.out.println("built Cup");
 		return runContainer(stmt);
 	}
 
 	@Override
 	public Object visitPocketExpr(Pocket stmt) {
-		System.out.println("built Pocket");
+//		System.out.println("built Pocket");
 		return runContainer(stmt);
 	}
 
@@ -3211,7 +3240,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	@Override
 	public Object visitBoxxExpr(Boxx stmt) {
-
+		System.out.println("built Box");
 		return buildBoxClass(stmt);
 	}
 
@@ -3309,6 +3338,93 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		}
 	}
 
+	private void buildTonkClass(Tonk stmt) {
+		Token theName = new Token(TokenType.IDENTIFIER, stmt.identifier.lexeme, null, null, null, -1, -1, -1, -1);
+		theName.lexeme = "Tonk_" + theName.lexeme;
+		Token theEman = new Token(TokenType.IDENTIFIER, stmt.reifitnedi.lexeme, null, null, null, -1, -1, -1, -1);
+		theEman.lexeme = theEman.lexeme + "_Tonk";
+
+		Variable theNameVariable = new Expr.Variable(theName);
+		Elbairav theNameElbairav = new Expr.Elbairav(theName);
+		Variable theEmanVariable = new Expr.Variable(theEman);
+		Elbairav theEmanElbairav = new Expr.Elbairav(theEman);
+
+		if (lookUpVariable(theName, theNameVariable) == null || lookUpVariable(theName, theNameElbairav) == null
+				|| lookUpVariable(theEman, theEmanVariable) == null
+				|| lookUpVariable(theEman, theEmanElbairav) == null) {
+
+			Token type = new Token(TokenType.KNOTCONTAINER, "", null, null, null, -1, -1, -1, -1);
+			environment.define(theName.lexeme + "_Tonk_Definition", type, null);
+			environment.define(theEman.lexeme + "_Tonk_Definition", type, null);
+
+			ArrayList<Object> boxPrimarys = new ArrayList<Object>();
+			for (int i = 0; i < stmt.expression.size(); i++) {
+				if (stmt.expression.get(i) instanceof Stmt.Expression) {
+					if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Boxx) {
+						Object boxInstance = lookUpVariable(
+								((Expr.Boxx) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
+								new Expr.Variable(((Expr.Boxx) ((Stmt.Expression) stmt.expression
+										.get(i)).expression).identifier));
+						boxPrimarys.add(boxInstance);
+					} else if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Cup) {
+						Object cupInstance = lookUpVariable(
+								((Expr.Cup) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
+								new Expr.Variable(
+										((Expr.Cup) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier));
+						boxPrimarys.add(cupInstance);
+					} else if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Pocket) {
+						Object pocketInstance = lookUpVariable(
+								((Expr.Pocket) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
+								new Expr.Variable(((Expr.Pocket) ((Stmt.Expression) stmt.expression
+										.get(i)).expression).identifier));
+						boxPrimarys.add(pocketInstance);
+					} else {
+						boxPrimarys.add((Stmt.Expression) stmt.expression.get(i));
+					}
+				} else if (stmt.expression.get(i) instanceof Stmt.Noisserpxe) {
+					if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Boxx) {
+						Object boxInstance = lookUpVariable(
+								((Expr.Boxx) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
+								new Expr.Variable(((Expr.Boxx) ((Stmt.Noisserpxe) stmt.expression
+										.get(i)).noisserpex).identifier));
+						boxPrimarys.add(boxInstance);
+					} else if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Cup) {
+						Object cupInstance = lookUpVariable(
+								((Expr.Cup) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
+								new Expr.Variable(
+										((Expr.Cup) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier));
+						boxPrimarys.add(cupInstance);
+					} else if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Pocket) {
+						Object pocketInstance = lookUpVariable(
+								((Expr.Pocket) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
+								new Expr.Variable(((Expr.Pocket) ((Stmt.Noisserpxe) stmt.expression
+										.get(i)).noisserpex).identifier));
+						boxPrimarys.add(pocketInstance);
+					} else {
+						boxPrimarys.add((Stmt.Noisserpxe) stmt.expression.get(i));
+					}
+				} else {
+					boxPrimarys.add(stmt.expression.get(i));
+				}
+			}
+
+			BoxKnotClass boxKnotClass = new BoxKnotClass(theName.lexeme, boxPrimarys, TokenType.BOXCONTAINER, false,
+					new TypesOfObject(type, RunTimeTypes.getTypeBasedOfToken(type), null));
+
+			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Tonk_Definition", null, null,
+					null, theName.column, theName.line, theName.start, theName.finish);
+			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Tonk_Definition", null, null,
+					null, theName.column, theName.line, theName.start, theName.finish);
+			environment.assign(containerDefinitionName, type, boxKnotClass);
+			environment.assign(containerDefinitionEman, type, boxKnotClass);
+			Object instance = boxKnotClass.call(this, null);
+
+			environment.define(theName.lexeme, type, instance);
+			environment.define(theEman.lexeme, type, instance);
+
+		}
+	}
+
 	@SuppressWarnings("finally")
 	public Object executeKnotThirdTry(Knot knotStatement, List<Stmt> statements, Environment env) {
 		Environment previous = this.environment;
@@ -3316,21 +3432,370 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		tracker.loadStatements(statements);
 		buildKnotClass(knotStatement);
 		ArrayList<Object> evaluated = new ArrayList<Object>();
-		try {
+		KnotMap<String, Expr> knotProgram = new KnotMap<String, Expr>();
+
+		KnotMap<String, String> eOrder = new KnotMap<String, String>();
+		buildEOrderKnot(eOrder, knotStatement);
+		buildKnotMap(knotProgram, knotStatement);
+
+		KnotProgram kntPgrm = new KnotProgram(eOrder, knotProgram);
+		Expr expr = kntPgrm.getExpression();
+
+		knotForward(knotProgram, eOrder, kntPgrm, expr);
+		try
+
+		{
 			this.environment = env;
-			for (Stmt cupsAndPockets : knotStatement.expression) {
-				if (cupsAndPockets instanceof Stmt.Expression) {
-					evaluate(((Stmt.Expression) cupsAndPockets).expression);
-				} else if (cupsAndPockets instanceof Stmt.Noisserpxe) {
-					evaluate(((Stmt.Noisserpxe) cupsAndPockets).noisserpex);
-				}
-			}
+
+
 
 		} finally {
 			this.environment = previous;
 			tracker.remove();
 			return evaluated;
 		}
+	}
+
+	@SuppressWarnings("finally")
+	public Object executeTonkThirdTry(Tonk tonkStatement, List<Stmt> statements, Environment env) {
+		Environment previous = this.environment;
+		tracker.add(new KnotStack());
+		tracker.loadStatements(statements);
+		buildTonkClass(tonkStatement);
+		ArrayList<Object> evaluated = new ArrayList<Object>();
+
+		try
+
+		{
+			this.environment = env;
+
+		} finally {
+			this.environment = previous;
+			tracker.remove();
+			return evaluated;
+		}
+	}
+
+	private void knotForward(KnotMap<String, Expr> knotProgram, KnotMap<String, String> eOrder, KnotProgram kntPgrm,
+			Expr expr) {
+
+		while (kntPgrm.getLoopIndex() < kntPgrm.getLoopInd1exSize()) {
+			if (expr instanceof Expr.CupOpenLeft) {
+				if(kntPgrm.getLoopIndex()+1<kntPgrm.getLoopInd1exSize()) {
+
+					if(((Expr.CupOpenLeft)expr).Literal.reifitnediToken.lexeme.equals(eOrder.getExpr(kntPgrm.getLoopIndex()))) {
+						kntPgrm.IncrementLoopIndex();
+						for (int i = 0; i < knotProgram.expr.size(); i++) {
+							
+							if(knotProgram.getRef(i).equals(eOrder.getExpr(kntPgrm.getLoopIndex()))) {
+								kntPgrm.setProgramIndex(i);
+								kntPgrm.IncrementLoopIndex();
+								break;
+							}
+							
+						}
+					} else {
+						kntPgrm.incrementProgramIndex();
+						
+					}
+				}
+				
+			} else {
+				kntPgrm.incrementProgramIndex();
+				
+			}
+			evaluate(expr);
+			expr = kntPgrm.getExpression();
+		}
+		
+		evaluate(expr);
+		
+	}
+
+	
+	public class KnotProgram {
+
+		private KnotMap<String, String> eOrder;
+		private KnotMap<String, Expr> knotProgram;
+		Integer programIndex = 0;
+		Integer loopIndex = 0;
+		String startLoopToken = null;
+		String endLoopToken = null;
+
+		public KnotProgram(KnotMap<String, String> eOrder, KnotMap<String, Expr> knotProgram) {
+			this.eOrder = eOrder;
+			this.knotProgram = knotProgram;
+			
+				startLoopToken = eOrder.getRef(0);
+
+			
+				endLoopToken = eOrder.getExpr(0);
+
+		}
+
+		public void decrementProgramIndex() {
+			programIndex--;
+		}
+
+		public int getLoopInd1exSize() {
+
+			return eOrder.ref.size();
+		}
+
+		public String getEndLoopToken() {
+
+			return endLoopToken;
+		}
+
+		public void setProgramIndex(Integer valueOf) {
+			programIndex = valueOf;
+		}
+
+		public String getStartLoopToken() {
+
+			return startLoopToken;
+		}
+
+		public void setEndLoopToken(String expr) {
+			endLoopToken = expr;
+		}
+
+		public void setStartLoopToken(String ref) {
+			startLoopToken = ref;
+		}
+
+		public Integer getLoopIndex() {
+
+			return loopIndex;
+		}
+
+		public void IncrementLoopIndex() {
+			loopIndex++;
+			;
+		}
+
+		public Expr getExpression() {
+			Expr expr = knotProgram.getExpr(programIndex.intValue());
+			return expr;
+		}
+
+		public void incrementProgramIndex() {
+			programIndex++;
+		}
+
+	}
+
+	private void buildEOrderKnot(KnotMap<String, String> eOrder, Knot knotStatement) {
+		int count = 0;
+		Stmt stmt = knotStatement.expression.get(count);
+		while (count < knotStatement.expression.size()) {
+
+			if (stmt instanceof Stmt.Expression) {
+				if (((Stmt.Expression) stmt).expression instanceof Expr.CupOpenLeft) {
+					String start = ((Expr.CupOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme;
+					StringBuilder str = new StringBuilder(start);
+					StringBuilder reverseStr = str.reverse();
+
+					for (int j = knotStatement.expression.size() - 1; j >= 0; j--) {
+						Stmt finishStmt = knotStatement.expression.get(j);
+						if (((Stmt.Expression) finishStmt).expression instanceof Expr.CupOpenRight) {
+							String finish = ((Expr.CupOpenRight) ((Stmt.Expression) finishStmt).expression).Literal.identifierToken.lexeme;
+							if (finish.equals(reverseStr.toString())) {
+								int jCount = j + 1;
+								boolean match = false;
+								while (!match && jCount <= knotStatement.expression.size() - 1) {
+
+									if (((Stmt.Expression) knotStatement.expression
+											.get(jCount)).expression instanceof Expr.CupOpenRight) {
+										finish = ((Expr.CupOpenRight) ((Stmt.Expression) knotStatement.expression
+												.get(jCount)).expression).Literal.identifierToken.lexeme;
+										if (!finish.equals(reverseStr.toString())) {
+											stmt = ((Stmt.Expression) knotStatement.expression.get(jCount));
+											eOrder.put(start, finish);
+											match = true;
+										}
+									}
+									jCount++;
+								}
+
+								break;
+
+							}
+						}
+					}
+					count++;
+				} else if (((Stmt.Expression) stmt).expression instanceof Expr.CupOpenRight) {
+					String start = ((Expr.CupOpenRight) ((Stmt.Expression) stmt).expression).Literal.identifierToken.lexeme;
+					StringBuilder str = new StringBuilder(start);
+					StringBuilder reverseStr = str.reverse();
+					for (int j = 0; j < knotStatement.expression.size(); j++) {
+						Stmt finishStmt = knotStatement.expression.get(j);
+						if (((Stmt.Expression) finishStmt).expression instanceof Expr.CupOpenLeft) {
+							String fin = ((Expr.CupOpenLeft) ((Stmt.Expression) finishStmt).expression).Literal.reifitnediToken.lexeme;
+							if (fin.equals(reverseStr.toString())) {
+								stmt = finishStmt;
+								eOrder.put(start, fin);
+								break;
+							}
+						}
+					}
+					count++;
+				} else {
+					count++;
+					stmt = knotStatement.expression.get(count);
+				}
+			}
+		}
+
+		eOrder.put(((Expr.CupOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme,
+				eOrder.getRef(0));
+	}
+
+	private void buildEOrderTonk(KnotMap<Token, Token> eOrder, Tonk knotStatement) {
+		int count = 0;
+		Stmt stmt = knotStatement.expression.get(count);
+		while (count < knotStatement.expression.size()) {
+
+			if (stmt instanceof Stmt.Noisserpxe) {
+				if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.CupOpenLeft) {
+					String start = ((Expr.CupOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.reifitnediToken.lexeme;
+					StringBuilder str = new StringBuilder(start);
+					StringBuilder reverseStr = str.reverse();
+
+					for (int j = knotStatement.expression.size() - 1; j >= 0; j--) {
+						Stmt finishStmt = knotStatement.expression.get(j);
+						if (((Stmt.Noisserpxe) finishStmt).noisserpex instanceof Expr.CupOpenRight) {
+							String finish = ((Expr.CupOpenRight) ((Stmt.Noisserpxe) finishStmt).noisserpex).Literal.identifierToken.lexeme;
+							if (finish.equals(reverseStr.toString())) {
+								int jCount = j + 1;
+								boolean match = false;
+								while (!match && jCount <= knotStatement.expression.size() - 1) {
+
+									if (((Stmt.Noisserpxe) knotStatement.expression
+											.get(jCount)).noisserpex instanceof Expr.CupOpenRight) {
+										finish = ((Expr.CupOpenRight) ((Stmt.Noisserpxe) knotStatement.expression
+												.get(jCount)).noisserpex).Literal.identifierToken.lexeme;
+										if (!finish.equals(reverseStr.toString())) {
+											eOrder.put(((Expr.CupOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal,
+													((Expr.CupOpenRight) ((Stmt.Noisserpxe) knotStatement.expression
+															.get(jCount)).noisserpex).Literal);
+											stmt = ((Stmt.Noisserpxe) knotStatement.expression.get(jCount));
+											match = true;
+										}
+									}
+									jCount++;
+								}
+
+								break;
+
+							}
+						}
+					}
+					count++;
+				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.CupOpenRight) {
+					String start = ((Expr.CupOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.identifierToken.lexeme;
+					StringBuilder str = new StringBuilder(start);
+					StringBuilder reverseStr = str.reverse();
+					for (int j = 0; j < knotStatement.expression.size(); j++) {
+						Stmt finishStmt = knotStatement.expression.get(j);
+						if (((Stmt.Noisserpxe) finishStmt).noisserpex instanceof Expr.CupOpenLeft) {
+							String fin = ((Expr.CupOpenLeft) ((Stmt.Noisserpxe) finishStmt).noisserpex).Literal.reifitnediToken.lexeme;
+							if (fin.equals(reverseStr.toString())) {
+								eOrder.put(((Expr.CupOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal,
+										((Expr.CupOpenLeft) ((Stmt.Noisserpxe) finishStmt).noisserpex).Literal);
+								stmt = finishStmt;
+								break;
+							}
+						}
+					}
+					count++;
+				} else {
+					count++;
+					stmt = knotStatement.expression.get(count);
+				}
+			}
+		}
+
+		eOrder.put(((Expr.CupOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal, eOrder.getRef(0));
+
+	}
+
+	private void buildKnotMap(KnotMap<String, Expr> knotProgram, Knot knotStatement) {
+		BigInteger count = BigInteger.ZERO;
+		for (int i = 0; i < knotStatement.expression.size(); i++) {
+			Stmt stmt = knotStatement.expression.get(i);
+
+			if (stmt instanceof Stmt.Expression) {
+				if (((Stmt.Expression) stmt).expression instanceof Expr.CupOpenLeft) {
+					knotProgram.put(
+							((Expr.CupOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme,
+							((Stmt.Expression) stmt).expression);
+				} else if (((Stmt.Expression) stmt).expression instanceof Expr.CupOpenRight) {
+					knotProgram.put(
+							((Expr.CupOpenRight) ((Stmt.Expression) stmt).expression).Literal.identifierToken.lexeme,
+							((Stmt.Expression) stmt).expression);
+				} else if (((Stmt.Expression) stmt).expression instanceof Expr.PocketOpenLeft) {
+					knotProgram.put(
+							((Expr.PocketOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme,
+							((Stmt.Expression) stmt).expression);
+				} else if (((Stmt.Expression) stmt).expression instanceof Expr.PocketOpenRight) {
+					knotProgram.put(
+							((Expr.PocketOpenRight) ((Stmt.Expression) stmt).expression).Literal.identifierToken.lexeme,
+							((Stmt.Expression) stmt).expression);
+				} else if (((Stmt.Expression) stmt).expression instanceof Expr.BoxOpenLeft) {
+					knotProgram.put(
+							((Expr.BoxOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme,
+							((Stmt.Expression) stmt).expression);
+				} else if (((Stmt.Expression) stmt).expression instanceof Expr.BoxOpenRight) {
+					knotProgram.put(
+							((Expr.BoxOpenRight) ((Stmt.Expression) stmt).expression).Literal.identifierToken.lexeme,
+							((Stmt.Expression) stmt).expression);
+				} else {
+					knotProgram.put(count + "", ((Stmt.Expression) stmt).expression);
+					count.add(BigInteger.ONE);
+				}
+			}
+		}
+
+	}
+
+	private void buildTonkMap(KnotMap<String, Expr> tonkProgram, Tonk tonkStatement) {
+		BigInteger count = BigInteger.ZERO;
+		for (int i = 0; i < tonkStatement.expression.size(); i++) {
+			Stmt stmt = tonkStatement.expression.get(i);
+
+			if (stmt instanceof Stmt.Noisserpxe) {
+				if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.CupOpenLeft) {
+					tonkProgram.put(
+							((Expr.CupOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.reifitnediToken.lexeme,
+							((Stmt.Noisserpxe) stmt).noisserpex);
+				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.CupOpenRight) {
+					tonkProgram.put(
+							((Expr.CupOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.identifierToken.lexeme,
+							((Stmt.Noisserpxe) stmt).noisserpex);
+				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.PocketOpenLeft) {
+					tonkProgram.put(
+							((Expr.PocketOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.reifitnediToken.lexeme,
+							((Stmt.Noisserpxe) stmt).noisserpex);
+				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.PocketOpenRight) {
+					tonkProgram.put(
+							((Expr.PocketOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.identifierToken.lexeme,
+							((Stmt.Noisserpxe) stmt).noisserpex);
+				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.BoxOpenLeft) {
+					tonkProgram.put(
+							((Expr.BoxOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.reifitnediToken.lexeme,
+							((Stmt.Noisserpxe) stmt).noisserpex);
+				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.BoxOpenRight) {
+					tonkProgram.put(
+							((Expr.BoxOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.identifierToken.lexeme,
+							((Stmt.Noisserpxe) stmt).noisserpex);
+				} else {
+					tonkProgram.put(count + "", ((Stmt.Noisserpxe) stmt).noisserpex);
+					count.add(BigInteger.ONE);
+				}
+			}
+		}
+
 	}
 
 	@SuppressWarnings("finally")
@@ -3921,7 +4386,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	@Override
 	public Object visitCupOpenRightExpr(CupOpenRight expr) {
-
+		System.out.println("CupOpenRight " + expr.Literal.lexeme);
 		return null;
 
 	}
@@ -3933,32 +4398,32 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	@Override
 	public Object visitCupOpenLeftExpr(CupOpenLeft expr) {
-
+		System.out.println("CupOpenLeft " + expr.Literal.lexeme);
 		return null;
 	}
 
 	@Override
 	public Object visitPocketOpenRightExpr(PocketOpenRight expr) {
-
+		System.out.println("PocketOpenRight " + expr.Literal.lexeme);
 		return null;
 
 	}
 
 	@Override
 	public Object visitPocketOpenLeftExpr(PocketOpenLeft expr) {
-
+		System.out.println("PocketOpenLeft " + expr.Literal.lexeme);
 		return null;
 	}
 
 	@Override
 	public Object visitBoxOpenRightExpr(BoxOpenRight expr) {
-
+		System.out.println("BoxOpenRight " + expr.Literal.lexeme);
 		return null;
 	}
 
 	@Override
 	public Object visitBoxOpenLeftExpr(BoxOpenLeft expr) {
-
+		System.out.println("BoxOpenLeft " + expr.Literal.lexeme);
 		return null;
 	}
 
@@ -4572,6 +5037,12 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	public Void visitVarFBStmt(VarFB stmt) {
 
 		return null;
+	}
+
+	@Override
+	public Object visitTonkExpr(Tonk expr) {
+
+		return executeTonkThirdTry(expr, expr.expression, new Environment(environment));
 	}
 
 }

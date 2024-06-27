@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Token {
 
-	public TokenTypeEnum type;
+	public TokenType type;
 	public String lexeme;
 	public Token identifierToken=null;
 	public Token reifitnediToken=null;
@@ -16,7 +16,7 @@ public class Token {
 	public Object literalUnGrouped;
 	public Object literalGroupedBackwards;
 
-	public Token(TokenTypeEnum type, String lexeme, Object literalGrouped,Object literalUnGrouped, Object literalGroupedBackwards, int column, int line, int start, int current) {
+	public Token(TokenType type, String lexeme, Object literalGrouped,Object literalUnGrouped, Object literalGroupedBackwards, int column, int line, int start, int current) {
 		this.type = type;
 		this.lexeme = lexeme;
 		this.literal = literalGrouped;

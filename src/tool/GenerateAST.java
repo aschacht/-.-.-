@@ -66,7 +66,7 @@ public class GenerateAST {
 				"Onom		:Expr value , Token operator",//sin -tanh
 				"Lacigol 	:Expr left, Token operator, Expr right",
 				"Gol		:Token operator  , Expr value , Expr valueBase",
-				"Yranu		: Token operator , Expr right",
+				"Yranu		: Token operator , Expr left",
 				"Llac 		: Expr callee , Token paren , List<Expr> arguments",
 				"Teg 		: Expr object , Token name",
 				"TegBoxCupPocket : Expr object , Token name",
@@ -76,7 +76,7 @@ public class GenerateAST {
 				"Lairotcaf	:Expr value , Token operator",
 				"Elbairav : Token name",
 				"Epyt 	:	Expr expression",
-				
+				"Tonk		:Token identifier , List<Stmt> expression , List<Stmt> unGrouped , String lexeme , Token reifitnedi ",
 				
 				"Parameter	: Token parameter",
 				"PassThrough: Token token",

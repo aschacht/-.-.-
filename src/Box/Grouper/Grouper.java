@@ -28,12 +28,20 @@ public class Grouper {
 	ArrayList<BigInteger> identifiers = new ArrayList<BigInteger>();
 	ArrayList<BigInteger> identifiers2 = new ArrayList<BigInteger>();
 
+	private BigInteger resultCont;
+
 	public Grouper(ArrayList<Token> tokens) {
 		this.tokens = tokens;
+
+		Random randCont = new Random();
+		BigInteger upperLimitCont = new BigInteger("999999999");
+		resultCont = new BigInteger(upperLimitCont.bitLength(), randCont);
+
 		int count = countUpOpenBoxes(tokens) + countUpClosedBoxes(tokens) + countUpOpenCups(tokens)
 				+ countUpClosedCups(tokens) + countUpOpenPockets(tokens) + countUpClosedPockets(tokens);
 		count = count * 10;
 		if (anyUndamedOpenOrClosed())
+
 			for (int i = 0; i < count; i++) {
 
 				Random rand = new Random();
@@ -66,210 +74,255 @@ public class Grouper {
 
 	public ArrayList<Token> scanTokensSecondPass() {
 
-		Double runningTotal = 0.0;
-		Double initialTime = (double) System.currentTimeMillis() / 1000.0;
 		matchIdentifiersToOpenClosedParenBraceSquare(tokens);
-		Double finalTime = (double) System.currentTimeMillis() / 1000.0;
-		Double totalTime = (finalTime - initialTime);
-		runningTotal += totalTime;
-		System.out.println("	time to run matchIdentifiersToOpenClosedParenBraceSquare " + totalTime);
 
-		initialTime = (double) System.currentTimeMillis() / 1000.0;
 		renameUnnamedTempLids(tokens);
-		finalTime = (double) System.currentTimeMillis() / 1000.0;
-		totalTime = (finalTime - initialTime);
-		runningTotal += totalTime;
-		System.out.println("	time to run renameUnnamedTempLids " + totalTime);
 
-		initialTime = (double) System.currentTimeMillis() / 1000.0;
 		splitNamedTempLids(tokens);
-		finalTime = (double) System.currentTimeMillis() / 1000.0;
-		totalTime = (finalTime - initialTime);
-		runningTotal += totalTime;
-		System.out.println("	time to run splitNamedTempLids " + totalTime);
 
-		initialTime = (double) System.currentTimeMillis() / 1000.0;
 		removeSpaces(tokens);
-		finalTime = (double) System.currentTimeMillis() / 1000.0;
-		totalTime = (finalTime - initialTime);
-		runningTotal += totalTime;
-		System.out.println("	time to run removeSpaces " + totalTime);
 
-		initialTime = (double) System.currentTimeMillis() / 1000.0;
 		findgroupingBox(tokens);
-		finalTime = (double) System.currentTimeMillis() / 1000.0;
-		totalTime = (finalTime - initialTime);
-		runningTotal += totalTime;
-		System.out.println("	time to run findgroupingBox " + totalTime);
 
-		initialTime = (double) System.currentTimeMillis() / 1000.0;
 		findKnotsSecondAttempt(0, tokens.size() - 1, tokens);
-		finalTime = (double) System.currentTimeMillis() / 1000.0;
-		totalTime = (finalTime - initialTime);
-		runningTotal += totalTime;
-		System.out.println("	time to run findKnotsSecondAttempt " + totalTime);
-		System.out.println("running Total for Grouper " + runningTotal);
-
-		initialTime = (double) System.currentTimeMillis() / 1000.0;
 
 		fixSuperclasses(tokens);
-		finalTime = (double) System.currentTimeMillis() / 1000.0;
-		totalTime = (finalTime - initialTime);
-		runningTotal += totalTime;
-		System.out.println("	time to run fixSuperclasses " + totalTime);
 
-		tokens.add(new Token(TokenType.EOF, "", null, null, null, tokens.get(tokens.size() - 1).column + 1,
-				tokens.get(tokens.size() - 1).line, tokens.get(tokens.size() - 1).start + 1,
-				tokens.get(tokens.size() - 1).finish + 1));
-
+		if (tokens.size() > 0) {
+			tokens.add(new Token(TokenType.EOF, "", null, null, null, tokens.get(tokens.size() - 1).column + 1,
+					tokens.get(tokens.size() - 1).line, tokens.get(tokens.size() - 1).start + 1,
+					tokens.get(tokens.size() - 1).finish + 1));
+		}
 		return tokens;
 	}
 
+	private void findCompositContainers(int start, int finish, ArrayList<Token> tokes) {
+
+		int i = start;
+		int j = i + 1;
+		boolean isOpen = false;
+		boolean isClosed = false;
+		while (i >= start && i <= finish) {
+			int k = i;
+
+			for (; k <= tokes.size() - 1; k++) {
+
+				if (isOpenIncludesTempLid(tokes.get(k))) {
+					isOpen = true;
+
+				}
+
+				if (isClosedIncludesTemplid(tokes.get(k))) {
+					isClosed = true;
+					break;
+
+				}
+				if (k == finish)
+					break;
+
+			}
+			j = k;
+			if (j <= tokes.size() - 1) {
+
+				if (tokes.get(i).identifierToken == null && tokes.get(j).reifitnediToken == null) {
+					StringBuilder input1 = new StringBuilder();
+					String input = resultCont + "_Container";
+					Token identifier = new Token(TokenType.IDENTIFIER, input, null, null, null, 0, 0, 0, 0);
+					tokes.get(i).identifierToken = identifier;
+					tokes.get(i).lexeme = input + tokes.get(i).lexeme;
+
+					input1.append(input);
+					input1.reverse();
+
+					Token reifitnedi = new Token(TokenType.IDENTIFIER, input1.toString(), null, null, null, 0, 0, 0, 0);
+					tokes.get(j).reifitnediToken = reifitnedi;
+					tokes.get(j).lexeme = tokes.get(j).lexeme + input1.toString();
+
+				} else if (tokes.get(i).identifierToken != null && tokes.get(j).reifitnediToken == null) {
+					StringBuilder input1 = new StringBuilder();
+					String input = tokes.get(i).identifierToken.lexeme;
+
+					input1.append(input);
+					input1.reverse();
+
+					Token reifitnedi = new Token(TokenType.IDENTIFIER, input1.toString(), null, null, null, 0, 0, 0, 0);
+					tokes.get(j).reifitnediToken = reifitnedi;
+					tokes.get(j).lexeme = tokes.get(j).lexeme + input1.toString();
+
+				} else if (tokes.get(i).identifierToken == null && tokes.get(j).reifitnediToken != null) {
+					StringBuilder input1 = new StringBuilder();
+					String input = tokes.get(j).reifitnediToken.lexeme;
+					input1.append(input);
+					input1.reverse();
+					Token identifier = new Token(TokenType.IDENTIFIER, input1.toString(), null, null, null, 0, 0, 0, 0);
+					tokes.get(i).identifierToken = identifier;
+					tokes.get(i).lexeme = input1.toString() + tokes.get(i).lexeme;
+
+				}
+				i = j + 1;
+			} else {
+				i++;
+			}
+		}
+	}
+
 	private void fixSuperclasses(ArrayList<Token> tokens) {
-		
+
 		for (Token token : tokens) {
 			if (token.type == TokenType.OPENBRACE) {
-				String lexeme = token.identifierToken.lexeme;
-				String[] split = lexeme.split("_");
-				String superClassName = "";
-				String className = "";
-				if (split.length == 2) {
-					superClassName = split[1];
-					className = split[0];
-				}
-				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
-							token.column, token.line, token.start, token.finish);
-					token.identifierToken.identifierToken = superclassToken;
-					token.identifierToken.lexeme = className;
-					token.lexeme = token.identifierToken.lexeme + "{";
+				if (token.identifierToken != null) {
+					String lexeme = token.identifierToken.lexeme;
+					String[] split = lexeme.split("_");
+					String superClassName = "";
+					String className = "";
+					if (split.length == 2) {
+						superClassName = split[1];
+						className = split[0];
+					}
+					if (!superClassName.isEmpty()) {
+						Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+								token.column, token.line, token.start, token.finish);
+						token.identifierToken.identifierToken = superclassToken;
+						token.identifierToken.lexeme = className;
+						token.lexeme = token.identifierToken.lexeme + "{";
+					}
 				}
 			} else if (token.type == TokenType.OPENPAREN) {
-				String lexeme = token.identifierToken.lexeme;
-				String[] split = lexeme.split("_");
-				String superClassName = "";
-				String className = "";
-				if (split.length == 2) {
-					superClassName = split[1];
-					className = split[0];
-				}
-				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
-							token.column, token.line, token.start, token.finish);
-					token.identifierToken.identifierToken = superclassToken;
-					token.identifierToken.lexeme = className;
-					token.lexeme = token.identifierToken.lexeme + "(";
+				if (token.identifierToken != null) {
+					String lexeme = token.identifierToken.lexeme;
+					String[] split = lexeme.split("_");
+					String superClassName = "";
+					String className = "";
+					if (split.length == 2) {
+						superClassName = split[1];
+						className = split[0];
+					}
+					if (!superClassName.isEmpty()) {
+						Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+								token.column, token.line, token.start, token.finish);
+						token.identifierToken.identifierToken = superclassToken;
+						token.identifierToken.lexeme = className;
+						token.lexeme = token.identifierToken.lexeme + "(";
+					}
 				}
 			} else if (token.type == TokenType.OPENSQUARE) {
-				String lexeme = token.identifierToken.lexeme;
-				String[] split = lexeme.split("_");
-				String superClassName = "";
-				String className = "";
-				if (split.length == 2) {
-					superClassName = split[1];
-					className = split[0];
-				}
-				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
-							token.column, token.line, token.start, token.finish);
-					token.identifierToken.identifierToken = superclassToken;
-					token.identifierToken.lexeme = className;
-					token.lexeme = token.identifierToken.lexeme + "[";
+				if (token.identifierToken != null) {
+					String lexeme = token.identifierToken.lexeme;
+					String[] split = lexeme.split("_");
+					String superClassName = "";
+					String className = "";
+					if (split.length == 2) {
+						superClassName = split[1];
+						className = split[0];
+					}
+					if (!superClassName.isEmpty()) {
+						Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+								token.column, token.line, token.start, token.finish);
+						token.identifierToken.identifierToken = superclassToken;
+						token.identifierToken.lexeme = className;
+						token.lexeme = token.identifierToken.lexeme + "[";
+					}
 				}
 			} else if (token.type == TokenType.CLOSEDBRACE) {
-				String lexeme = token.reifitnediToken.lexeme;
-				String[] split = lexeme.split("_");
-				String superClassName = "";
-				String className = "";
-				if (split.length == 2) {
-					superClassName = split[0];
-					className = split[1];
-				}
-				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
-							token.column, token.line, token.start, token.finish);
-					token.reifitnediToken.reifitnediToken = superclassToken;
-					token.reifitnediToken.lexeme = className;
-					token.lexeme = "}" + token.reifitnediToken.lexeme;
+				if (token.reifitnediToken != null) {
+					String lexeme = token.reifitnediToken.lexeme;
+					String[] split = lexeme.split("_");
+					String superClassName = "";
+					String className = "";
+					if (split.length == 2) {
+						superClassName = split[0];
+						className = split[1];
+					}
+					if (!superClassName.isEmpty()) {
+						Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+								token.column, token.line, token.start, token.finish);
+						token.reifitnediToken.reifitnediToken = superclassToken;
+						token.reifitnediToken.lexeme = className;
+						token.lexeme = "}" + token.reifitnediToken.lexeme;
+					}
 				}
 			} else if (token.type == TokenType.CLOSEDPAREN) {
-				String lexeme = token.reifitnediToken.lexeme;
-				String[] split = lexeme.split("_");
-				String superClassName = "";
-				String className = "";
-				if (split.length == 2) {
-					superClassName = split[0];
-					className = split[1];
-				}
-				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
-							token.column, token.line, token.start, token.finish);
-					token.reifitnediToken.reifitnediToken = superclassToken;
-					token.reifitnediToken.lexeme = className;
-					token.lexeme = ")" + token.reifitnediToken.lexeme;
+				if (token.reifitnediToken != null) {
+					String lexeme = token.reifitnediToken.lexeme;
+					String[] split = lexeme.split("_");
+					String superClassName = "";
+					String className = "";
+					if (split.length == 2) {
+						superClassName = split[0];
+						className = split[1];
+					}
+					if (!superClassName.isEmpty()) {
+						Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+								token.column, token.line, token.start, token.finish);
+						token.reifitnediToken.reifitnediToken = superclassToken;
+						token.reifitnediToken.lexeme = className;
+						token.lexeme = ")" + token.reifitnediToken.lexeme;
+					}
 				}
 			} else if (token.type == TokenType.CLOSEDSQUARE) {
-				String lexeme = token.reifitnediToken.lexeme;
-				String[] split = lexeme.split("_");
-				String superClassName = "";
-				String className = "";
-				if (split.length == 2) {
-					superClassName = split[0];
-					className = split[1];
-				}
-				if (!superClassName.isEmpty()) {
-					Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
-							token.column, token.line, token.start, token.finish);
-					token.reifitnediToken.reifitnediToken = superclassToken;
-					token.reifitnediToken.lexeme = className;
-					token.lexeme = "]" + token.reifitnediToken.lexeme;
+				if (token.reifitnediToken != null) {
+					String lexeme = token.reifitnediToken.lexeme;
+					String[] split = lexeme.split("_");
+					String superClassName = "";
+					String className = "";
+					if (split.length == 2) {
+						superClassName = split[0];
+						className = split[1];
+					}
+					if (!superClassName.isEmpty()) {
+						Token superclassToken = new Token(TokenType.IDENTIFIER, superClassName, null, null, null,
+								token.column, token.line, token.start, token.finish);
+						token.reifitnediToken.reifitnediToken = superclassToken;
+						token.reifitnediToken.lexeme = className;
+						token.lexeme = "]" + token.reifitnediToken.lexeme;
+					}
 				}
 			} else if (token.type == TokenType.KNOTCONTAINER) {
 
 				ArrayList<Token> knotTokens = (ArrayList<Token>) token.literal;
-				
-					fixSuperclasses(knotTokens);
-					ArrayList<Token> knotTokensungrouped = (ArrayList<Token>) token.literalUnGrouped;
-					fixSuperclasses(knotTokensungrouped);
 
-					String lexemeFixed = "";
-					for (Token fixedToken : knotTokensungrouped) {
-						lexemeFixed += fixedToken.lexeme + " ";
-					}
-				
+				fixSuperclasses(knotTokens);
+				ArrayList<Token> knotTokensungrouped = (ArrayList<Token>) token.literalUnGrouped;
+				fixSuperclasses(knotTokensungrouped);
+
+				String lexemeFixed = "";
+				for (Token fixedToken : knotTokensungrouped) {
+					lexemeFixed += fixedToken.lexeme + " ";
+				}
+
 			} else if (token.type == TokenType.CUPCONTAINER) {
 
 				ArrayList<Token> cupTokens = (ArrayList<Token>) token.literal;
-				
-					fixSuperclasses(cupTokens);
-					String lexemeFixed = "";
-					for (Token fixedToken : cupTokens) {
-						lexemeFixed += fixedToken.lexeme + " ";
-					}
-					token.lexeme = lexemeFixed;
-				
+
+				fixSuperclasses(cupTokens);
+				String lexemeFixed = "";
+				for (Token fixedToken : cupTokens) {
+					lexemeFixed += fixedToken.lexeme + " ";
+				}
+				token.lexeme = lexemeFixed;
+
 			} else if (token.type == TokenType.POCKETCONTAINER) {
 
 				ArrayList<Token> pocketTokens = (ArrayList<Token>) token.literal;
-				
-					fixSuperclasses(pocketTokens);
-					String lexemeFixed = "";
-					for (Token fixedToken : pocketTokens) {
-						lexemeFixed += fixedToken.lexeme + " ";
-					}
-					token.lexeme = lexemeFixed;
-				
+
+				fixSuperclasses(pocketTokens);
+				String lexemeFixed = "";
+				for (Token fixedToken : pocketTokens) {
+					lexemeFixed += fixedToken.lexeme + " ";
+				}
+				token.lexeme = lexemeFixed;
+
 			} else if (token.type == TokenType.BOXCONTAINER) {
 
 				ArrayList<Token> boxTokens = (ArrayList<Token>) token.literal;
-				
-					fixSuperclasses(boxTokens);
-					String lexemeFixed = "";
-					for (Token fixedToken : boxTokens) {
-						lexemeFixed += fixedToken.lexeme + " ";
-					}
-					token.lexeme = lexemeFixed;
-				
+
+				fixSuperclasses(boxTokens);
+				String lexemeFixed = "";
+				for (Token fixedToken : boxTokens) {
+					lexemeFixed += fixedToken.lexeme + " ";
+				}
+				token.lexeme = lexemeFixed;
+
 			}
 		}
 	}
@@ -406,7 +459,7 @@ public class Grouper {
 			for (p = 0; p <= tokens.size() - 1; p++) {
 				for (int i = p; i <= tokens.size() - 1; i++) {
 					if (tokens.get(i).type == TokenType.IDENTIFIER) {
-						if (i == 0) {
+						if (i == 0 && tokens.size() > i + 1 && tokens.size() > 1) {
 
 							if ((tokens.get(i + 1).type == TokenType.OPENBRACE
 									|| tokens.get(i + 1).type == TokenType.OPENPAREN
@@ -416,7 +469,7 @@ public class Grouper {
 								checkIfNextTokenIsTempLid(i, tokens);
 								break;
 							}
-						} else if (i == tokens.size() - 1) {
+						} else if (i == tokens.size() - 1 && tokens.size() > 1) {
 							if ((tokens.get(i - 1).type == TokenType.CLOSEDBRACE
 									|| tokens.get(i - 1).type == TokenType.CLOSEDPAREN
 									|| tokens.get(i - 1).type == TokenType.CLOSEDSQUARE
@@ -426,21 +479,24 @@ public class Grouper {
 								break;
 							}
 						} else {
-							if ((tokens.get(i - 1).type == TokenType.CLOSEDBRACE
-									|| tokens.get(i - 1).type == TokenType.CLOSEDPAREN
-									|| tokens.get(i - 1).type == TokenType.CLOSEDSQUARE
-									|| tokens.get(i - 1).type == TokenType.TEMPLID)
+							if (tokens.size() > 1
+									&& (tokens.get(i - 1).type == TokenType.CLOSEDBRACE
+											|| tokens.get(i - 1).type == TokenType.CLOSEDPAREN
+											|| tokens.get(i - 1).type == TokenType.CLOSEDSQUARE
+											|| tokens.get(i - 1).type == TokenType.TEMPLID)
 									&& tokens.get(i - 1).reifitnediToken == null) {
 								checkIfPreviousTokenIsTempLid(i, tokens);
 								break;
 							}
-							if ((tokens.get(i + 1).type == TokenType.OPENBRACE
-									|| tokens.get(i + 1).type == TokenType.OPENPAREN
-									|| tokens.get(i + 1).type == TokenType.OPENSQUARE
-									|| tokens.get(i + 1).type == TokenType.TEMPLID)
-									&& tokens.get(i + 1).identifierToken == null) {
-								checkIfNextTokenIsTempLid(i, tokens);
-								break;
+							if (tokens.size() > i + 1 && tokens.size() > 1) {
+								if ((tokens.get(i + 1).type == TokenType.OPENBRACE
+										|| tokens.get(i + 1).type == TokenType.OPENPAREN
+										|| tokens.get(i + 1).type == TokenType.OPENSQUARE
+										|| tokens.get(i + 1).type == TokenType.TEMPLID)
+										&& tokens.get(i + 1).identifierToken == null) {
+									checkIfNextTokenIsTempLid(i, tokens);
+									break;
+								}
 							}
 
 						}
@@ -1690,8 +1746,8 @@ public class Grouper {
 					ArrayList<Token> ungroupedKnot = new ArrayList<Token>(knot);
 					ArrayList<Token> groupedBackwards = new ArrayList<Token>(knot);
 					ArrayList<String> NamesUsed = new ArrayList<String>();
-					findgroupingForward(knot, NamesUsed);
-					findgroupingBackward(groupedBackwards, NamesUsed);
+//					findgroupingForward(knot, NamesUsed);
+//					findgroupingBackward(groupedBackwards, NamesUsed);
 					String lexeme = "";
 					for (int p = i; p <= j; p++) {
 						lexeme = lexeme + " " + tokes.get(p).lexeme;

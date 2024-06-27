@@ -24,7 +24,7 @@ public class Scanner {
 	private int line = 1;
 	private int start = 0;
 	private int current = 0;
-	private static Map<String, TokenTypeEnum> keywords = new HashMap<>();
+	private static Map<String, TokenType> keywords = new HashMap<>();
 
 	public Scanner(String string) {
 		keywords.put("#HATTAG", TokenType.HATTAG);
@@ -451,7 +451,7 @@ public class Scanner {
 
 	private void checkIfKewordOrIdentifierAndAdd(ArrayList<Token> tokens) {
 		String text = source.substring(start, current);
-		TokenTypeEnum type = keywords.get(text);
+		TokenType type = keywords.get(text);
 		if (type == null) {
 			type = TokenType.IDENTIFIER;
 			addToken(type, text, tokens);
@@ -745,19 +745,19 @@ public class Scanner {
 		return true;
 	}
 
-	private void addToken(TokenTypeEnum type, ArrayList<Token> tokens) {
+	private void addToken(TokenType type, ArrayList<Token> tokens) {
 		addToken(type, null, tokens);
 
 	}
 
-	private void addToken(TokenTypeEnum type, Object literal, ArrayList<Token> tokens) {
+	private void addToken(TokenType type, Object literal, ArrayList<Token> tokens) {
 		String text = source.substring(start, current);
 
 		column = column - (current - start);
 		tokens.add(new Token(type, text, literal, null, null, column, line, start, current));
 	}
 
-	private void addToken(TokenTypeEnum type, Object literal, int theStart, int theCurrent, ArrayList<Token> tokens) {
+	private void addToken(TokenType type, Object literal, int theStart, int theCurrent, ArrayList<Token> tokens) {
 		String text = source.substring(theStart, theCurrent);
 
 		column = column - (theCurrent - theStart);
