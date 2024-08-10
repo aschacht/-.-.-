@@ -1,7 +1,5 @@
 package Box.Token;
 
-import java.util.ArrayList;
-
 public class Token {
 
 	public TokenType type;

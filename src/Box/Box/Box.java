@@ -1,9 +1,8 @@
 package Box.Box;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -27,6 +26,26 @@ public class Box extends Thread {
 	static boolean hadRuntimeError = false;
 	private static ByteArrayOutputStream baos;
 	private static Observer promptOb;
+
+	public static void main(String[] args) {
+
+		baos = new ByteArrayOutputStream();
+		PrintStream ps = new PrintStream(baos);
+		Box box = new Box(baos);
+		StringBuilder content = new StringBuilder();
+
+		try (java.util.Scanner scanner = new java.util.Scanner(new java.io.File("/home/wes/Wisper Tech 1.0/THEORY/GAMES/PBC/TEST/TEST"))) {
+			while (scanner.hasNextLine()) {
+				content.append(scanner.nextLine()).append(System.lineSeparator());
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		if (content.toString().length() > 0)
+			box.run(content.toString(), true, false);
+
+	}
 
 	public Box(ByteArrayOutputStream baos2) {
 		baos = baos2;
@@ -74,7 +93,7 @@ public class Box extends Thread {
 //				String path = args[0];
 //				String tbd = args[1];
 //				String tbd1 = args[2];
-//				boolean forward = true;
+//				boolean forward = true;box
 //				boolean backward = false;
 //				if(tbd.equals("fon")) {
 //					forward=true;
@@ -144,13 +163,13 @@ public class Box extends Thread {
 
 	public static void runPrompt() throws IOException {
 
-			System.out.flush();
-			String string = baos.toString();
-			baos.flush();
-			baos.reset();
-			if(string.length()>0)
-				promptOb.notify(string);
-			System.out.flush();
+		System.out.flush();
+		String string = baos.toString();
+		baos.flush();
+		baos.reset();
+		if (string.length() > 0)
+			promptOb.notify(string);
+		System.out.flush();
 
 	}
 
@@ -224,7 +243,7 @@ public class Box extends Thread {
 		run(string, true, false);
 		System.out.flush();
 		hadError = false;
-		
+
 	}
 
 }

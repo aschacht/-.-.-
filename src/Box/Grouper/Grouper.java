@@ -456,7 +456,7 @@ public class Grouper {
 		int p = tokens.size() - 1;
 		int OriginalSize = tokens.size();
 		while (j < OriginalSize) {
-			for (p = 0; p <= tokens.size() - 1; p++) {
+			for (p = 0; p <= tokens.size() - 1;) {
 				for (int i = p; i <= tokens.size() - 1; i++) {
 					if (tokens.get(i).type == TokenType.IDENTIFIER) {
 						if (i == 0 && tokens.size() > i + 1 && tokens.size() > 1) {

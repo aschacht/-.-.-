@@ -2577,11 +2577,21 @@ public class Parser {
 
 			return new Expr.Parameter(previous());
 		}
-		if (match(TokenType.BOXXX)) {
-
+		if (match(TokenType.KNOT)) {
+			
 			return new Expr.Parameter(previous());
 		}
-		if (match(TokenType.KNOT)) {
+
+		if (match(TokenType.BOX)) {
+			
+			return new Expr.Parameter(previous());
+		}
+		
+		
+		
+		
+		
+		if (match(TokenType.BOXXX)) {
 
 			return new Expr.Parameter(previous());
 		}

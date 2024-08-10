@@ -1,7 +1,5 @@
 package Box.math.Syntax;
 
-import java.util.List;
-import java.util.ArrayList;
 import Box.math.Token.MathToken;
 
 public abstract class Term {
