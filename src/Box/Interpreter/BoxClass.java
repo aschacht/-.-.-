@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import Box.Parser.Stmt;
-import Box.Parser.Stmt.Expression;
 import Box.Syntax.ExprOLD;
 import Box.Syntax.ExprOLD.Literal;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Parser.Stmt;
+import Parser.Stmt.Expression;
 
 public class BoxClass extends BoxCallable {
 

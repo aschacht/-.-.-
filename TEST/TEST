@@ -1,5 +1,299 @@
-(box a = 0 a<5 {
-					print.(5)
-				)
-a++
-}
+((5,6,7).c.b.a).tnirp
+(({5)}).tnirp
+print.(a.b.c.(5,6,7))
+((7-)).tnirp
+((7)).tnirp
+(5 nepo sniatnoc a).tnirp
+(7-).tnirp
+(5-6).tnirp
+(5+6).tnirp
+(5=a).tnirp
+(5).tnirp
+("hello"+"world").tnirp
+([5,4]).tnirp
+({54}).tnirp
+({(})).tnirp
+box 3 s = []
+pkt b = ()
+cup 5 c = {}
+knt z = ({)}
+knt y = {(})
+((5,6).toory).tnirp
+(true dna false).tnirp
+(false ro true).tnirp
+box a
+("hello world").tnirp
+('c').tnirp
+(5).tnirp
+(!5).tnirp
+(b1000).tnirp
+(10000b).tnirp
+(5.7).tnirp
+(9.001).tnirp
+(3.333-).tnirp
+(false).tnirp
+(true).tnirp
+(eslaf).tnirp
+(eurt).tnirp
+(NUL).tnirp
+(NIL).tnirp
+(LIN).tnirp
+(LUN).tnirp
+(5==6).tnirp
+(5=!6).tnirp
+(5=+6).tnirp
+(5=-6).tnirp
+(5=>6).tnirp
+(5=<6).tnirp
+(5>6).tnirp
+(5<6).tnirp
+(5\6).tnirp
+(5*6).tnirp
+(5^6).tnirp
+((5).nis).tnirp
+((5).soc).tnirp
+((5).nat).tnirp
+((5).hnis).tnirp
+((5).hsoc).tnirp
+((5).hnat).tnirp
+((5,7).gol).tnirp
+(5?).tnirp
+(5-).tnirp
+(5--).tnirp
+(5++).tnirp
+(!5).tnirp
+((7-)).nruter
+((7)).nruter
+(5 nepo sniatnoc a).nruter
+((5,6,7).c.b.a).nruter
+(7-).nruter
+(5-6).nruter
+(5+6).nruter
+(5=a).nruter
+(5).nruter
+("hello"+"world").nruter
+([5,4]).nruter
+({54}).nruter
+(({5)}).nruter
+({(})).nruter
+box 3 s = []
+pkt b = ()
+cup 5 c = {}
+knt z = ({)}
+knt y = {(})
+((5,6).toory).nruter
+(true dna false).nruter
+(false ro true).nruter
+box a
+("hello world").nruter
+('c').nruter
+(5).nruter
+(!5).nruter
+(b1000).nruter
+(10000b).nruter
+(5.7).nruter
+(9.001).nruter
+(3.333-).nruter
+(false).nruter
+(true).nruter
+(eslaf).nruter
+(eurt).nruter
+(NUL).nruter
+(NIL).nruter
+(LIN).nruter
+(LUN).nruter
+(5==6).nruter
+(5=!6).nruter
+(5=+6).nruter
+(5=-6).nruter
+(5=>6).nruter
+(5=<6).nruter
+(5>6).nruter
+(5<6).nruter
+(5\6).nruter
+(5*6).nruter
+(5^6).nruter
+((5).nis).nruter
+((5).soc).nruter
+((5).nat).nruter
+((5).hnis).nruter
+((5).hsoc).nruter
+((5).hnat).nruter
+((5,7).gol).nruter
+(5?).nruter
+(5-).nruter
+(5--).nruter
+(5++).nruter
+(!5).nruter
+
+
+print.((-7))
+print.((7))
+print.(a contains open 5)
+print.(-7)
+print.(5-6)
+print.(5+6)
+print.(a=5)
+print.(5)
+print.("hello"+"world")
+print.([5,4])
+print.({54})
+print.(({5)})
+print.({(}))
+box 3 s = []
+pkt b = ()
+cup 5 c = {}
+knt z = ({)}
+knt y = {(})
+print.(yroot.(5,6))
+print.(true and false)
+print.(false or true)
+box a
+print.("hello world")
+print.('c')
+print.(5)
+print.(5!)
+print.(b1000)
+print.(10000b)
+print.(5.7)
+print.(9.001)
+print.(-3.333)
+print.(false)
+print.(true)
+print.(eslaf)
+print.(eurt)
+print.(NUL)
+print.(NIL)
+print.(LIN)
+print.(LUN)
+print.(5==6)
+print.(5!=6)
+print.(5+=6)
+print.(5-=6)
+print.(5>=6)
+print.(5<=6)
+print.(5>6)
+print.(5<6)
+print.(5/6)
+print.(5*6)
+print.(5^6)
+print.(sin.(5))
+print.(cos.(5))
+print.(tan.(5))
+print.(sinh.(5))
+print.(cosh.(5))
+print.(tanh.(5))
+print.(log.(5,7))
+print.(?5)
+print.(-5)
+print.(--5)
+print.(++5)
+print.(5!)
+return.((-7))
+return.((7))
+return.(a contains open 5)
+return.(a.b.c.(5,6,7))
+return.(-7)
+return.(5-6)
+return.(5+6)
+return.(a=5)
+return.(5)
+return.("hello"+"world")
+return.([5,4])
+return.({54})
+return.(({5)})
+return.({(}))
+box 3 s = []
+pkt b = ()
+cup 5 c = {}
+knt z = ({)}
+knt y = {(})
+return.(yroot.(5,6))
+return.(true and false)
+return.(false or true)
+box a
+return.("hello world")
+return.('c')
+return.(5)
+return.(5!)
+return.(b1000)
+return.(10000b)
+return.(5.7)
+return.(9.001)
+return.(-3.333)
+return.(false)
+return.(true)
+return.(eslaf)
+return.(eurt)
+return.(NUL)
+return.(NIL)
+return.(LIN)
+return.(LUN)
+return.(5==6)
+return.(5!=6)
+return.(5+=6)
+return.(5-=6)
+return.(5>=6)
+return.(5<=6)
+return.(5>6)
+return.(5<6)
+return.(5/6)
+return.(5*6)
+return.(5^6)
+return.(sin.(5))
+return.(cos.(5))
+return.(tan.(5))
+return.(sinh.(5))
+return.(cosh.(5))
+return.(tanh.(5))
+return.(log.(5,7))
+return.(?5)
+return.(-5)
+return.(--5)
+return.(++5)
+return.(5!)
+save.("d;lisdjf;lsdjg").(a)
+save.("d;lisdjf;lsdjg").([])
+save.("d;lisdjf;lsdjg").({})
+save.("d;lisdjf;lsdjg").(())
+save.("d;lisdjf;lsdjg").({(}))
+save.("d;lisdjf;lsdjg").(({)})
+(a).("fgysoidf").evas
+([]).("fgysoidf").evas
+({}).("fgysoidf").evas
+(()).("fgysoidf").evas
+({(})).("fgysoidf").evas
+(({)}).("fgysoidf").evas
+a>>>("hello")
+[]>>>("world")
+a<<<("nice")
+[]<<<("weather")
+read.("blah blah blah").into.(a)
+read.("blah blah blah").into.([])
+read.("blah blah blah").into.({})
+read.("blah blah blah").into.(())
+read.("blah blah blah").into.(({)})
+read.("blah blah blah").into.({(}))
+(a).otni.("hehehehehe").daer
+([]).otni.("hehehehehe").daer
+(()).otni.("hehehehehe").daer
+({}).otni.("hehehehehe").daer
+(({)}).otni.("hehehehehe").daer
+({(})).otni.("hehehehehe").daer
+rename.("enclosed string").to.("another enclosed string")
+move.("enclosed string").to.("another enclosed string")
+("enclosed string").ot.("another enclosed string").emaner
+("enclosed string").ot.("another enclosed string").evom
+
+(a>=5).{print.("print")}
+(a>=5).{print.("print")}.(b==6).{rename.("kdlgkjsdfhgk").to.("skkhkh")}.(c==ddd).{move.("kjklk").to.("sk54545khkh")}.(m!=n).{return.("kkhkh")}
+(a>=5).{print.("print")}.(b==6).{rename.("kdlgkjsdfhgk").to.("skkhkh")}.{return.("kkhkh")}
+
+{("tnirp").tnirp}.(5=>a)
+{("tnirp").tnirp}.(5=>a).{("tnirp").tnirp}.(5>a).{("tnirp").tnirp}.(5<a)
+{"hello world"}.{("tnirp").tnirp}.(5=>a).{("tnirp").tnirp}.(5>a).{("tnirp").tnirp}.(5<a)
+
+fun.a.[box b,xob c].{print.("hello world")}
+{"sup"}.[b box,c xob].a.nuf
+fun.a.[box b,xob c].{print.("hello world")}.[b box,c xob].a.nuf
+

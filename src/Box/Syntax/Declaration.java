@@ -1,63 +1,17 @@
-package Box.Parser;
+package Box.Syntax;
 
-
-
-import Box.Parser.Expr.Assignment;
-import Box.Parser.Expr.Binary;
-import Box.Parser.Expr.Box;
-import Box.Parser.Expr.Call;
-import Box.Parser.Expr.Contains;
-import Box.Parser.Expr.Cup;
-import Box.Parser.Expr.Factorial;
-import Box.Parser.Expr.Get;
-import Box.Parser.Expr.Gol;
-import Box.Parser.Expr.Knot;
-import Box.Parser.Expr.Lairotcaf;
-import Box.Parser.Expr.Literal;
-import Box.Parser.Expr.LiteralChar;
-import Box.Parser.Expr.Llac;
-import Box.Parser.Expr.Log;
-import Box.Parser.Expr.Mono;
-import Box.Parser.Expr.Onom;
-import Box.Parser.Expr.Pocket;
-import Box.Parser.Expr.Set;
-import Box.Parser.Expr.Sniatnoc;
-import Box.Parser.Expr.Swap;
-import Box.Parser.Expr.Teg;
-import Box.Parser.Expr.Tes;
-import Box.Parser.Expr.Tnemngissa;
-import Box.Parser.Expr.Tonk;
-import Box.Parser.Expr.Unary;
-import Box.Parser.Expr.Variable;
-import Box.Parser.Expr.Yranib;
-import Box.Parser.Expr.Yranu;
-import Box.Parser.Fun.Function;
-import Box.Parser.Stmt.Consume;
-import Box.Parser.Stmt.Daer;
-import Box.Parser.Stmt.Emaner;
-import Box.Parser.Stmt.Evas;
-import Box.Parser.Stmt.Evom;
-import Box.Parser.Stmt.Expel;
-import Box.Parser.Stmt.Expression;
-import Box.Parser.Stmt.Fi;
-import Box.Parser.Stmt.If;
-import Box.Parser.Stmt.Move;
-import Box.Parser.Stmt.Nruter;
-import Box.Parser.Stmt.Print;
-import Box.Parser.Stmt.Rav;
-import Box.Parser.Stmt.Read;
-import Box.Parser.Stmt.Rename;
-import Box.Parser.Stmt.Return;
-import Box.Parser.Stmt.Save;
-import Box.Parser.Stmt.Tnirp;
-import Box.Parser.Stmt.Var;
-
+import java.util.List;
+import java.util.ArrayList;
+import Box.Token.Token;
+import Box.Syntax.Fun.*;
+import Box.Syntax.Stmt.*;
+import Box.Syntax.Expr.*;
 
 public abstract class Declaration {
 	public interface Visitor<R> {
 	R visitFunDeclDeclaration(FunDecl declaration);
 	R visitStmtDeclDeclaration(StmtDecl declaration);
-	R visitFunctionFun(Function function);
+	R visitFunctionFun(Function fun);
 	R visitExpressionStmt(Expression stmt);
 	R visitIfStmt(If stmt);
 	R visitPrintStmt(Print stmt);
@@ -80,7 +34,7 @@ public abstract class Declaration {
 	R visitAssignmentExpr(Assignment expr);
 	R visitContainsExpr(Contains expr);
 	R visitBinaryExpr(Binary expr);
-	R visitMonoExpr(Mono mono);
+	R visitMonoExpr(Mono expr);
 	R visitLogExpr(Log expr);
 	R visitFactorialExpr(Factorial expr);
 	R visitUnaryExpr(Unary expr);

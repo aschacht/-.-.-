@@ -1,14 +1,14 @@
-package Box.Parser;
+package Parser;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
 import Box.Box.Box;
-import Box.Parser.Expr.Teg;
-import Box.Parser.Stmt.Fi;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Parser.Expr.Teg;
+import Parser.Stmt.Fi;
 
 public class ParserTest {
 
@@ -18,16 +18,12 @@ public class ParserTest {
 
 	TokensToTrack tracker;
 
-	private boolean forward;
-
-	private int currentIndex;
-
+	@SuppressWarnings("javadoc")
 	public ParserTest(List<Token> tokens, boolean forward, boolean backward) {
-		this.forward = forward;
-
 		tracker = new TokensToTrack((ArrayList<Token>) tokens, 0);
 	}
 
+	@SuppressWarnings("javadoc")
 	public List<List<Declaration>> parse() {
 
 		List<Declaration> forwardStmt = parseForward();
@@ -57,7 +53,7 @@ public class ParserTest {
 
 	private Fun function() {
 		if (check(TokenType.FUN)) {
-			Token fun = consume(TokenType.FUN, "fun");
+			consume(TokenType.FUN, "fun");
 			consume(TokenType.DOT, "fun dot");
 			Token forwaredIdent = consume(TokenType.IDENTIFIER, "fun forwardIdent");
 			consume(TokenType.DOT, "fun dot");
@@ -245,31 +241,6 @@ public class ParserTest {
 			return true;
 	}
 
-	private void synchronize() {
-		advance();
-		while (!isAtEnd()) {
-			if (previous().type == TokenType.SEMICOLON)
-				return;
-
-			switch (peek().type) {
-			case PRINT:
-			case RETURN:
-				return;
-			default:
-				break;
-			}
-			advance();
-
-		}
-
-	}
-
-	private boolean checkNext(TokenType tokenType) {
-		if (isAtEnd())
-			return false;
-		return peekNext().type == tokenType;
-	}
-
 	private boolean isAtEnd() {
 		return peek().type == TokenType.EOF;
 	}
@@ -308,22 +279,6 @@ public class ParserTest {
 		}
 	}
 
-	private Token peekNext() {
-
-		if (tracker.isParseForward()) {
-			if (tracker.getToken().type == TokenType.EOF)
-				return null;
-			return tracker.getPeekNext();
-
-		} else {
-
-			if (tracker.getToken().type == TokenType.EOF)
-				return null;
-			return tracker.getPeekNext();
-		}
-
-	}
-
 	private Token previous() {
 		if (tracker.getCurrent() < 0)
 			return null;
@@ -347,12 +302,6 @@ public class ParserTest {
 		return previous();
 	}
 
-	private void regress() {
-		if (!isAtEnd()) {
-			tracker.regress();
-		}
-	}
-
 	private boolean check(TokenType tokenType) {
 		if (tracker.isParseForward()) {
 			if (isAtEnd())
@@ -368,7 +317,7 @@ public class ParserTest {
 	private Token consume(TokenType type, String message) throws ParseError {
 		if (check(type))
 			return advance();
-		throw error(peek(), message, false);
+		throw error(peek(), message, true);
 	}
 
 	private Stmt statement() {
@@ -415,45 +364,12 @@ public class ParserTest {
 
 	private Stmt exprStmt() {
 
-			Expr expression = null;
-			Expr noisserpxe = null;
-			
-				expression = expressionnoisserpxe();
-			
+		Expr expression = null;
+		Expr noisserpxe = null;
 
-		
+		expression = expressionnoisserpxe();
 
 		return new Stmt.Expression(expression, noisserpxe);
-	}
-
-	private boolean same(Expr expression, Expr noisserpxe) {
-		return false;
-	}
-
-	private boolean checkNoisserpxe() {
-		tracker.turnOnBackTracking();
-		try {
-			Expr noisserpxe = expressionnoisserpxe();
-
-		} catch (Exception e) {
-			tracker.resetBackTracking();
-			return false;
-		}
-		tracker.resetBackTracking();
-		return true;
-	}
-
-	private boolean checkExpression() {
-		tracker.turnOnBackTracking();
-		try {
-			Expr expression = expressionnoisserpxe();
-		} catch (Exception e) {
-			tracker.resetBackTracking();
-			return false;
-		}
-		tracker.resetBackTracking();
-
-		return true;
 	}
 
 	private boolean checkRav() {
@@ -1361,11 +1277,11 @@ public class ParserTest {
 		Expr expression = expressionnoisserpxe();
 		if (expression instanceof Expr.Pocket)
 			if (match(TokenType.DOT)) {
-				Token dot = previous();
+				previous();
 
 				Expr ifcup = expressionnoisserpxe();
 				if (match(TokenType.DOT)) {
-					Token dotagain = previous();
+					previous();
 					if (check(TokenType.OPENPAREN)) {
 						return new Stmt.If(expression, ifcup, ifStmt(), null);
 					} else if (check(TokenType.OPENBRACE)) {
@@ -1383,8 +1299,6 @@ public class ParserTest {
 		return assignmenttnemngissa();
 	}
 
-
-	
 	private Expr assignmenttnemngissa() throws ParseError {
 		Expr expr = containssniatnoc();
 
@@ -1392,7 +1306,7 @@ public class ParserTest {
 			Token equals = previous();
 			Expr value = assignmenttnemngissa();
 
-			if (expr instanceof Expr.Variable && value instanceof Expr.Variable ) {
+			if (expr instanceof Expr.Variable && value instanceof Expr.Variable) {
 				return new Expr.Swap(expr, value);
 			} else if (expr instanceof Expr.Get && value instanceof Expr.Get) {
 				return new Expr.Swap(expr, value);
@@ -1418,9 +1332,6 @@ public class ParserTest {
 		return expr;
 	}
 
-
-	
-	
 	private Expr containssniatnoc() throws ParseError {
 		Expr expr = logicOrrOcigol();
 		boolean nepo = false;
@@ -1432,11 +1343,11 @@ public class ParserTest {
 			}
 			Expr expr2 = logicOrrOcigol();
 			return new Expr.Contains(expr, open, expr2);
-		}else if (check(TokenType.NEPO)) {
+		} else if (check(TokenType.NEPO)) {
 			nepo = true;
 			consume(TokenType.NEPO, "");
 			if (match(TokenType.SNIATNOC)) {
-				Token consume = previous();
+				previous();
 				Expr container = logicOrrOcigol();
 				return new Expr.Sniatnoc(container, nepo, expr);
 			}
@@ -1444,26 +1355,23 @@ public class ParserTest {
 			Expr expr2 = logicOrrOcigol();
 			return new Expr.Contains(expr2, nepo, expr);
 		}
-		
+
 		return expr;
 	}
-	
-	
 
 	private Expr logicOrrOcigol() throws ParseError {
 		Expr expr = logicAnddnAcigol();
-		while (match(TokenType.OR,TokenType.RO)) {
+		while (match(TokenType.OR, TokenType.RO)) {
 			Token operator = previous();
 			Expr right = logicAnddnAcigol();
 			return new Expr.Binary(expr, operator, right);
 		}
 		return expr;
 	}
-	
-	
+
 	private Expr logicAnddnAcigol() throws ParseError {
 		Expr expr = equalityytilauqe();
-		while (match(TokenType.AND,TokenType.DNA)) {
+		while (match(TokenType.AND, TokenType.DNA)) {
 			Token operator = previous();
 			Expr right = equalityytilauqe();
 			return new Expr.Binary(expr, operator, right);
@@ -1471,10 +1379,9 @@ public class ParserTest {
 		return expr;
 	}
 
-	
 	private Expr equalityytilauqe() throws ParseError {
 		Expr expr = addsubbusdda();
-		while (match(TokenType.NOTEQUALS, TokenType.EQUALSEQUALS,TokenType.EQUALSNOT)) {
+		while (match(TokenType.NOTEQUALS, TokenType.EQUALSEQUALS, TokenType.EQUALSNOT)) {
 			Token operator = previous();
 			Expr right = addsubbusdda();
 			return new Expr.Binary(expr, operator, right);
@@ -1482,12 +1389,9 @@ public class ParserTest {
 		return expr;
 	}
 
-	
-	
-	
 	private Expr addsubbusdda() throws ParseError {
 		Expr expr = comparisonnosirapmoc();
-		while (match(TokenType.PLUSEQUALS, TokenType.MINUSEQUALS,TokenType.EQUALSMINUS,TokenType.EQUALSPLUS)) {
+		while (match(TokenType.PLUSEQUALS, TokenType.MINUSEQUALS, TokenType.EQUALSMINUS, TokenType.EQUALSPLUS)) {
 			Token operator = previous();
 			Expr right = comparisonnosirapmoc();
 			return new Expr.Binary(expr, operator, right);
@@ -1495,18 +1399,16 @@ public class ParserTest {
 		return expr;
 	}
 
-	
-	
 	private Expr comparisonnosirapmoc() throws ParseError {
 		Expr expr = termmert();
-		while (match(TokenType.GREATERTHEN, TokenType.LESSTHEN, TokenType.LESSTHENEQUAL, TokenType.GREATERTHENEQUAL,TokenType.EQUALGREATERTHEN, TokenType.EQUALLESSTHEN)) {
+		while (match(TokenType.GREATERTHEN, TokenType.LESSTHEN, TokenType.LESSTHENEQUAL, TokenType.GREATERTHENEQUAL,
+				TokenType.EQUALGREATERTHEN, TokenType.EQUALLESSTHEN)) {
 			Token operator = previous();
 			Expr right = termmert();
 			return new Expr.Binary(expr, operator, right);
 		}
 		return expr;
 	}
-	
 
 	private Expr termmert() throws ParseError {
 		Expr expr = factorrotcaf();
@@ -1518,11 +1420,9 @@ public class ParserTest {
 		return expr;
 	}
 
-	
-	
 	private Expr factorrotcaf() throws ParseError {
 		Expr expr = powerrewop();
-		while (match(TokenType.FORWARDSLASH,TokenType.TIMES, TokenType.BACKSLASH)) {
+		while (match(TokenType.FORWARDSLASH, TokenType.TIMES, TokenType.BACKSLASH)) {
 			Token operator = previous();
 			Expr right = powerrewop();
 			return new Expr.Binary(expr, operator, right);
@@ -1530,132 +1430,105 @@ public class ParserTest {
 		return expr;
 	}
 
-
-	
 	private Expr powerrewop() throws ParseError {
-		Expr expr = gol();
+		Expr expr = yroottoory();
 		while (match(TokenType.POWER)) {
 			Token operator = previous();
-			Expr right = gol();
+			Expr right = yroottoory();
 			return new Expr.Binary(expr, operator, right);
 		}
 		return expr;
 	}
 
 
-
-
-	private Expr gol() throws ParseError {
-		if (!checkPocketTonk()) {
-			tracker.turnOnBackTracking();
-			int start = tracker.currentIndex();
-			consume(TokenType.OPENPAREN, "");
-			Expr base = factoriallairotcaf();
-			if (check(TokenType.COMMA)) {
-				consume(TokenType.COMMA, "");
-				Expr value = factoriallairotcaf();
-				if (check(TokenType.COMMA)) {
-					tracker.setTrackerToIndex(start);
-					return llac();
-				}
-				consume(TokenType.CLOSEDPAREN, "");
-				consume(TokenType.DOT, "");
-				if (check(TokenType.GOL)) {
-					Token operator = consume(TokenType.GOL, "");
-					return new Expr.Log(operator, value, base);
-				} else if (check(TokenType.TOORY)) {
-					Token operator = consume(TokenType.TOORY, "");
-					return new Expr.Binary(base, operator, value);
-				} else {
-					tracker.setTrackerToIndex(start);
-					return llac();
-				}
-			} else if (check(TokenType.CLOSEDPAREN)) {
-				consume(TokenType.CLOSEDPAREN, "");
-				consume(TokenType.DOT, "");
-				if (check(TokenType.HNAT)) {
-					Token operator = consume(TokenType.HNAT, "");
-					return new Expr.Mono(base, operator);
-				} else if (check(TokenType.HSOC)) {
-					Token operator = consume(TokenType.HSOC, "");
-					return new Expr.Mono(base, operator);
-				} else if (check(TokenType.HNIS)) {
-					Token operator = consume(TokenType.HNIS, "");
-					return new Expr.Mono(base, operator);
-				} else if (check(TokenType.NAT)) {
-					Token operator = consume(TokenType.NAT, "");
-					return new Expr.Mono(base, operator);
-				} else if (check(TokenType.SOC)) {
-					Token operator = consume(TokenType.SOC, "");
-					return new Expr.Mono(base, operator);
-				} else if (check(TokenType.NIS)) {
-					Token operator = consume(TokenType.NIS, "");
-					return new Expr.Mono(base, operator);
-				} else if (check(TokenType.NIS)) {
-					Token operator = consume(TokenType.NIS, "");
-					return new Expr.Mono(base, operator);
-				}
-			}
-			tracker.resetBackTracking();
-		}
+	private Expr yroottoory() throws ParseError {
 		if (check(TokenType.YROOT)) {
 			Token token = consume(TokenType.YROOT, "");
 			consume(TokenType.DOT, "");
 			consume(TokenType.OPENPAREN, "");
-			Expr left = gol();
+			Expr left = sinnis();
 			consume(TokenType.COMMA, "");
-			Expr right = gol();
+			Expr right = sinnis();
 			consume(TokenType.CLOSEDPAREN, "");
 			return new Expr.Binary(left, token, right);
 		}
+
+		return sinnis();
+	}
+
+	private Expr sinnis() throws ParseError {
 		if (check(TokenType.SIN)) {
 			Token operator = consume(TokenType.SIN, "");
 			consume(TokenType.DOT, "");
 			consume(TokenType.OPENPAREN, "");
-			Expr value = gol();
+			Expr value = cossoc();
 			consume(TokenType.CLOSEDPAREN, "");
 			return new Expr.Mono(value, operator);
 		}
+		return cossoc();
+	}
+
+	private Expr cossoc() throws ParseError {
 		if (check(TokenType.COS)) {
 			Token operator = consume(TokenType.COS, "");
 			consume(TokenType.DOT, "");
 			consume(TokenType.OPENPAREN, "");
-			Expr value = gol();
+			Expr value = tannat();
 			consume(TokenType.CLOSEDPAREN, "");
 			return new Expr.Mono(value, operator);
 		}
+		return tannat();
+	}
+
+	private Expr tannat() throws ParseError {
 		if (check(TokenType.TAN)) {
 			Token operator = consume(TokenType.TAN, "");
 			consume(TokenType.DOT, "");
 			consume(TokenType.OPENPAREN, "");
-			Expr value = gol();
+			Expr value = sinhhnis();
 			consume(TokenType.CLOSEDPAREN, "");
 			return new Expr.Mono(value, operator);
 		}
+		return sinhhnis();
+	}
+
+	private Expr sinhhnis() throws ParseError {
 		if (check(TokenType.SINH)) {
 			Token operator = consume(TokenType.SINH, "");
 			consume(TokenType.DOT, "");
 			consume(TokenType.OPENPAREN, "");
-			Expr value = gol();
+			Expr value = coshhsoc();
 			consume(TokenType.CLOSEDPAREN, "");
 			return new Expr.Mono(value, operator);
 		}
+		return coshhsoc();
+	}
+
+	private Expr coshhsoc() throws ParseError {
 		if (check(TokenType.COSH)) {
 			Token operator = consume(TokenType.COSH, "");
 			consume(TokenType.DOT, "");
 			consume(TokenType.OPENPAREN, "");
-			Expr value = gol();
+			Expr value = tanhhnat();
 			consume(TokenType.CLOSEDPAREN, "");
 			return new Expr.Mono(value, operator);
 		}
+		return tanhhnat();
+	}
+
+	private Expr tanhhnat() throws ParseError {
 		if (check(TokenType.TANH)) {
 			Token operator = consume(TokenType.TANH, "");
 			consume(TokenType.DOT, "");
 			consume(TokenType.OPENPAREN, "");
-			Expr value = gol();
+			Expr value = loggol();
 			consume(TokenType.CLOSEDPAREN, "");
 			return new Expr.Mono(value, operator);
 		}
+		return loggol();
+	}
+
+	private Expr loggol() throws ParseError {
 		if (check(TokenType.LOG)) {
 			Token operator = consume(TokenType.LOG, "");
 			consume(TokenType.DOT, "");
@@ -1666,45 +1539,38 @@ public class ParserTest {
 			consume(TokenType.CLOSEDPAREN, "");
 			return new Expr.Log(operator, base, value);
 		}
-		return call();
+		return factoriallairotcaf();
 	}
-	
-	
-
-
 
 	private Expr factoriallairotcaf() throws ParseError {
 		Expr expr = null;
 		while (match(TokenType.BANG)) {
 			Token operator = previous();
 			Expr value = factoriallairotcaf();
-			expr= new Expr.Factorial(value, operator);
+			expr = new Expr.Factorial(value, operator);
 		}
-		Expr unary = expr == null? unaryyranu() :null;
+		Expr unary = expr == null ? unaryyranu() : null;
 		while (match(TokenType.BANG) && expr == null) {
 			Token operator = previous();
 
 			unary = new Expr.Factorial(unary, operator);
 		}
-		return expr == null? unary :expr;
+		return expr == null ? unary : expr;
 	}
 
-	
-	
-	
 	private Expr unaryyranu() throws ParseError {
 		Expr uni = null;
 		if (match(TokenType.QMARK, TokenType.MINUS, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
 			Token operator = previous();
 			Expr expr = unaryyranu();
-			uni= new Expr.Unary(operator, expr);
+			uni = new Expr.Unary(operator, expr);
 		}
-		Expr expr = uni == null? gol():null;
-		if (match(TokenType.QMARK, TokenType.PLUSPLUS, TokenType.MINUSMINUS) && uni==null ) {
+		Expr expr = uni == null ? call() : null;
+		if (match(TokenType.QMARK, TokenType.PLUSPLUS, TokenType.MINUSMINUS) && uni == null) {
 			Token operator = previous();
 			return new Expr.Unary(operator, expr);
 		}
-		if (match(TokenType.MINUS)&& uni==null) {
+		if (match(TokenType.MINUS) && uni == null) {
 			Token operator = previous();
 
 			int start = tracker.currentIndex();
@@ -1716,14 +1582,9 @@ public class ParserTest {
 				return new Expr.Unary(operator, expr);
 			}
 		}
-		return uni == null? expr:uni;
+		return uni == null ? expr : uni;
 	}
 
-	
-
-	
-	
-	
 	private Expr call() throws ParseError {
 
 		Expr expr = primative();
@@ -1743,7 +1604,7 @@ public class ParserTest {
 		}
 		return expr;
 	}
-	
+
 	private Expr llac() throws ParseError {
 
 		while (true) {
@@ -1785,11 +1646,6 @@ public class ParserTest {
 		}
 		return primative();
 	}
-
-	
-	
-	
-	
 
 	private Expr finishCall(Expr expr) throws ParseError {
 		List<Expr> arguments = new ArrayList<>();
@@ -1864,33 +1720,11 @@ public class ParserTest {
 		return new Stmt.Var(ident, type, val, new Stmt.Expression(initialvalue, null));
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	private boolean checkPocketTonk() {
 		int count = 0;
 		Stack<TokenType> paren = new Stack<>();
 		Stack<TokenType> brace = new Stack<>();
-		if (check(TokenType.OPENPAREN)) {
+		if (peekI(count).type==TokenType.OPENPAREN) {
 			paren.add(peekI(count).type);
 		}
 		count++;
@@ -2005,7 +1839,7 @@ public class ParserTest {
 
 		throw error(peek(),
 				"expected false | true | eslaf | eurt | NIL | NUL | LIN | LUN | string | INT | DOUBLE | BIN | pocket | box | cup | knot",
-				false);
+				true);
 	}
 
 	private Expr createBox() {
@@ -2058,14 +1892,12 @@ public class ParserTest {
 		TokenType type = determineIfCupPocketKnotOrTonk();
 		if (type != TokenType.UNKNOWN) {
 			String lexeme = "";
-			Token open = null;
-			Token close = null;
 			ArrayList<Stmt> stmts = new ArrayList<>();
 			ArrayList<Declaration> decs = new ArrayList<>();
 
 			Stack<TokenType> parenStack = new Stack<>();
 			Stack<TokenType> braceStack = new Stack<>();
-			
+
 			Token first = null;
 			Token last = null;
 			if (match(TokenType.OPENPAREN)) {
@@ -2077,25 +1909,25 @@ public class ParserTest {
 				lexeme += first.lexeme;
 				braceStack.push(first.type);
 			}
-			
+
 			if (type == TokenType.CUP) {
-				while (braceStack.size() > 0 && tracker.getCurrent()  <= tracker.size()) {
+				while (braceStack.size() > 0 && tracker.getCurrent() <= tracker.size()) {
 					if (match(TokenType.OPENBRACE)) {
 						Token previous = previous();
 						lexeme += previous.lexeme;
 						braceStack.push(previous.type);
-						
+
 					} else if (match(TokenType.CLOSEDBRACE)) {
 						last = previous();
 						lexeme += last.lexeme;
 						braceStack.pop();
-						
+
 					} else {
 						int start = tracker.currentIndex();
 						decs.add(declaration());
 						int end = tracker.currentIndex();
 						lexeme += tracker.getLexemeForRange(start, end - 1);
-						
+
 					}
 
 				}
@@ -2117,63 +1949,68 @@ public class ParserTest {
 						stmts.add(statement());
 						int end = tracker.currentIndex();
 						lexeme += tracker.getLexemeForRange(start, end - 1);
-
+						while (match(TokenType.COMMA)) {
+							lexeme += previous().lexeme;
+							int start1 = tracker.getCurrent();
+							Stmt expression2 = statement();
+							int end1 = tracker.getCurrent();
+							lexeme += tracker.getLexemeForRange(start1, end1 - 1);
+							stmts.add(expression2);
+						}
 					}
-					
+
 				}
 				return new Expr.Pocket(first.identifierToken, stmts, lexeme, last.reifitnediToken);
 			} else {
-				while ((parenStack.size() > 0 || braceStack.size() > 0)
-						&& tracker.currentIndex()  <= tracker.size()) {
+				while ((parenStack.size() > 0 || braceStack.size() > 0) && tracker.currentIndex() <= tracker.size()) {
 					if (match(TokenType.OPENPAREN)) {
 						Token previous = previous();
 						lexeme += previous.lexeme;
 						parenStack.push(previous.type);
-						
+
 					} else if (match(TokenType.OPENBRACE)) {
 						Token previous = previous();
 						lexeme += previous.lexeme;
 						braceStack.push(previous.type);
-						
+
 					} else if (match(TokenType.CLOSEDPAREN)) {
 						last = previous();
 						lexeme += last.lexeme;
 						if (parenStack.size() > 0)
 							parenStack.pop();
-						
+
 					} else if (match(TokenType.CLOSEDBRACE)) {
 						last = previous();
 						lexeme += last.lexeme;
 						if (braceStack.size() > 0)
 							braceStack.pop();
-						
+
 					} else {
 						if (type == TokenType.KNOT) {
 							int start = tracker.currentIndex();
 							decs.add(declaration());
 							int end = tracker.currentIndex();
 							lexeme += tracker.getLexemeForRange(start, end - 1);
-							
+
 						} else if (type == TokenType.TONK) {
 							int start = tracker.currentIndex();
 							stmts.add(statement());
 							int end = tracker.currentIndex();
 							lexeme += tracker.getLexemeForRange(start, end - 1);
-							
+
 						}
 					}
-					
+
 				}
 				if (type == TokenType.KNOT) {
 					return new Expr.Knot(first.identifierToken, decs, lexeme, last.reifitnediToken);
 				} else {
-					return new Expr.Tonk(first.identifierToken, decs, lexeme, last.reifitnediToken);
+					return new Expr.Tonk(first.identifierToken, stmts, lexeme, last.reifitnediToken);
 				}
 			}
 		}
 		throw error(null, "dfs;ljf;lsdf", true);
 	}
-
 	private TokenType determineIfCupPocketKnotOrTonk() {
 		Stack<TokenType> stack = new Stack<>();
 		Stack<TokenType> paren = new Stack<>();
@@ -2182,60 +2019,57 @@ public class ParserTest {
 		boolean first = true;
 		Token closed = null;
 		int count = 0;
-		if (peekI(count).type == TokenType.OPENPAREN) {
-			stack.push(peekI(count).type);
-			paren.push(peekI(count).type);
-			if (first) {
-				first = false;
-				open = peekI(count);
-			}
-		} else if (peekI(count).type == TokenType.OPENBRACE) {
-			stack.push(peekI(count).type);
-			brace.push(peekI(count).type);
-			if (first) {
-				first = false;
-				open = peekI(count);
-			}
-		}
-		count++;
 
-		while (stack.size() > 0 && tracker.getCurrent() + count < tracker.size()) {
+		while (tracker.getCurrent() + count < tracker.size() ) {
 			if (peekI(count).type == TokenType.OPENPAREN) {
 				stack.push(peekI(count).type);
 
 				paren.push(peekI(count).type);
+				if (first) {
+					first = false;
+					open = peekI(count);
+				}
 			} else if (peekI(count).type == TokenType.OPENBRACE) {
 				stack.push(peekI(count).type);
 				brace.push(peekI(count).type);
+				if (first) {
+					first = false;
+					open = peekI(count);
+				}
 			} else if (peekI(count).type == TokenType.CLOSEDPAREN) {
 				if (stack.size() > 0 && stack.peek() == TokenType.OPENPAREN) {
 					stack.pop();
 				}
-				
-				if(paren.size()>0) {
+
+				if (paren.size() > 0) {
 					paren.pop();
 				}
-
 				closed = peekI(count);
+				if (paren.size() == 0 && brace.size() == 0) {
+					break;
+				}
 			} else if (peekI(count).type == TokenType.CLOSEDBRACE) {
 				if (stack.size() > 0 && stack.peek() == TokenType.OPENBRACE) {
 					stack.pop();
 				}
-				if(brace.size()>0) {
+				if (brace.size() > 0) {
 					brace.pop();
 				}
 				closed = peekI(count);
+				if (paren.size() == 0 && brace.size() == 0) {
+					break;
+				}
 			}
 			count++;
 		}
-		if (paren.size()==0 && brace.size()==0 && stack.size() == 0 ) {
-			if ( open.type == TokenType.OPENPAREN && closed.type == TokenType.CLOSEDPAREN) {
+		if (paren.size() == 0 && brace.size() == 0 && stack.size() == 0) {
+			if (open.type == TokenType.OPENPAREN && closed.type == TokenType.CLOSEDPAREN) {
 				return TokenType.POCKET;
 			} else if (open.type == TokenType.OPENBRACE && closed.type == TokenType.CLOSEDBRACE) {
 				return TokenType.CUP;
 			} else
 				throw error(open, "dfs;ljf;lsdf", true);
-		} else if((paren.size()==0 && brace.size()==0 && stack.size() > 0 ) ) {
+		} else if ((paren.size() == 0 && brace.size() == 0 && stack.size() > 0)) {
 			if (open.type == TokenType.OPENPAREN && closed.type == TokenType.CLOSEDBRACE) {
 				return TokenType.TONK;
 			} else if (open.type == TokenType.OPENPAREN && closed.type == TokenType.CLOSEDPAREN) {
@@ -2246,8 +2080,8 @@ public class ParserTest {
 				return TokenType.KNOT;
 			}
 		}
-			return TokenType.UNKNOWN;
-		
+		return TokenType.UNKNOWN;
+
 	}
 
 	private ParseError error(Token token, String message, boolean report) {

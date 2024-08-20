@@ -1,8 +1,8 @@
 package Box.Interpreter;
 
-import Box.Parser.Expr;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Parser.Expr;
 
 public enum RunTimeTypes {
 	Int, Double, Bin, Char, String, Boolean, Naeloob, Gnirts, Rahc, Nib, Elbuod, Tni, NULL, NILL, LLUN, LLIN, Knot, Cup,

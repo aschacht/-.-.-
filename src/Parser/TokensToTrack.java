@@ -1,9 +1,7 @@
-package Box.Parser;
+package Parser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
-
 import Box.Token.Token;
 import Box.Token.TokenType;
 
@@ -227,7 +225,6 @@ public class TokensToTrack {
 
 	public String getLexemeForRange(int start, int end) {
 		if (isParseForward() == true) {
-			int currentLocal = currentStackForward.get(currentStackForward.size() - 1);
 			ArrayList<Token> arrayList = stackForward.get(stackForward.size() - 1);
 			String lexeme = "";
 			for (int i = start; i <= end; i++) {

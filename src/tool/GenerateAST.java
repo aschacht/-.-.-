@@ -12,7 +12,7 @@ public class GenerateAST {
 
 	public static void main(String[] args) throws IOException {
 
-		String outputDir = "/home/wes/Wisper Tech 1.0/THEORY/GAMES/PBC/src/Box/Syntax";
+		String outputDir = "/home/wes/Wisper Tech 1.0/THEORY/GAMES/PBC/src/Parser";
 
 		List<String> exprDefinition = Arrays.asList(
 				"Assignment		:Token name , Expr value",
@@ -41,7 +41,7 @@ public class GenerateAST {
 				"Cup : Token identifier , List<Declaration> expression , String lexeme, Token reifitnedi",
 				"Pocket : Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
 				"Knot :Token identifier , List<Declaration> expression , String lexeme, Token reifitnedi ",
-				"Tonk :Token identifier , List<Declaration> expression , String lexeme, Token reifitnedi ",
+				"Tonk :Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
 				"Box :Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi "
 
 		);
@@ -100,15 +100,14 @@ public class GenerateAST {
 		String path = outputDir + sBaseName + ".java";
 		PrintWriter writer = new PrintWriter(path, "UTF-8");
 
-		writer.println("package Box.Syntax;");
+		writer.println("package Parser;");
 		writer.println();
 		writer.println("import java.util.List;");
 		writer.println("import java.util.ArrayList;");
 		writer.println("import Box.Token.Token;");
-		writer.println("import Box.Parser.LogicalOrStorage;");
 		
 		for (String name : subBaseName) {
-				writer.println("import Box.Syntax."+name+".*;");
+				writer.println("import Parser."+name+".*;");
 	
 		}
 		
@@ -154,12 +153,11 @@ public class GenerateAST {
 		String path = outputDir + sBaseName + ".java";
 		PrintWriter writer = new PrintWriter(path, "UTF-8");
 
-		writer.println("package Box.Syntax;");
+		writer.println("package Parser;");
 		writer.println();
 		writer.println("import java.util.List;");
 		writer.println("import java.util.ArrayList;");
 		writer.println("import Box.Token.Token;");
-		writer.println("import Box.Parser.LogicalOrStorage;");
 		writer.println();
 		writer.println("public abstract class " + sBaseName + " extends " + baseName + " {");
 

@@ -1,8 +1,7 @@
-package Box.Parser;
+package Parser;
 
-
+import java.util.List;
 import java.util.ArrayList;
-
 import Box.Token.Token;
 
 public abstract class Fun extends Declaration {

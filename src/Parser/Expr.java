@@ -1,9 +1,7 @@
-package Box.Parser;
-
+package Parser;
 
 import java.util.List;
 import java.util.ArrayList;
-
 import Box.Token.Token;
 
 public abstract class Expr extends Declaration {
@@ -412,7 +410,7 @@ public static class Knot extends Expr {
 	public  Token reifitnedi;
 	}
 public static class Tonk extends Expr {
-	 public Tonk(Token identifier , List<Declaration> expression , String lexeme, Token reifitnedi) {
+	 public Tonk(Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi) {
 	this.identifier = identifier;
 	this.expression = expression;
 	this.lexeme = lexeme;
@@ -425,7 +423,7 @@ public static class Tonk extends Expr {
 	}
 
 	public  Token identifier;
-	public  List<Declaration> expression;
+	public  List<Stmt> expression;
 	public  String lexeme;
 	public  Token reifitnedi;
 	}

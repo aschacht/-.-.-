@@ -3,10 +3,10 @@ package Box.Interpreter;
 import java.util.ArrayList;
 import java.util.List;
 
-import Box.Parser.Stmt;
 import Box.Syntax.ExprOLD;
 import Box.Syntax.ExprOLD.Literal;
 import Box.Token.TokenType;
+import Parser.Stmt;
 
 public class BoxContainerClass extends BoxCallable{
 	public String name;

@@ -13,11 +13,11 @@ import java.util.List;
 import Box.Grouper.Grouper;
 import Box.Interpreter.Interpreter;
 import Box.Interpreter.RuntimeError;
-import Box.Parser.Declaration;
-import Box.Parser.ParserTest;
 import Box.Scanner.Scanner;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Parser.Declaration;
+import Parser.ParserTest;
 import resolver.Resolver;
 
 public class Box extends Thread {

@@ -2,11 +2,11 @@ package Box.Interpreter;
 
 import java.util.List;
 
-import Box.Parser.Stmt;
 import Box.Syntax.ExprOLD;
 import Box.Syntax.ExprOLD.Variable;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Parser.Stmt;
 
 public class BoxFunction extends BoxCallable {
 

@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import Box.Box.Box;
-import Box.Parser.Expr;
-import Box.Parser.Stmt;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Parser.Expr;
+import Parser.Stmt;
 
 public class Environment {
 	public final Environment enclosing;

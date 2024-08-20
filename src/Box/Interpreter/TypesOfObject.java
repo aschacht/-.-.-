@@ -3,9 +3,9 @@ package Box.Interpreter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import Box.Parser.Stmt;
 import Box.Syntax.ExprOLD;
 import Box.Token.Token;
+import Parser.Stmt;
 
 public class TypesOfObject {
 

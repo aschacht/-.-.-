@@ -8,12 +8,12 @@ import java.util.Stack;
 
 import Box.Box.Box;
 import Box.Interpreter.Bin;
-import Box.Parser.Stmt;
 import Box.Syntax.ExprOLD;
 import Box.Token.TTDynamic;
 import Box.Token.Token;
 import Box.Token.TokenType;
 import Box.Token.TokenTypeEnum;
+import Parser.Stmt;
 
 public class Scanner {
 
