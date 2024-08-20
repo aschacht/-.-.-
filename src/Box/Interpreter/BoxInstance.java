@@ -51,7 +51,7 @@ public class BoxInstance {
 				Object stmt = ((BoxClass) boxClass).contents.get(i);
 				return stmt;
 			} else {
-				Box.error(null, "index out of bounds for Box Cup or Pocket.");
+				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
 			}
 		}
 		if (boxClass instanceof BoxContainerClass) {
@@ -59,7 +59,7 @@ public class BoxInstance {
 				Object expr = ((BoxContainerClass) boxClass).get(i);
 				return expr;
 			} else {
-				Box.error(null, "index out of bounds for Box Cup or Pocket.");
+				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
 			}
 		}
 		return null;
@@ -73,7 +73,7 @@ public class BoxInstance {
 			} else if (integer == 0 && ((BoxClass) boxClass).contents.size() - 1 == -1) {
 				((BoxClass) boxClass).setContentsAt(integer, value);
 			} else {
-				Box.error(null, "index out of bounds for Box Cup or Pocket.");
+				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
 			}
 		}
 		if (boxClass instanceof BoxContainerClass) {
@@ -83,7 +83,7 @@ public class BoxInstance {
 			} else if (integer == 0 && ((BoxContainerClass) boxClass).getPrimarys().size() - 1 == -1) {
 				((BoxContainerClass) boxClass).setPrimaryAt(integer, value);
 			} else {
-				Box.error(null, "index out of bounds for Box Cup or Pocket.");
+				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
 			}
 		}
 		if (boxClass instanceof BoxKnotClass) {
@@ -93,7 +93,7 @@ public class BoxInstance {
 			} else if (integer == 0 && ((BoxKnotClass) boxClass).getPrimarys().size() - 1 == -1) {
 				((BoxKnotClass) boxClass).setPrimaryAt(integer, value);
 			} else {
-				Box.error(null, "index out of bounds for Box Cup or Pocket.");
+				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
 			}
 		}
 
@@ -107,7 +107,7 @@ public class BoxInstance {
 				theIndexes.remove(theIndexes.size() - 1);
 				return ((BoxInstance) firstBoxInstance).get(theNextIndex, theIndexes);
 			} else {
-				Box.error(null, "did not find object at index. ");
+				Box.error(null, "did not find object at index. ",true);
 			}
 		}
 		return firstBoxInstance;
@@ -122,7 +122,7 @@ public class BoxInstance {
 				theIndexes.remove(theIndexes.size() - 1);
 				((BoxInstance) firstBoxInstance).set(value, theNextIndex, theIndexes);
 			} else {
-				Box.error(null, "did not find object at index. ");
+				Box.error(null, "did not find object at index. ",true);
 			}
 		} else {
 			setAt(value, firstIndex);

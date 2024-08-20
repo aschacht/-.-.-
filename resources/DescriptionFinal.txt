@@ -1,0 +1,617 @@
+<program> ::=  <dec>* <EOFToken>;
+
+
+<dec> ::= <statement>|<FunDecl>;
+
+
+<FunDecl>::= ((<funToken><dotToken><forwardParameterCup> <dotToken>)? ((<cup> | <knot>) (<dotToken><backwardParameterCup><dotToken><nufToken>)?);
+
+
+<forwardParameterCup> ::= <IDEIdentifier><dotToken> <leftSquareToken> <forwardParameters>? <rightSquareToken>;
+
+
+<backwardParameterCup> ::= <leftSquareToken> <backwardParameters>? <rightSquareToken> <dotToken><IDEIdentifier>;
+
+
+<forwardParameters> ::= (<type>|<epyt>) <IDEIdentifier> (<commaToken> <type> <IDEIdentifier>)*;
+
+
+<backwardParameters> ::= <IDEIdentifier> (<type>|<epyt>)(<commaToken><IDEIdentifier> <epyt> )* ;
+
+<statement>::= <exxeSt>|<print>|<return>|<save>|<read>|<rename>|<move>|<expel>|<consume>|<tnirp>|<nruter>|<evas>|<daer>|<emaner>|<evom>|<var>|<rav>|<if>|<fi>;
+
+
+<exxeSt> ::= <expressionnoisserpex> ;
+
+
+
+<if> ::= <leftParenToken> <expressionnoisserpex> <rightParenToken> <dotToken> 
+		 <leftBracketToken> <statement>* <rightBracketToken>
+		(<dotToken><leftParenToken> <expressionnoisserpex> <rightParenToken> <dotToken> 
+		 <leftBracketToken> <statement>* <rightBracketToken>)*
+		 (<dotToken><leftBracketToken> <statement>* <rightBracketToken>)?;
+		 
+		 
+<fi> ::= (<leftBracketToken> <statement>* <rightBracketToken><dotToken>)?
+		(<leftBracketToken> <statement>* <rightBracketToken><dotToken>
+		<leftParenToken> <expressionnoisserpex> <rightParenToken> <dotToken>)*
+		 <leftBracketToken> <statement>* <rightBracketToken>
+		  <dotToken> <leftParenToken> <expressionnoisserpex> <rightParenToken>;  
+		  
+<print>::= <printToken > <dotToken> <enclosedExpression> ;
+
+
+<return>::= <returnToken > <dotToken> <enclosedExpression> ;
+
+
+<save>::= <saveToken > <dotToken> <enclosedStringValue> <dotToken> (<leftParenToken><target><rightParenToken>);
+
+
+<expel>::= (<box> | <IDEIdentifier>) <expelToken > <enclosedStringValue>;
+
+
+<read>::=<readToken> <dotToken> <enclosedStringValue> <dotToken> <intoToken> <leftParenToken><target><rightParenToken>;
+
+
+<consume>::= (<box >| <IDEIdentifier >) <consumeToken > <enclosedStringValue>;
+
+
+<rename>::=<renameToken> <dotToken> <enclosedStringValue> <dotToken> <toToken> <dotToken> <enclosedStringValue>;
+
+
+<move>::=<moveToken > <dotToken> <enclosedStringValue>  <dotToken> <toToken> <dotToken> <enclosedStringValue> ;
+
+
+<tnirp>::= <enclosedExpression>  <dotToken><tnirpToken> ;
+
+
+<nruter>::=   <enclosedExpression>  <dotToken><nruterToken> ;
+
+
+<evas>::= <leftParenToken><target><rightParenToken> <dotToken> <enclosedStringValue>  <dotToken> <evasToken>; 
+
+
+<daer>::=<leftParenToken><target><rightParenToken> <dotToken> <otniToken> <dotToken> <enclosedStringValue> <dotToken> <daerToken>;
+
+
+<emaner>::=<enclosedStringValue> <dotToken> <otToken> <dotToken> <enclosedStringValue> <dotToken> <emanerToken>;
+
+
+<evom>::=<enclosedStringValue> <dotToken> <otToken> <dotToken> <enclosedStringValue> <dotToken> <evomToken>;
+
+
+
+<enclosedExpression> ::= <leftParenToken> <expressionnoisserpex> <rightParenToken>;
+
+
+<enclosedStringValue> ::= <leftParenToken> <StringValue > <rightParenToken>;
+
+
+<target>::= <box> | <cup> | <pocket> | <knot>| <IDEIdentifier> ;
+
+
+<normalTwoCharCompairison> ::= <greaterEqualThanToken > | <lessEqualThanToken>;
+<normalCompairison> ::= <greaterThanToken> | <lessThanToken>;
+<backwardsCompairison> ::= <equalGeaterThanToken>|<equalLessThanToken>;
+
+
+<expressionnoisserpex> ::= <assignmenttnemngissa>;
+
+<assignmenttnemngissa> ::= (<call> <dotToken>)? <IDEIdentifier> <equalToken> <containssniatnoc>| <containssniatnoc> <equalToken> <IDEIdentifier> (<dotToken> <llac>)?   | <containssniatnoc>;
+
+<containssniatnoc> ::= <logicOrrOcigol > <containsToken> <openToken>? <logicOrrOcigol> | <logicOrrOcigol> <nepoToken>? <sniatnocToken> <logicOrrOcigol> | <logicOrrOcigol>;
+
+<logicOrrOcigol>::= <logicAnddnAcigol> (<orToken> <logicAnddnAcigol >)* | (<logicAnddnAcigol> <roToken>)* <logicAnddnAcigol> |<logicAnddnAcigol>;
+
+<logicAnddnAcigol> ::= <equalityytilauqe> (<andToken> <equalityytilauqe>)* | (<equalityytilauqe> <dnaToken>)* <equalityytilauqe> | <equalityytilauqe>;
+
+<equalityytilauqe> ::= <addsubbusdda> ((<notEqualToken> | <equalEqualToken>) <addsubbusdda>)*  | (<addsubbusdda>(<equalNotToken> | <equalEqualToken>))* <addsubbusdda> | <addsubbusdda> ;
+
+<addsubbusdda> ::= <comparisonnosirapmoc> ((<plusEqualToken>|<minusEqualToken>) <comparisonnosirapmoc>)* |  (<comparisonnosirapmoc> (<equalPlusToken> |<equalMinusToken>))* <comparisonnosirapmoc>  |<comparisonnosirapmoc>;
+
+<comparisonnosirapmoc>::= <termmert> ((<normalTwoCharCompairison> | <normalCompairison>) <termmert>)* |  (<termmert> (<backwardsCompairison> | <normalCompairison>))* <termmert>  | <termmert> ;
+
+<termmert> ::= <factorrotcaf> ((<minusToken >|<plusToken >) <factorrotcaf>)* | (<factorrotcaf> (<minusToken >|<plusToken >))* <factorrotcaf>  |<factorrotcaf>;
+
+<factorrotcaf> ::= <powerrewop> ((<forwardSlashToken> | <timesToken>) <powerrewop>)* | (<powerrewop> (<timesToken> | <backslashToken>))* <powerrewop>| <powerrewop>;
+
+<powerrewop> ::= <yroottoory> (<powerToken> <yroottoory>)* | (<yroottoory> <powerToken>)* <yroottoory>| <yroottoory>;
+
+<yroottoory> ::= <yrootToken> <dotToken> <leftParenToken> <sinnis><commaToken> <sinnis> <rightParenToken> | <leftParenToken> <sinnis> <commaToken> <sinnis> <rightParenToken> <dotToken> <tooryToken> | <sinnis>;
+
+<sinnis> ::= <sinToken> <dotToken> <leftParenToken> <cossoc> <rightParenToken> | <leftParenToken> <cossoc> <rightParenToken> <dotToken> <nisToken> | <cossoc>;
+
+<cossoc> ::= <cosToken> <dotToken> <leftParenToken> <tannat > <rightParenToken> | <leftParenToken> <tannat> <rightParenToken> <dotToken> <socToken> |  <tannat>;
+
+<tannat> ::= <tanToken > <dotToken> <leftParenToken> <sinhhnis> <rightParenToken> | <leftParenToken> <sinhhnis> <rightParenToken> <dotToken> <natToken>| <sinhhnis>;
+
+<sinhhnis> ::= <sinhToken> <dotToken> <leftParenToken> <coshhsoc > <rightParenToken> | <leftParenToken> <coshhsoc> <rightParenToken> <dotToken> <hnisToken> | <coshhsoc>;
+
+<coshhsoc> ::= (<coshToken> <dotToken> <leftParenToken> <tanhhnat> <rightParenToken>) | <leftParenToken> <tanhhnat> <rightParenToken> <dotToken> <hsocToken>  | <tanhhnat>;
+
+<tanhhnat> ::= <tanhToken> <dotToken> <leftParenToken> <loggol> <rightParenToken> | <leftParenToken> <loggol> <rightParenToken> <dotToken> <hnatToken> | <loggol>;
+
+<loggol> ::= <logToken> <dotToken> <leftParenToken> <factoriallairotcaf> <commaToken> <factoriallairotcaf> <rightParenToken> | <leftParenToken> <factoriallairotcaf> <commaToken> <factoriallairotcaf> <rightParenToken> <dotToken> <golToken> | <factoriallairotcaf>;
+
+<factoriallairotcaf> ::= <unaryyranu> <bangToken> | <bangToken> <unaryyranu>  | <unaryyranu>;
+
+<unaryyranu> ::= (<questionToken>| <minusToken> | <minusMinusToken> | <plusPlusToken>) <unaryyranu>  | <unaryyranu> (<questionToken >| <minusToken > | <minusMinusToken> | <plusPlusToken>) | <callllac>;
+
+<callllac>::= <primary> <dotIDE >*  <forwardCall>? | <backwardCall>?  <IDEdot>* <primary> | <primary>;
+
+
+<IDEdot> ::= <IDEIdentifier> <dotToken>;
+<forwardCall>::= <dotToken>  <leftParenToken> <arguments>? <rightParenToken>;
+<dotIDE>::=<dotToken> <IDEIdentifier>;
+<backwardCall>::=<leftParenToken> <arguments>? <rightParenToken> <dotToken>;
+<arguments>::= <expressionnoisserpex> <aditionalArgs>*;
+<aditionalArgs>::=<commaToken> <expressionnoisserpex>;
+
+
+
+
+
+
+<var> ::=<type> <intValue>? <IDEIdentifier> (<equalToken> <primary>)?;
+
+
+<rav> ::= (<primary> <equalToken>)? <IDEIdentifier> <intValue>? <epyt>
+
+
+<container> ::= <box> |<pocket> |<cup> | <knot>;
+
+
+<box> ::= (<IDEIdentifier>? <leftSquareToken> (<expressionnoisserpex> (<commaToken> <expressionnoisserpex>)*)? <rightSquareToken> <IDEIdentifier>?);
+
+
+
+<pocket> ::= (<IDEIdentifier>? <leftParenToken> <statement>* <rightParenToken> <IDEIdentifier>?) ;
+
+
+<cup> ::= (<IDEIdentifier>? <leftBracketToken> <dec>* <rightBracketToken> <IDEIdentifier>?)  ;
+
+
+<knot> ::= (<cupknot> | <pocketknot>) ;
+
+
+<cupknot> ::= <cf> <dec>* <cb>;
+
+
+<pocketknot> ::= <pf>  <statement>* <pb>;
+
+
+
+
+
+<cb> ::= <rightBracketToken> <IDEIdentifier>? | <pf> <dec>*  <cb>  <dec>* <pb> | <cf> <dec>* <cb> <dec>* <cb>;
+
+
+<pb> ::= <rightParenToken> <IDEIdentifier>? | <cf> <statement>* <pb> <statement>* <cb> | <pf>  <statement>* <pb> <statement>* <pb>;
+
+
+<cf> ::= <IDEIdentifier>? <leftBracketToken> | <pf>  <dec>* <cf> <dec>* <pb> | <cf> <dec>* <cf> <dec>* <cb>;
+
+
+<pf> ::= <IDEIdentifier>? <leftParenToken> | <cf> <statement>* <pf> <statement>* <cb> | <pf> <statement>* <pf>  <statement>* <pb>;
+
+
+
+
+
+<IDEIdentifier> ::= (<Alpha>| <DIGIT>)* <Alpha>+ (<Alpha>| <DIGIT>)*  ;
+
+
+
+
+
+<type> ::= <boxTypeToken> | <pktTypeToken>| <cupTypeToken> | <kntTypeToken>;
+
+
+<epyt> ::= <xobTypeToken> | <tkpTypeToken>| <pucTypeToken> |<tnkTypeToken>;
+
+
+<primary> ::= <IDEIdentifier> | <container>;
+
+
+<Primatives> ::=  <IDEIdentifier> |<booleanValue> |<naeloobValue> | <doubleValue> | <intValue> | <binaryValue> | <charValue> | <StringValue> | <NULLToken> | <NILLToken> | <LLUNToken> | <LLINToken> |<container>;
+
+
+<booleanValue> ::= <trueToken>| <falseToken>;
+
+<naeloobValue> ::= <erutToken>| <eslafToken>;
+
+<doubleValue> ::= <DIGIT>+(<dotToken> <DIGIT>+)?;
+
+
+<intValue> ::= <DIGIT>+;
+
+
+<binaryValue> ::= <bToken>? (<zeroToken>|<oneToken>)+ <bToken>;
+
+
+<charValue> ::= <singleQuoteToken> <Ascii> <singleQuoteToken>;
+
+
+<StringValue> ::= <singledoublequoteEscapeToken> ( <Ascii> )* <singledoublequoteEscapeToken>;
+
+
+<Ascii> ::= 32|33|35|36|37|38|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63|64|65|66|67|68|69|70|71|72|73|74|75|76|77|78|79|80|81|82|83|84|85|86|87|88|89|90|91|93|94|95|96|97|98|99|100|101|102|103|104|105|106|107|108|109|110|111|112|113|114|115|116|117|118|119|120|121|122|123|124|125|126|127;
+
+
+<Alpha> ::= <lowerAlpha> | <upperAlpha> | <underscoreToken>;
+
+
+<lowerAlpha> ::= "a"|"b"|"c"|"d"|"e"|"f"|"g"|"h"|"i"|"j"|"k"|"l"|"m"|"n"|"o"|"p"|"q"|"r"|"s"|"t"|"u"|"v"|"w"|"x"|"y"|"z";
+
+
+<upperAlpha> ::= "A"|"B"|"C"|"D"|"E"|"F"|"G"|"H"|"I"|"J"|"K"|"L"|"M"|"N"|"O"|"P"|"Q"|"R"|"S"|"T"|"U"|"V"|"W"|"X"|"Y"|"Z";
+
+
+<DIGIT> ::= "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9";
+
+
+<singledoublequoteEscapeToken> ::= "\"";
+
+
+<singlequoteEscapeToken> ::= "\'";
+
+
+<backslashEscapeToken> ::= "\\";
+
+
+<dotToken> ::= ".";
+
+
+<moneyToken> ::= "$";
+
+
+<percentToken> ::= "%";
+
+
+<atToken> ::= "@";
+
+
+<semicolenToken> ::= ";";
+
+
+<colenToken> ::= ":";
+
+
+<tildaToken> ::= "~";
+
+
+<underscoreToken> ::= "_";
+
+
+<leftBracketToken> ::= "{";
+
+
+<rightBracketToken> ::= "}";
+
+
+<leftParenToken> ::= "(";
+
+
+<rightParenToken> ::= ")";
+
+
+<leftSquareToken> ::= "[";
+
+
+<rightSquareToken> ::= "]";
+
+
+<commaToken> ::= ",";
+
+
+<funToken> ::= "fun";
+
+
+<nufToken> ::= "nuf";
+
+
+<printToken> ::= "print";
+
+
+<returnToken> ::= "return";
+
+
+<moveToken> ::= "move";
+
+
+<toToken> ::= "to";
+
+
+<renameToken> ::= "rename";
+
+
+<consumeToken> ::= "<<<";
+
+
+<readToken> ::= "read";
+
+
+
+<intoToken> ::= "into";
+
+
+<expelToken> ::= ">>>";
+
+
+<saveToken> ::= "save";
+
+
+<containsToken> ::= "contains";
+
+
+<sniatnocToken> ::= "sniatnoc";
+
+
+<openToken> ::= "open";
+
+
+<nepoToken> ::= "nepo";
+
+
+<tnirpToken> ::= "tnirp";
+
+
+<nruterToken> ::= "nruter";
+
+
+<evomToken> ::= "evom";
+
+
+<otToken> ::= "ot";
+
+
+<emanerToken> ::= "emaner";
+
+
+<daerToken> ::= "daer";
+
+
+<otniToken> ::= "otni";
+
+
+<evasToken> ::= "evas";
+
+
+<orToken> ::= "or";
+
+
+<roToken> ::= "ro";
+
+
+<andToken> ::= "and";
+
+
+<dnaToken> ::= "dna";
+
+
+<notEqualToken> ::= "!=";
+
+
+<equalNotToken> ::= "=!";
+
+
+<equalEqualToken>: := "==";
+
+
+<greaterThanToken> ::= ">";
+
+
+<greaterEqualThanToken> ::= ">=";
+
+
+<lessThanToken> ::= "<";
+
+
+<lessEqualThanToken> ::= "<=";
+
+
+<equalGeaterThanToken> ::= "=>";
+
+
+<equalLessThanToken> ::= "=<";
+
+
+<plusEqualToken> ::= "+=";
+
+
+<minusEqualToken> ::= "-=";
+
+
+<equalPlusToken> ::= "=+";
+
+
+<equalMinusToken> ::= "=-";
+
+
+<equalToken> ::= "=";
+
+
+<minusToken> ::= "-";
+
+
+<plusToken> ::= "+";
+
+
+<forwardSlashToken> ::= "/";
+
+
+<timesToken> ::= "*";
+
+
+<backslashToken> :: ="\\";
+
+
+<powerToken> ::= "^";
+
+
+<yrootToken> ::= "yroot";
+
+
+<tooryToken> ::= "toory";
+
+
+<sinToken> ::= "sin";
+
+
+<nisToken> ::= "nis";
+
+
+<cosToken> ::= "cos";
+
+
+<socToken> ::= "soc";
+
+
+<tanToken> ::= "tan";
+
+
+<natToken> ::= "nat";
+
+
+<sinhToken> ::= "sinh";
+
+
+<hnisToken> ::= "hnis";
+
+
+<coshToken> ::= "cosh";
+
+
+<hsocToken> ::= "hsoc";
+
+
+<tanhToken> ::= "tanh";
+
+
+<hnatToken> ::= "hnat";
+
+
+<logToken> ::= "log";
+
+
+<golToken> ::= "gol";
+
+
+<bangToken> ::= "!";
+
+
+<questionToken> ::= "?";
+
+
+<minusMinusToken> ::= "--";
+
+
+<plusPlusToken> ::= "++";
+
+
+<boxTypeToken> ::= "box";
+
+
+<pktTypeToken> ::= "pkt";
+
+
+<cupTypeToken> ::= "cup";
+
+
+<kntTypeToken> ::= "knt";
+
+
+<xobTypeToken> ::= "xob";
+
+
+<tkpTypeToken> ::= "tkp";
+
+
+<pucTypeToken> ::= "puc";
+
+
+<tnkTypeToken> ::= "tnk";
+
+
+<singleQuoteToken> ::= "\'";
+
+
+<zeroToken> ::= "0";
+
+
+<oneToken> ::= "1";
+
+
+<bToken> ::= "b";
+
+
+<trueToken> ::= "true";
+
+
+<falseToken> ::= "false";
+
+<eurtToken> ::= "eurt";
+
+
+<eslafToken> ::= "eslaf";
+
+
+<stgTypeToken> ::= "stg";
+
+
+<charTypeToken> ::= "chr";
+
+
+<booTypeToken> :: ="boo";
+
+
+<intTypeToken> ::= "int";
+
+
+<dblTypeToken> ::= "dbl";
+
+
+<binTypeToken> ::= "bin";
+
+
+<nulTypeToken> ::= "nul"; 
+
+
+<nilTypeToken> ::= "nil";
+
+
+<lcpTypeToken> ::= "lcp";
+
+<NILLToken> ::= "NIL";
+
+
+<NULLToken> ::= "NUL";
+<rcpTypeToken> ::= "rcp";
+
+
+<lpkTypeToken> ::= "lpk";
+
+
+<rpkTypeToken> ::= "rpk";
+
+
+<lbxTypeToken> ::= "lbx";
+
+
+<rbxTypeToken> ::= "rbx";
+
+
+<NILLToken> ::= "NIL";
+
+
+<NULLToken> ::= "NUL";
+
+<LLINToken> ::= "LIN";
+
+
+<LLUNToken> ::= "LUN";
+
+
+<EOFToken> ::= "\0";
+
+

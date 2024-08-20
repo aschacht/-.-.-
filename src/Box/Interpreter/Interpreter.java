@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,93 +12,63 @@ import java.util.Map;
 import java.util.Scanner;
 
 import Box.Box.Box;
-import Box.Interpreter.Interpreter.KnotMap;
-
-import Box.Syntax.Expr;
-import Box.Syntax.Expr.Assignment;
-import Box.Syntax.Expr.Binary;
-import Box.Syntax.Expr.BoxOpenLeft;
-import Box.Syntax.Expr.BoxOpenRight;
-import Box.Syntax.Expr.Boxx;
-import Box.Syntax.Expr.Call;
-import Box.Syntax.Expr.Cid;
-import Box.Syntax.Expr.Cocket;
-import Box.Syntax.Expr.Contains;
-import Box.Syntax.Expr.Cup;
-import Box.Syntax.Expr.CupOpenLeft;
-import Box.Syntax.Expr.CupOpenRight;
-import Box.Syntax.Expr.Elbairav;
-import Box.Syntax.Expr.Epyt;
-import Box.Syntax.Expr.Factorial;
-import Box.Syntax.Expr.Get;
-import Box.Syntax.Expr.GetBoxCupPocket;
-import Box.Syntax.Expr.Gol;
-import Box.Syntax.Expr.Knot;
-import Box.Syntax.Expr.Lacigol;
-import Box.Syntax.Expr.Lairotcaf;
-import Box.Syntax.Expr.Laretil;
-import Box.Syntax.Expr.LaretilChar;
-import Box.Syntax.Expr.Lash;
-import Box.Syntax.Expr.Lid;
-import Box.Syntax.Expr.Lil;
-import Box.Syntax.Expr.Literal;
-import Box.Syntax.Expr.LiteralChar;
-import Box.Syntax.Expr.Llac;
-import Box.Syntax.Expr.Locket;
-import Box.Syntax.Expr.Log;
-import Box.Syntax.Expr.Logical;
-import Box.Syntax.Expr.Lup;
-import Box.Syntax.Expr.Mono;
-import Box.Syntax.Expr.Onom;
-import Box.Syntax.Expr.Parameter;
-import Box.Syntax.Expr.Pid;
-import Box.Syntax.Expr.Pocket;
-import Box.Syntax.Expr.PocketOpenLeft;
-import Box.Syntax.Expr.PocketOpenRight;
-import Box.Syntax.Expr.Pup;
-import Box.Syntax.Expr.Set;
-import Box.Syntax.Expr.Sniatnoc;
-import Box.Syntax.Expr.Teg;
-import Box.Syntax.Expr.TegBoxCupPocket;
-import Box.Syntax.Expr.Tes;
-import Box.Syntax.Expr.Tnemngissa;
-import Box.Syntax.Expr.Tonk;
-import Box.Syntax.Expr.Type;
-import Box.Syntax.Expr.UnKnown;
-import Box.Syntax.Expr.Unary;
-import Box.Syntax.Expr.UnknownnwonknU;
-import Box.Syntax.Expr.Variable;
-import Box.Syntax.Expr.Yranib;
-import Box.Syntax.Expr.Yranu;
-import Box.Syntax.Stmt;
-import Box.Syntax.Stmt.Constructor;
-import Box.Syntax.Stmt.Consume;
-import Box.Syntax.Stmt.Daer;
-import Box.Syntax.Stmt.Emaner;
-import Box.Syntax.Stmt.Evas;
-import Box.Syntax.Stmt.Evom;
-import Box.Syntax.Stmt.Expel;
-import Box.Syntax.Stmt.Expression;
-import Box.Syntax.Stmt.Fi;
-import Box.Syntax.Stmt.Function;
-import Box.Syntax.Stmt.If;
-import Box.Syntax.Stmt.Move;
-import Box.Syntax.Stmt.Noisserpxe;
-import Box.Syntax.Stmt.Nruter;
-import Box.Syntax.Stmt.PassThrough;
-import Box.Syntax.Stmt.Print;
-import Box.Syntax.Stmt.Rav;
-import Box.Syntax.Stmt.Read;
-import Box.Syntax.Stmt.Rename;
-import Box.Syntax.Stmt.Save;
-import Box.Syntax.Stmt.Tnirp;
-import Box.Syntax.Stmt.UnDetermined;
-import Box.Syntax.Stmt.Var;
-import Box.Syntax.Stmt.VarFB;
+import Box.Parser.Declaration;
+import Box.Parser.Expr;
+import Box.Parser.Fun;
+import Box.Parser.Stmt;
+import Box.Parser.Declaration.FunDecl;
+import Box.Parser.Declaration.StmtDecl;
+import Box.Parser.Expr.Assignment;
+import Box.Parser.Expr.Binary;
+import Box.Parser.Expr.Call;
+import Box.Parser.Expr.Contains;
+import Box.Parser.Expr.Cup;
+import Box.Parser.Expr.Factorial;
+import Box.Parser.Expr.Get;
+import Box.Parser.Expr.Gol;
+import Box.Parser.Expr.Knot;
+import Box.Parser.Expr.Lairotcaf;
+import Box.Parser.Expr.Literal;
+import Box.Parser.Expr.LiteralChar;
+import Box.Parser.Expr.Llac;
+import Box.Parser.Expr.Log;
+import Box.Parser.Expr.Mono;
+import Box.Parser.Expr.Onom;
+import Box.Parser.Expr.Pocket;
+import Box.Parser.Expr.Set;
+import Box.Parser.Expr.Sniatnoc;
+import Box.Parser.Expr.Swap;
+import Box.Parser.Expr.Teg;
+import Box.Parser.Expr.Tes;
+import Box.Parser.Expr.Tnemngissa;
+import Box.Parser.Expr.Tonk;
+import Box.Parser.Expr.Unary;
+import Box.Parser.Expr.Variable;
+import Box.Parser.Expr.Yranib;
+import Box.Parser.Expr.Yranu;
+import Box.Parser.Fun.Function;
+import Box.Parser.Stmt.Consume;
+import Box.Parser.Stmt.Daer;
+import Box.Parser.Stmt.Emaner;
+import Box.Parser.Stmt.Evas;
+import Box.Parser.Stmt.Evom;
+import Box.Parser.Stmt.Expel;
+import Box.Parser.Stmt.Fi;
+import Box.Parser.Stmt.If;
+import Box.Parser.Stmt.Move;
+import Box.Parser.Stmt.Nruter;
+import Box.Parser.Stmt.Print;
+import Box.Parser.Stmt.Rav;
+import Box.Parser.Stmt.Read;
+import Box.Parser.Stmt.Rename;
+import Box.Parser.Stmt.Save;
+import Box.Parser.Stmt.Tnirp;
+import Box.Parser.Stmt.Var;
+import Box.Syntax.*;
 import Box.Token.Token;
 import Box.Token.TokenType;
 
-public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	public class KnotMap<refrence, expression> {
 		ArrayList<refrence> ref = new ArrayList<refrence>();
@@ -127,7 +95,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	private Environment environment = globals;
 	private Map<Expr, Integer> locals = new HashMap<>();
 	private boolean fromCall = false;
-	private KnotTracker tracker = new KnotTracker();
 	private ArrayList<Stmt> statements;
 	private boolean cupExecute = false;
 	private boolean pocketExecute = false;
@@ -159,11 +126,11 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	}
 
-	public void interpret(List<List<Stmt>> statementList) {
+	public void interpret(List<List<Declaration>> statements2) {
 		try {
-			for (List<Stmt> statements : statementList) {
+			for (List<Declaration> statements : statements2) {
 
-				for (Stmt stmt : statements) {
+				for (Declaration stmt : statements) {
 					execute(stmt);
 				}
 
@@ -186,13 +153,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 						execute(stmt);
 					}
 				}
-				if (stmt instanceof Stmt.Noisserpxe) {
-					if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.Pocket) {
-						visitPocket.add(visitPocketExpr((Pocket) ((Stmt.Noisserpxe) stmt).noisserpex));
-					} else {
-						execute(stmt);
-					}
-				}
+
 			}
 
 		} catch (RuntimeError e) {
@@ -204,6 +165,11 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	private void execute(Stmt stmt) {
 		stmt.accept(this);
+	}
+
+	private void execute(Declaration stmt) {
+		stmt.accept(this);
+
 	}
 
 	private Object evaluate(Expr expression) {
@@ -223,6 +189,10 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		}
 		if (object instanceof Bin) {
 			String text = ((Bin) object).toString();
+			return text;
+		}
+		if (object instanceof Literal) {
+			String text = ((Literal) object).value.toString();
 			return text;
 		}
 		if (object instanceof ArrayList) {
@@ -245,230 +215,14 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	@Override
-	public Void visitExpressionStmt(Stmt.Expression stmt) {
-		evaluate(stmt.expression);
-		return null;
-	}
+	public Object visitExpressionStmt(Stmt.Expression stmt) {
 
-	@Override
-	public Void visitFunctionStmt(Function stmt) {
-
-		BoxFunction function0 = null;
-		if (stmt.binFun0 instanceof Expr.Literal) {
-			if (((Bin) ((Expr.Literal) stmt.binFun0).value).isValueEqualTo(new Bin("10"))) {
-				if (stmt.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun0, environment, false);
-				if (stmt.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun0, environment, false);
-			}
-			if (((Bin) ((Expr.Literal) stmt.binFun0).value).isValueEqualTo(new Bin("11"))) {
-				if (stmt.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun1, environment, false);
-				if (stmt.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun1, environment, false);
-			}
-			if (((Bin) ((Expr.Literal) stmt.binFun0).value).isValueEqualTo(new Bin("00"))) {
-				if (stmt.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun0, environment, false);
-				if (stmt.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(stmt.knotfun1, ((Expr.Elbairav) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun0, environment, false);
-			}
-			if (((Bin) ((Expr.Literal) stmt.binFun0).value).isValueEqualTo(new Bin("01"))) {
-				if (stmt.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun1, environment, false);
-				if (stmt.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(stmt.knotfun1, ((Expr.Elbairav) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun1, environment, false);
-			}
-		} else if (stmt.binFun0 instanceof Expr.Laretil) {
-			if (((Bin) ((Expr.Laretil) stmt.binFun0).value).isValueEqualTo(new Bin("10"))) {
-				if (stmt.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun0, environment, false);
-				if (stmt.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun0, environment, false);
-			}
-			if (((Bin) ((Expr.Laretil) stmt.binFun0).value).isValueEqualTo(new Bin("11"))) {
-				if (stmt.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun1, environment, false);
-				if (stmt.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun1, environment, false);
-			}
-			if (((Bin) ((Expr.Laretil) stmt.binFun0).value).isValueEqualTo(new Bin("00"))) {
-				if (stmt.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun0, environment, false);
-				if (stmt.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun0, environment, false);
-			}
-			if (((Bin) ((Expr.Laretil) stmt.binFun0).value).isValueEqualTo(new Bin("01"))) {
-				if (stmt.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(stmt.knotfun1, ((Expr.Elbairav) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun1, environment, false);
-				if (stmt.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-							stmt.paramsfun1, environment, false);
-			}
-		} else if (stmt.binFun0 == null) {
-			if (stmt.identifierfun0 instanceof Expr.Variable)
-				function0 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-						stmt.paramsfun0, environment, false);
-			if (stmt.identifierfun0 instanceof Expr.Elbairav)
-				function0 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun0).name.lexeme,
-						stmt.paramsfun0, environment, false);
-		}
-		BoxFunction function1 = null;
-		if (stmt.binFun1 instanceof Expr.Literal) {
-			if (((Bin) ((Expr.Literal) stmt.binFun1).value).isValueEqualTo(new Bin("10"))) {
-				if (stmt.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun1, environment, false);
-				if (stmt.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(stmt.knotfun1, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun1, environment, false);
-			}
-			if (((Bin) ((Expr.Literal) stmt.binFun1).value).isValueEqualTo(new Bin("11"))) {
-				if (stmt.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun0, environment, false);
-				if (stmt.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(stmt.knotfun1, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun0, environment, false);
-			}
-			if (((Bin) ((Expr.Literal) stmt.binFun1).value).isValueEqualTo(new Bin("00"))) {
-				if (stmt.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun1, environment, false);
-				if (stmt.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun1, environment, false);
-			}
-			if (((Bin) ((Expr.Literal) stmt.binFun1).value).isValueEqualTo(new Bin("01"))) {
-				if (stmt.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun0, environment, false);
-				if (stmt.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun0, environment, false);
-			}
-		} else if (stmt.binFun1 instanceof Expr.Laretil) {
-			if (((Bin) ((Expr.Laretil) stmt.binFun1).value).isValueEqualTo(new Bin("10"))) {
-				if (stmt.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun1, environment, false);
-				if (stmt.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(stmt.knotfun1, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun1, environment, false);
-			}
-			if (((Bin) ((Expr.Laretil) stmt.binFun1).value).isValueEqualTo(new Bin("11"))) {
-				if (stmt.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(stmt.knotfun1, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun0, environment, false);
-				if (stmt.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(stmt.knotfun1, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun0, environment, false);
-			}
-			if (((Bin) ((Expr.Laretil) stmt.binFun1).value).isValueEqualTo(new Bin("00"))) {
-				if (stmt.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun1, environment, false);
-				if (stmt.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun1, environment, false);
-			}
-			if (((Bin) ((Expr.Laretil) stmt.binFun1).value).isValueEqualTo(new Bin("01"))) {
-				if (stmt.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun0, environment, false);
-				if (stmt.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-							stmt.paramsfun0, environment, false);
-			}
-		} else if (stmt.binFun1 == null) {
-			if (stmt.identifierfun1 instanceof Expr.Variable)
-				function1 = new BoxFunction(stmt.knotfun0, ((Expr.Variable) stmt.identifierfun1).name.lexeme,
-						stmt.paramsfun1, environment, false);
-			if (stmt.identifierfun1 instanceof Expr.Elbairav)
-				function1 = new BoxFunction(stmt.knotfun0, ((Expr.Elbairav) stmt.identifierfun1).name.lexeme,
-						stmt.paramsfun1, environment, false);
-		}
-
-		if (function0 != null) {
-			environment.define(function0.getName(), function0.getType(), function0);
-
-		}
-
-		if (function1 != null) {
-			environment.define(function1.getName(), function1.getType(), function1);
-		}
-		return null;
-	}
-
-	@Override
-	public Object visitLogicalExpr(Logical expr) {
-		Object left = evaluate(expr.left);
-
-		if (expr.operator.type == TokenType.OR) {
-			if (isTruthy(left))
-				return left;
-		} else {
-			if (!isTruthy(left))
-				return left;
-
-		}
-		return evaluate(expr.right);
-	}
-
-	@Override
-	public Void visitIfStmt(If stmt) {
-		if (visitedPocketIsTrue(evaluate(stmt.ifPocket))) {
-			evaluate(stmt.ifCup);
-		} else if (stmt.elseIfStmt != null) {
-			execute(stmt.elseIfStmt);
-		} else if (stmt.elseIfStmt == null) {
-			if (stmt.elseCup != null)
-				evaluate(stmt.elseCup);
-		}
-		return null;
+		return evaluate(stmt.expression);
 	}
 
 	@Override
 	public Object visitAssignmentExpr(Assignment expr) {
-		Object value = null;
-		if (expr.value instanceof Expr.Boxx) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object boxInstance = lookUpVariable(((Expr.Boxx) expr.value).identifier, expr.value);
-			value = boxInstance;
-		} else if (expr.value instanceof Expr.Pocket) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object pocketInstance = lookUpVariable(((Expr.Pocket) expr.value).identifier, expr.value);
-			value = pocketInstance;
-		} else if (expr.value instanceof Expr.Cup) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object cupInstance = lookUpVariable(((Expr.Cup) expr.value).identifier, expr.value);
-			value = cupInstance;
-		} else if (expr.value instanceof Expr.Knot) {
-			Expression expression = new Stmt.Expression(expr.value);
-			execute(expression);
-			Object cupInstance = lookUpVariable(((Expr.Knot) expr.value).identifier, expr.value);
-			value = cupInstance;
-		} else {
-			value = evaluate(expr.value);
-		}
+		Object value = expr.value;
 		Integer distance = locals.get(expr);
 		if (distance != null)
 			environment.assignAt(distance, expr.name, expr.value, value, this);
@@ -478,55 +232,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	@Override
-	public Void visitVarStmt(Var stmt) {
-		Object value = null;
-
-//		environment.define(stmt.name.lexeme, stmt.type, stmt.num, stmt.initilizer);
-		return null;
-	}
-
-	@Override
-	public Void visitRavStmt(Rav stmt) {
-		Object value = null;
-		if (stmt.initializer != null) {
-
-			if (stmt.initializer instanceof Expr.Boxx) {
-				Expression expression = new Stmt.Expression(stmt.initializer);
-				execute(expression);
-				Object boxInstance = lookUpVariable(((Expr.Boxx) stmt.initializer).identifier, stmt.initializer);
-				value = boxInstance;
-			} else if (stmt.initializer instanceof Expr.Pocket) {
-				Expression expression = new Stmt.Expression(stmt.initializer);
-				execute(expression);
-				Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.initializer).identifier, stmt.initializer);
-				value = pocketInstance;
-			} else if (stmt.initializer instanceof Expr.Cup) {
-				Expression expression = new Stmt.Expression(stmt.initializer);
-				execute(expression);
-				Object cupInstance = lookUpVariable(((Expr.Cup) stmt.initializer).identifier, stmt.initializer);
-				value = cupInstance;
-			} else if (stmt.initializer instanceof Expr.Knot) {
-				Expression expression = new Stmt.Expression(stmt.initializer);
-				execute(expression);
-				Object cupInstance = lookUpVariable(((Expr.Knot) stmt.initializer).identifier, stmt.initializer);
-				value = cupInstance;
-			} else {
-				value = evaluate(stmt.initializer);
-			}
-		}
-
-		environment.define(stmt.name.lexeme, stmt.enforce, stmt.type, stmt.initializer, value, this);
-		return null;
-	}
-
-	@Override
 	public Object visitVariableExpr(Variable expr) {
-
-		return lookUpVariable(expr.name, expr);
-	}
-
-	@Override
-	public Object visitElbairavExpr(Elbairav expr) {
 
 		return lookUpVariable(expr.name, expr);
 	}
@@ -553,11 +259,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				if (keyExpr instanceof Expr.Variable) {
 
 					if (((Expr.Variable) keyExpr).name.lexeme == name.lexeme) {
-						exprToFind = keyExpr;
-					}
-				} else if (keyExpr instanceof Expr.Elbairav) {
-
-					if (((Expr.Elbairav) keyExpr).name.lexeme == name.lexeme) {
 						exprToFind = keyExpr;
 					}
 				}
@@ -635,9 +336,89 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			return findRootForLeftAndRightAndPower(left, right, expr);
 		case YROOT:
 			return findRootForLeftAndRightAndYroot(left, right, expr);
+		case TOORY:
+			return findRootForLeftAndRightAndYroot(right, left, expr);
+		case DNA:
+			return findRootForLeftAndRightAndAnd(left, right, expr);
+		case AND:
+			return findRootForLeftAndRightAndAnd(left, right, expr);
+		case RO:
+			return findRootForLeftAndRightAndOr(left, right, expr);
+		case OR:
+			return findRootForLeftAndRightAndOr(left, right, expr);
 		default:
 			return null;
 		}
+
+	}
+
+	private Object findRootForLeftAndRightAndOr(Object left, Object right, Expr expr) {
+		Expr.Binary binExpr = null;
+		Expr.Yranib yraExpr = null;
+		if (expr instanceof Expr.Binary)
+			binExpr = (Expr.Binary) expr;
+		if (expr instanceof Expr.Yranib)
+			yraExpr = (Expr.Yranib) expr;
+
+		Object theLeft = left;
+		Object theRight = right;
+		if (left instanceof ArrayList) {
+			if (((ArrayList<?>) left).size() > 0) {
+				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
+					theLeft = findRoot(((ArrayList<?>) left).get(0));
+				}
+
+			}
+		}
+		if (right instanceof ArrayList) {
+			if (((ArrayList<?>) right).size() > 0) {
+				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
+					theRight = findRoot(((ArrayList<?>) right).get(0));
+				}
+
+			}
+		}
+		if (theLeft instanceof Boolean && theRight instanceof Boolean) {
+			return (boolean) theLeft || (boolean) theRight;
+		} else if (binExpr != null)
+			throw new RuntimeError(binExpr.operator, "Operands must be boolean.");
+		else
+			throw new RuntimeError(yraExpr.operator, "Operands must be boolean.");
+
+	}
+
+	private Object findRootForLeftAndRightAndAnd(Object left, Object right, Expr expr) {
+		Expr.Binary binExpr = null;
+		Expr.Yranib yraExpr = null;
+		if (expr instanceof Expr.Binary)
+			binExpr = (Expr.Binary) expr;
+		if (expr instanceof Expr.Yranib)
+			yraExpr = (Expr.Yranib) expr;
+
+		Object theLeft = left;
+		Object theRight = right;
+		if (left instanceof ArrayList) {
+			if (((ArrayList<?>) left).size() > 0) {
+				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
+					theLeft = findRoot(((ArrayList<?>) left).get(0));
+				}
+
+			}
+		}
+		if (right instanceof ArrayList) {
+			if (((ArrayList<?>) right).size() > 0) {
+				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
+					theRight = findRoot(((ArrayList<?>) right).get(0));
+				}
+
+			}
+		}
+		if (theLeft instanceof Boolean && theRight instanceof Boolean) {
+			return (boolean) theLeft && (boolean) theRight;
+		} else if (binExpr != null)
+			throw new RuntimeError(binExpr.operator, "Operands must be boolean.");
+		else
+			throw new RuntimeError(yraExpr.operator, "Operands must be boolean.");
 
 	}
 
@@ -1102,11 +883,57 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			return (((Bin) theLeft).toDouble()) + ((Double) theRight);
 		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
 			return Bin.add((Bin) theLeft, (Bin) theRight);
+		} else if (theLeft instanceof Stmt.Expression && theRight instanceof Integer) {
+			return evaluateBoxPocketCup(((Stmt.Expression) theLeft), theRight);
 		} else if (binExpr != null)
 			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
 		else
 			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
 
+	}
+
+	private Object evaluateBoxPocketCup(Stmt.Expression theLeft, Object theRight) {
+		
+		if(theLeft.expression!=null) {
+		Object evaluate = evaluate(theLeft.expression);
+		ArrayList<?> arr = null;
+		ArrayList<Integer> arr1 = new ArrayList<>();
+		if(evaluate instanceof ArrayList) {
+			arr = ((ArrayList)evaluate);
+			for (Object object : arr) {
+				if(object instanceof Integer) {
+					Integer teger = ((Integer)object); 
+					
+					teger +=(Integer)theRight;
+					arr1.add(teger);
+				}
+			}
+			
+		
+		}
+		
+		return arr1;
+		}
+		if(theLeft.noisserpxe!=null) {
+			Object evaluate = evaluate(theLeft.noisserpxe);
+			ArrayList<?> arr = null;
+			ArrayList<Integer> arr1 = new ArrayList<>();
+			if(evaluate instanceof ArrayList) {
+				arr = ((ArrayList)evaluate);
+				for (Object object : arr) {
+					if(object instanceof Integer) {
+						Integer teger = ((Integer)object); 
+						
+						teger +=(Integer)theRight;
+						arr1.add(teger);
+					}
+				}
+				
+			
+			}
+			return arr1;
+		}
+			return null;
 	}
 
 	private Object findRootForLeftAndRightAndGreaterThen(Object left, Object right, Expr expr) {
@@ -1515,12 +1342,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	@Override
-	public Object visitLaretilExpr(Laretil expr) {
-
-		return expr.value;
-	}
-
-	@Override
 	public Object visitUnaryExpr(Unary expr) {
 		Object right = evaluate(expr.right);
 
@@ -1553,13 +1374,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					} else
 						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(value), value, this);
-				}
 
 				return (double) right + 1.0;
 			}
@@ -1573,13 +1387,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					else
 						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Expr.Laretil(value),
-								value, this);
-					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Expr.Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof Bin) {
@@ -1592,13 +1400,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					else
 						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Expr.Laretil(value),
-								value, this);
-					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Expr.Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof ArrayList) {
@@ -1612,14 +1414,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 						globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
 								findRootForPlusPlus, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name,
-								new Expr.Laretil(findRootForPlusPlus), findRootForPlusPlus, this);
-					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Expr.Laretil(findRootForPlusPlus),
-								findRootForPlusPlus, this);
-				}
+
 				return findRootForPlusPlus;
 
 			}
@@ -1635,13 +1430,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					else
 						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof Integer) {
@@ -1654,13 +1443,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					else
 						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof Bin) {
@@ -1673,13 +1456,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					else
 						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name, new Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof ArrayList) {
@@ -1693,14 +1470,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 						globals.assign(((Expr.Variable) expr.right).name, new Literal(findRootForMinusMinus),
 								findRootForMinusMinus, this);
 				}
-				if (expr.right instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.right).name,
-								new Laretil(findRootForMinusMinus), findRootForMinusMinus, this);
-					else
-						globals.assign(((Expr.Elbairav) expr.right).name, new Laretil(findRootForMinusMinus),
-								findRootForMinusMinus, this);
-				}
+
 				return findRootForMinusMinus;
 			}
 			throw new RuntimeError(expr.operator, "Operand must be a number.");
@@ -1776,7 +1546,7 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 	@Override
 	public Object visitYranuExpr(Yranu expr) {
-		Object right = evaluate(expr.left);
+		Object right = evaluate(expr.right);
 
 		switch (expr.operator.type) {
 		case QMARK:
@@ -1798,163 +1568,112 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 		case PLUSPLUS:
 			if (right instanceof Double) {
-				Integer distance = locals.get(expr.left);
+				Integer distance = locals.get(expr.right);
 				double value = (double) right + 1.0;
-				if (expr.left instanceof Expr.Variable) {
+				if (expr.right instanceof Expr.Variable) {
 					if (distance != null) {
-						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Expr.Literal(value), value,
-								this);
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
+								value, this);
 					} else
-						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
-				}
-				if (expr.left instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(value), value, this);
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
 
 				return (double) right + 1.0;
 			}
 			if (right instanceof Integer) {
-				Integer distance = locals.get(expr.left);
+				Integer distance = locals.get(expr.right);
 				int value = (int) right + 1;
-				if (expr.left instanceof Expr.Variable) {
+				if (expr.right instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Expr.Literal(value), value,
-								this);
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
+								value, this);
 					else
-						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.left instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Expr.Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.left).name, new Expr.Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof Bin) {
-				Integer distance = locals.get(expr.left);
+				Integer distance = locals.get(expr.right);
 				Bin value = Bin.add((Bin) right, new Bin("1"));
-				if (expr.left instanceof Expr.Variable) {
+				if (expr.right instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Literal(value), value,
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
 								this);
 					else
-						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.left instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Expr.Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.left).name, new Expr.Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof ArrayList) {
 				Object findRootForPlusPlus = findRootForPlusPlus(right);
-				Integer distance = locals.get(expr.left);
-				if (expr.left instanceof Expr.Variable) {
+				Integer distance = locals.get(expr.right);
+				if (expr.right instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.left).name,
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
 								new Expr.Literal(findRootForPlusPlus), findRootForPlusPlus, this);
 					else
-						globals.assign(((Expr.Variable) expr.left).name, new Expr.Literal(findRootForPlusPlus),
+						globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
 								findRootForPlusPlus, this);
 				}
-				if (expr.left instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name,
-								new Expr.Laretil(findRootForPlusPlus), findRootForPlusPlus, this);
-					else
-						globals.assign(((Expr.Elbairav) expr.left).name, new Expr.Laretil(findRootForPlusPlus),
-								findRootForPlusPlus, this);
-				}
+
 				return findRootForPlusPlus;
 
 			}
 			throw new RuntimeError(expr.operator, "Operand must be a number.");
 		case MINUSMINUS:
 			if (right instanceof Double) {
-				Integer distance = locals.get(expr.left);
+				Integer distance = locals.get(expr.right);
 				double value = (double) right - 1.0;
-				if (expr.left instanceof Expr.Variable) {
+				if (expr.right instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Literal(value), value,
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
 								this);
 					else
-						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.left instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof Integer) {
-				Integer distance = locals.get(expr.left);
+				Integer distance = locals.get(expr.right);
 				int value = (int) right - 1;
-				if (expr.left instanceof Expr.Variable) {
+				if (expr.right instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Literal(value), value,
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
 								this);
 					else
-						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.left instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof Bin) {
-				Integer distance = locals.get(expr.left);
+				Integer distance = locals.get(expr.right);
 				Bin value = Bin.subtract((Bin) right, new Bin("1"));
-				if (expr.left instanceof Expr.Variable) {
+				if (expr.right instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.left).name, new Literal(value), value,
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
 								this);
 					else
-						globals.assign(((Expr.Variable) expr.left).name, new Literal(value), value, this);
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (expr.left instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name, new Laretil(value), value,
-								this);
-					else
-						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(value), value, this);
-				}
+
 				return value;
 			}
 			if (right instanceof ArrayList) {
 				Object findRootForMinusMinus = findRootForMinusMinus(right);
-				Integer distance = locals.get(expr.left);
-				if (expr.left instanceof Expr.Variable) {
+				Integer distance = locals.get(expr.right);
+				if (expr.right instanceof Expr.Variable) {
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.left).name,
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
 								new Literal(findRootForMinusMinus), findRootForMinusMinus, this);
 					else
-						globals.assign(((Expr.Variable) expr.left).name, new Literal(findRootForMinusMinus),
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(findRootForMinusMinus),
 								findRootForMinusMinus, this);
 				}
-				if (expr.left instanceof Expr.Elbairav) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Elbairav) expr.left).name,
-								new Laretil(findRootForMinusMinus), findRootForMinusMinus, this);
-					else
-						globals.assign(((Expr.Elbairav) expr.left).name, new Laretil(findRootForMinusMinus),
-								findRootForMinusMinus, this);
-				}
+
 				return findRootForMinusMinus;
 			}
 			throw new RuntimeError(expr.operator, "Operand must be a number.");
@@ -1962,39 +1681,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			return null;
 		}
 
-	}
-
-	@Override
-	public Object visitTegExpr(Teg expr) {
-		Object object = evaluate(expr.object);
-		if (object instanceof BoxInstance) {
-			return ((BoxInstance) object).get(expr.name);
-		}
-		return null;
-	}
-
-	@Override
-	public Object visitSetExpr(Set expr) {
-		Object object = evaluate(expr.object);
-		if (!(object instanceof BoxInstance)) {
-			throw new RuntimeError(expr.name, "Only instances have fields.");
-
-		}
-		Object value = evaluate(expr.value);
-		((BoxInstance) object).set(expr.name, value);
-		return value;
-	}
-
-	@Override
-	public Object visitTesExpr(Tes expr) {
-		Object object = evaluate(expr.object);
-		if (!(object instanceof BoxInstance)) {
-			throw new RuntimeError(expr.name, "Only instances have fields.");
-
-		}
-		Object value = evaluate(expr.value);
-		((BoxInstance) object).set(expr.name, value);
-		return value;
 	}
 
 	public void executeBlock(List<Stmt> statements, Environment env) {
@@ -2168,260 +1854,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	@Override
-	public Void visitSaveStmt(Save stmt) {
-		try {
-			String filePathAndName = (String) evaluate(stmt.filePathFileName);
-			String[] split = filePathAndName.split("/");
-			String folderPath = "";
-			if (split[split.length - 1].contains(".")) {
-				for (int i = 0; i < split.length - 1; i++) {
-					folderPath += split[i] + "/";
-				}
-			} else {
-				for (int i = 0; i < split.length; i++) {
-					folderPath += split[i] + "/";
-				}
-			}
-			folderPath = folderPath.substring(0, folderPath.length() - 1);
-			File myObj = new File(filePathAndName);
-			File myObjFolderPath = new File(folderPath);
-			myObjFolderPath.mkdir();
-			if (split[split.length - 1].contains(".")) {
-				if (myObj.createNewFile()) {
-					evaluate(stmt.objecttosave);
-					String str = "";
-					if (stmt.objecttosave instanceof Expr.Boxx) {
-						Object boxInstance = lookUpVariable(((Expr.Boxx) stmt.objecttosave).identifier,
-								((Expr.Boxx) stmt.objecttosave));
-						str = boxInstance.toString();
-
-					} else if (stmt.objecttosave instanceof Expr.Cup) {
-						Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
-								((Expr.Cup) stmt.objecttosave));
-						str = cupInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Pocket) {
-						Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
-								((Expr.Pocket) stmt.objecttosave));
-						str = pocketInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Knot) {
-						Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
-								((Expr.Knot) stmt.objecttosave));
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Variable) {
-						Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
-								((Expr.Variable) stmt.objecttosave));
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Elbairav) {
-						Object knotInstance = lookUpVariable(((Expr.Elbairav) stmt.objecttosave).name,
-								((Expr.Elbairav) stmt.objecttosave));
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.GetBoxCupPocket) {
-						Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.objecttosave));
-
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.TegBoxCupPocket) {
-						Object knotInstance = visitTegBoxCupPocketExpr(((Expr.TegBoxCupPocket) stmt.objecttosave));
-
-						str = knotInstance.toString();
-					}
-
-					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
-					writer.write(str);
-
-					writer.close();
-
-				} else {
-					System.out.println("File already exists.");
-				}
-			}
-		} catch (IOException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	@Override
-	public Void visitExpelStmt(Expel stmt) {
-		try {
-			String filePathAndName = (String) evaluate(stmt.filePath);
-
-			evaluate(stmt.toExpell);
-			String str = "";
-			if (stmt.toExpell instanceof Expr.Boxx) {
-				Object boxInstance = lookUpVariable(((Expr.Boxx) stmt.toExpell).identifier,
-						((Expr.Boxx) stmt.toExpell));
-				str = boxInstance.toString();
-
-			} else if (stmt.toExpell instanceof Expr.Cup) {
-				Object cupInstance = lookUpVariable(((Expr.Cup) stmt.toExpell).identifier, ((Expr.Cup) stmt.toExpell));
-				str = cupInstance.toString();
-			} else if (stmt.toExpell instanceof Expr.Pocket) {
-				Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.toExpell).identifier,
-						((Expr.Pocket) stmt.toExpell));
-				str = pocketInstance.toString();
-			} else if (stmt.toExpell instanceof Expr.Knot) {
-				Object knotInstance = lookUpVariable(((Expr.Knot) stmt.toExpell).identifier,
-						((Expr.Knot) stmt.toExpell));
-				str = knotInstance.toString();
-			} else if (stmt.toExpell instanceof Expr.Variable) {
-				Object knotInstance = lookUpVariable(((Expr.Variable) stmt.toExpell).name,
-						((Expr.Variable) stmt.toExpell));
-				str = knotInstance.toString();
-			} else if (stmt.toExpell instanceof Expr.Elbairav) {
-				Object knotInstance = lookUpVariable(((Expr.Elbairav) stmt.toExpell).name,
-						((Expr.Elbairav) stmt.toExpell));
-				str = knotInstance.toString();
-			} else if (stmt.toExpell instanceof Expr.GetBoxCupPocket) {
-				Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.toExpell));
-
-				str = knotInstance.toString();
-			} else if (stmt.toExpell instanceof Expr.TegBoxCupPocket) {
-				Object knotInstance = visitTegBoxCupPocketExpr(((Expr.TegBoxCupPocket) stmt.toExpell));
-
-				str = knotInstance.toString();
-			}
-
-			PrintWriter writer = new PrintWriter(new FileWriter(filePathAndName, true));
-			writer.write(str);
-
-			writer.close();
-		} catch (IOException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	@Override
-	public Void visitReadStmt(Read stmt) {
-		try {
-			File myObj = new File((String) evaluate(stmt.filePath));
-			Scanner myReader = new Scanner(myObj);
-			String data = "";
-			while (myReader.hasNextLine()) {
-				data += myReader.nextLine();
-
-			}
-			evaluate(stmt.objectToReadInto);
-			if (stmt.objectToReadInto instanceof Expr.Boxx) {
-				Object boxInstance = lookUpVariable(((Expr.Boxx) stmt.objectToReadInto).identifier,
-						((Expr.Boxx) stmt.objectToReadInto));
-				if (boxInstance instanceof BoxInstance) {
-					((BoxInstance) boxInstance).setAt(data, 0);
-				}
-
-			} else if (stmt.objectToReadInto instanceof Expr.Cup) {
-				Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objectToReadInto).identifier,
-						((Expr.Cup) stmt.objectToReadInto));
-				if (cupInstance instanceof BoxInstance) {
-					((BoxInstance) cupInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.Pocket) {
-				Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objectToReadInto).identifier,
-						((Expr.Pocket) stmt.objectToReadInto));
-				if (pocketInstance instanceof BoxInstance) {
-					((BoxInstance) pocketInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.Knot) {
-				Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objectToReadInto).identifier,
-						((Expr.Knot) stmt.objectToReadInto));
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.GetBoxCupPocket) {
-				Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.objectToReadInto));
-
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.TegBoxCupPocket) {
-				Object knotInstance = visitTegBoxCupPocketExpr(((Expr.TegBoxCupPocket) stmt.objectToReadInto));
-
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			}
-			myReader.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	@Override
-	public Void visitConsumeStmt(Consume stmt) {
-		try {
-			File myObj = new File((String) evaluate(stmt.filePath));
-			Scanner myReader = new Scanner(myObj);
-			String data = "";
-			while (myReader.hasNextLine()) {
-				data += myReader.nextLine();
-
-			}
-
-			evaluate(stmt.boxToFill);
-			if (stmt.boxToFill instanceof Expr.Boxx) {
-				Object boxInstance = lookUpVariable(((Expr.Boxx) stmt.boxToFill).identifier,
-						((Expr.Boxx) stmt.boxToFill));
-				if (boxInstance instanceof BoxInstance) {
-					((BoxInstance) boxInstance).setAtEnd(data);
-				}
-
-			} else if (stmt.boxToFill instanceof Expr.Cup) {
-				Object cupInstance = lookUpVariable(((Expr.Cup) stmt.boxToFill).identifier,
-						((Expr.Cup) stmt.boxToFill));
-				if (cupInstance instanceof BoxInstance) {
-					((BoxInstance) cupInstance).setAtEnd(data);
-				}
-			} else if (stmt.boxToFill instanceof Expr.Pocket) {
-				Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.boxToFill).identifier,
-						((Expr.Pocket) stmt.boxToFill));
-				if (pocketInstance instanceof BoxInstance) {
-					((BoxInstance) pocketInstance).setAtEnd(data);
-				}
-			} else if (stmt.boxToFill instanceof Expr.Knot) {
-				Object knotInstance = lookUpVariable(((Expr.Knot) stmt.boxToFill).identifier,
-						((Expr.Knot) stmt.boxToFill));
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAtEnd(data);
-				}
-			} else if (stmt.boxToFill instanceof Expr.Variable) {
-				Object knotInstance = lookUpVariable(((Expr.Variable) stmt.boxToFill).name,
-						((Expr.Variable) stmt.boxToFill));
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAtEnd(data);
-				}
-			} else if (stmt.boxToFill instanceof Expr.Elbairav) {
-				Object knotInstance = lookUpVariable(((Expr.Elbairav) stmt.boxToFill).name,
-						((Expr.Elbairav) stmt.boxToFill));
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAtEnd(data);
-				}
-			} else if (stmt.boxToFill instanceof Expr.GetBoxCupPocket) {
-				Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.boxToFill));
-
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAtEnd(data);
-				}
-			} else if (stmt.boxToFill instanceof Expr.TegBoxCupPocket) {
-				Object knotInstance = visitTegBoxCupPocketExpr(((Expr.TegBoxCupPocket) stmt.boxToFill));
-
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAtEnd(data);
-				}
-			}
-
-			myReader.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	@Override
 	public Void visitRenameStmt(Rename stmt) {
 		File file = new File((String) evaluate(stmt.filePathAndName));
 
@@ -2447,1986 +1879,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		return null;
 	}
 
-	@SuppressWarnings("finally")
-	private Object runContainer(Expr stmt) {
-		buildClass(stmt);
-		Token theName = null;
-		Pocket pktStmt = null;
-		Cup cupStmt = null;
-		Cid cidStmt = null;
-		Pup pupStmt = null;
-		Pid pidStmt = null;
-		Lup lupStmt = null;
-		Lil lilStmt = null;
-		Locket lockStmt = null;
-		Cocket cockStmt = null;
-		List<Stmt> expression = null;
-		if (stmt instanceof Pocket) {
-			pktStmt = (Pocket) stmt;
-			theName = pktStmt.identifier;
-			expression = pktStmt.expression;
-		} else if (stmt instanceof Cup) {
-			cupStmt = (Cup) stmt;
-			theName = cupStmt.identifier;
-			expression = cupStmt.expression;
-		} else if (stmt instanceof Cid) {
-			cidStmt = (Cid) stmt;
-			theName = cidStmt.identifier;
-			expression = cidStmt.expression;
-		} else if (stmt instanceof Pup) {
-			pupStmt = (Pup) stmt;
-			theName = pupStmt.identifier;
-			expression = pupStmt.expression;
-		} else if (stmt instanceof Pid) {
-			pidStmt = (Pid) stmt;
-			theName = pidStmt.identifier;
-			expression = pidStmt.expression;
-		} else if (stmt instanceof Lup) {
-			lupStmt = (Lup) stmt;
-			theName = lupStmt.identifier;
-			expression = lupStmt.expression;
-		} else if (stmt instanceof Lil) {
-			lilStmt = (Lil) stmt;
-			theName = lilStmt.identifier;
-			expression = lilStmt.expression;
-		} else if (stmt instanceof Expr.Locket) {
-			lockStmt = (Locket) stmt;
-			theName = lockStmt.identifier;
-			expression = lockStmt.expression;
-		} else if (stmt instanceof Expr.Cocket) {
-			cockStmt = (Cocket) stmt;
-			theName = cockStmt.identifier;
-			expression = cockStmt.expression;
-		}
-
-		Variable theNameVariable = new Expr.Variable(theName);
-		Environment previous = null;
-		if (lookUpVariable(theName, theNameVariable) == null) {
-			previous = this.environment;
-		}
-		ArrayList<Object> evaluated = new ArrayList<Object>();
-
-		try {
-			if (lookUpVariable(theName, theNameVariable) == null) {
-				this.environment = new Environment(environment);
-			}
-
-			for (Stmt stmt2 : expression) {
-				if (stmt2 instanceof Stmt.Expression)
-					evaluated.add(evaluate(((Stmt.Expression) stmt2).expression));
-				else if (stmt2 instanceof Stmt.Noisserpxe)
-					evaluated.add(evaluate(((Stmt.Noisserpxe) stmt2).noisserpex));
-				else {
-					execute(stmt2);
-				}
-			}
-
-		} finally {
-			if (lookUpVariable(theName, theNameVariable) == null) {
-				this.environment = previous;
-			}
-			return evaluated;
-		}
-	}
-
-	@Override
-	public Object visitPupExpr(Pup expr) {
-//		System.out.println("built Pup");
-		return runContainer(expr);
-	}
-
-	@Override
-	public Object visitCocketExpr(Cocket expr) {
-//		System.out.println("built Cocket");
-		return runContainer(expr);
-	}
-
-	@Override
-	public Object visitLocketExpr(Locket expr) {
-//		System.out.println("built Locket");
-		return runContainer(expr);
-	}
-
-	@Override
-	public Object visitLupExpr(Lup expr) {
-//		System.out.println("built Lup");
-		return runContainer(expr);
-	}
-
-	@Override
-	public Object visitLilExpr(Lil expr) {
-//		System.out.println("built Lil");
-		return runContainer(expr);
-	}
-
-	@Override
-	public Object visitPidExpr(Pid expr) {
-//		System.out.println("built Pid");
-		return runContainer(expr);
-	}
-
-	@Override
-	public Object visitCidExpr(Cid expr) {
-//		System.out.println("built Cid");
-		return runContainer(expr);
-	}
-
-	@Override
-	public Object visitCupExpr(Cup stmt) {
-//		System.out.println("built Cup");
-		return runContainer(stmt);
-	}
-
-	@Override
-	public Object visitPocketExpr(Pocket stmt) {
-//		System.out.println("built Pocket");
-		return runContainer(stmt);
-	}
-
-	private void buildClass(Expr stmt) {
-
-		Object superclass = null;
-
-		Token theName = null;
-		Cup cup = null;
-		Pocket pocket = null;
-		Cid cidStmt = null;
-		Pup pupStmt = null;
-		Pid pidStmt = null;
-		Lup lupStmt = null;
-		Lil lilStmt = null;
-		Locket lockStmt = null;
-		Cocket cockStmt = null;
-		Token theEman = null;
-
-		if (stmt instanceof Expr.Cup) {
-			cup = (Cup) stmt;
-			theName = cup.identifier;
-			theEman = cup.reifitnedi;
-		} else if (stmt instanceof Expr.Pocket) {
-			pocket = (Pocket) stmt;
-			theName = pocket.identifier;
-			theEman = pocket.reifitnedi;
-		} else if (stmt instanceof Cid) {
-			cidStmt = (Cid) stmt;
-			theName = cidStmt.identifier;
-			theEman = cidStmt.reifitnedi;
-		} else if (stmt instanceof Pup) {
-			pupStmt = (Pup) stmt;
-			theName = pupStmt.identifier;
-			theEman = pupStmt.reifitnedi;
-		} else if (stmt instanceof Pid) {
-			pidStmt = (Pid) stmt;
-			theName = pidStmt.identifier;
-			theEman = pidStmt.reifitnedi;
-		} else if (stmt instanceof Lup) {
-			lupStmt = (Lup) stmt;
-			theName = lupStmt.identifier;
-			theEman = lupStmt.reifitnedi;
-		} else if (stmt instanceof Lil) {
-			lilStmt = (Lil) stmt;
-			theName = lilStmt.identifier;
-			theEman = lilStmt.reifitnedi;
-		} else if (stmt instanceof Expr.Locket) {
-			lockStmt = (Locket) stmt;
-			theName = lockStmt.identifier;
-			theEman = lockStmt.reifitnedi;
-		} else if (stmt instanceof Expr.Cocket) {
-			cockStmt = (Cocket) stmt;
-			theName = cockStmt.identifier;
-			theEman = cockStmt.reifitnedi;
-		}
-
-		Variable theNameVariable = new Expr.Variable(theName);
-		Elbairav theNameElbairav = new Expr.Elbairav(theName);
-
-		if (lookUpVariable(theName, theNameVariable) == null || lookUpVariable(theName, theNameElbairav) == null) {
-
-			Token superclassToken = null;
-			if (theName.identifierToken != null)
-				superclassToken = new Token(theName.type, theName.identifierToken.lexeme + "Class_Definition", null,
-						null, null, theName.column, theName.line, theName.start, theName.finish);
-
-			BoxClass superclassVariable = (BoxClass) lookUpVariableByName(superclassToken);
-
-			if (superclassVariable != null) {
-				superclass = superclassVariable;
-			}
-			Token type = null;
-			if (cup != null) {
-				type = new Token(TokenType.CUPCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (pocket != null) {
-				type = new Token(TokenType.POCKETCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (cidStmt != null) {
-				type = new Token(TokenType.CIDCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (pupStmt != null) {
-				type = new Token(TokenType.PUPCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (pidStmt != null) {
-				type = new Token(TokenType.PIDCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (lupStmt != null) {
-				type = new Token(TokenType.LUPCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (lilStmt != null) {
-				type = new Token(TokenType.LILCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (lockStmt != null) {
-				type = new Token(TokenType.LOCKETCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (cockStmt != null) {
-				type = new Token(TokenType.COCKETCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			}
-
-			environment.define(theName.lexeme + "_Class_Definition", type, null);
-			environment.define(theEman.lexeme + "_noitinifeD_ssalC", type, null);
-			if (superclass != null) {
-				environment = new Environment(environment);
-				Token superclassType = new Token(((BoxClass) superclass).type, "", null, null, null, -1, -1, -1, -1);
-				environment.define("super", superclassType, superclass);
-
-			}
-
-			Map<String, BoxFunction> methodsBoxFunction = new HashMap<>();
-
-			List<Stmt.Function> methods = new ArrayList<Stmt.Function>();
-			if (stmt instanceof Expr.Cup) {
-				List<Stmt> declaration = ((Expr.Cup) stmt).expression;
-				for (Stmt stmt2 : declaration) {
-					if (stmt2 instanceof Stmt.Function) {
-						methods.add((Stmt.Function) stmt2);
-					}
-				}
-
-				for (Stmt.Function method : methods) {
-					BoxFunction function0 = null;
-					function0 = buildFunction0(theName, method, function0);
-					BoxFunction function1 = null;
-					function1 = buildFunction1(theName, method, function1);
-
-					if (function0 != null) {
-
-						methodsBoxFunction.put(function0.getName(), function0);
-
-					}
-
-					if (function1 != null) {
-
-						methodsBoxFunction.put(function1.getName(), function1);
-
-					}
-
-				}
-			}
-			BoxClass boxClass = null;
-			if (cup != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.CUPCONTAINER);
-			} else if (pocket != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.POCKETCONTAINER);
-			} else if (cidStmt != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.CIDCONTAINER);
-			} else if (pupStmt != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.PUPCONTAINER);
-			} else if (pidStmt != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.PIDCONTAINER);
-			} else if (lupStmt != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.LUPCONTAINER);
-			} else if (lilStmt != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.LILCONTAINER);
-			} else if (lockStmt != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.LOCKETCONTAINER);
-			} else if (cockStmt != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.COCKETCONTAINER);
-			}
-
-			if (superclass != null) {
-				environment = environment.enclosing;
-			}
-
-			Token classDefinitionName = new Token(theName.type, theName.lexeme + "_Class_Definition", null, null, null,
-					theName.column, theName.line, theName.start, theName.finish);
-			Token classDefinitionEman = new Token(theEman.type, theEman.lexeme + "_noitinifeD_ssalC", null, null, null,
-					theName.column, theName.line, theName.start, theName.finish);
-			environment.assign(classDefinitionName, type, boxClass);
-			environment.assign(classDefinitionEman, type, boxClass);
-			Object instance = boxClass.call(this, null);
-
-			environment.define(theName.lexeme, type, instance);
-			environment.define(theEman.lexeme, type, instance);
-
-		}
-
-	}
-
-	private BoxClass executeAndBuildBoxClass(Object superclass, Token theName, Cup cup, Token theEman,
-			Map<String, BoxFunction> methodsBoxFunction, TokenType containerType) {
-		BoxClass boxClass;
-		executePrimaryBoxCupPocketAndKnot(cup);
-		ArrayList<Object> boxPrimarys = new ArrayList<Object>();
-		int count = 0;
-		populateBoxPrimarys(theName, cup, theEman, boxPrimarys, count);
-
-		boxClass = new BoxClass(theName.lexeme, (BoxClass) superclass, boxPrimarys, methodsBoxFunction, containerType,
-				false, null);
-		return boxClass;
-	}
-
-	private Object buildBoxClass(Boxx stmt) {
-
-		Expr.Boxx boxx = (Expr.Boxx) stmt;
-		Token theName = boxx.identifier;
-		Token theEman = boxx.reifitnedi;
-
-		Variable theNameVariable = new Expr.Variable(theName);
-		Elbairav theNameElbairav = new Expr.Elbairav(theName);
-
-		if (lookUpVariable(theName, theNameVariable) == null || lookUpVariable(theName, theNameElbairav) == null) {
-
-			Token type = new Token(TokenType.BOXCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			environment.define(theName.lexeme + "_Box_Definition", type, null);
-			environment.define(theEman.lexeme + "_Box_Definition", type, null);
-
-			for (Expr expr : boxx.primarys) {
-				evaluate(expr);
-			}
-			ArrayList<Object> boxPrimarys = new ArrayList<Object>();
-
-			int count = 0;
-			populateBoxPrimarys(theName, boxx, theEman, boxPrimarys, count);
-
-			BoxContainerClass boxContainerClass = new BoxContainerClass(theName.lexeme, boxPrimarys,
-					TokenType.BOXCONTAINER, false,
-					new TypesOfObject(type, RunTimeTypes.getTypeBasedOfToken(type), null));
-
-			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Box_Definition", null, null,
-					null, theName.column, theName.line, theName.start, theName.finish);
-			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Box_Definition", null, null,
-					null, theName.column, theName.line, theName.start, theName.finish);
-			environment.assign(containerDefinitionName, type, boxContainerClass);
-			environment.assign(containerDefinitionEman, type, boxContainerClass);
-			Object instance = boxContainerClass.call(this, null);
-
-			environment.define(theName.lexeme, type, instance);
-			environment.define(theEman.lexeme, type, instance);
-			return instance;
-		}
-		return lookUpVariable(theName, theNameVariable);
-	}
-
-	private void populateBoxPrimarys(Token theName, Expr container, Token theEman, ArrayList<Object> boxPrimarys,
-			int count) {
-		List<Stmt> expression = null;
-		List<Expr> primarys = null;
-		if (container instanceof Expr.Cup) {
-			expression = ((Expr.Cup) container).expression;
-			primarysForCupAndPocket(boxPrimarys, expression);
-		} else if (container instanceof Expr.Pocket) {
-			expression = ((Expr.Pocket) container).expression;
-			primarysForCupAndPocket(boxPrimarys, expression);
-		} else if (container instanceof Expr.Boxx) {
-			primarys = ((Expr.Boxx) container).primarys;
-			primarysForBox(boxPrimarys, primarys);
-		}
-
-	}
-
-	private void primarysForBox(ArrayList<Object> boxPrimarys, List<Expr> primarys) {
-		for (int i = 0; i < primarys.size(); i++) {
-			if (primarys.get(i) instanceof Expr) {
-				if (((Expr) primarys.get(i)) instanceof Expr.Boxx) {
-					Object boxInstance = lookUpVariable(((Expr.Boxx) ((Expr) primarys.get(i))).identifier,
-							new Expr.Variable(((Expr.Boxx) ((Expr) primarys.get(i))).identifier));
-					boxPrimarys.add(boxInstance);
-				} else if (((Expr) primarys.get(i)) instanceof Expr.Cup) {
-					Object cupInstance = lookUpVariable(((Expr.Cup) ((Expr) primarys.get(i))).identifier,
-							new Expr.Variable(((Expr.Cup) ((Expr) primarys.get(i))).identifier));
-					boxPrimarys.add(cupInstance);
-				} else if (((Expr) primarys.get(i)) instanceof Expr.Pocket) {
-					Object pocketInstance = lookUpVariable(((Expr.Pocket) ((Expr) primarys.get(i))).identifier,
-							new Expr.Variable(((Expr.Pocket) ((Expr) primarys.get(i))).identifier));
-					boxPrimarys.add(pocketInstance);
-				} else {
-					boxPrimarys.add(primarys.get(i));
-				}
-
-			}
-		}
-	}
-
-	private void primarysForCupAndPocket(ArrayList<Object> boxPrimarys, List<Stmt> expression) {
-		for (int i = 0; i < expression.size(); i++) {
-			if (expression.get(i) instanceof Stmt.Expression) {
-				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.Boxx) {
-					Object boxInstance = lookUpVariable(
-							((Expr.Boxx) ((Stmt.Expression) expression.get(i)).expression).identifier,
-							new Expr.Variable(
-									((Expr.Boxx) ((Stmt.Expression) expression.get(i)).expression).identifier));
-					boxPrimarys.add(boxInstance);
-				} else if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.Cup) {
-					Object cupInstance = lookUpVariable(
-							((Expr.Cup) ((Stmt.Expression) expression.get(i)).expression).identifier, new Expr.Variable(
-									((Expr.Cup) ((Stmt.Expression) expression.get(i)).expression).identifier));
-					boxPrimarys.add(cupInstance);
-				} else if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.Pocket) {
-					Object pocketInstance = lookUpVariable(
-							((Expr.Pocket) ((Stmt.Expression) expression.get(i)).expression).identifier,
-							new Expr.Variable(
-									((Expr.Pocket) ((Stmt.Expression) expression.get(i)).expression).identifier));
-					boxPrimarys.add(pocketInstance);
-				} else {
-					boxPrimarys.add(expression.get(i));
-				}
-			} else if (expression.get(i) instanceof Stmt.Noisserpxe) {
-				if (((Stmt.Noisserpxe) expression.get(i)).noisserpex instanceof Expr.Boxx) {
-					Object boxInstance = lookUpVariable(
-							((Expr.Boxx) ((Stmt.Noisserpxe) expression.get(i)).noisserpex).identifier,
-							new Expr.Variable(
-									((Expr.Boxx) ((Stmt.Noisserpxe) expression.get(i)).noisserpex).identifier));
-					boxPrimarys.add(boxInstance);
-				} else if (((Stmt.Noisserpxe) expression.get(i)).noisserpex instanceof Expr.Cup) {
-					Object cupInstance = lookUpVariable(
-							((Expr.Cup) ((Stmt.Noisserpxe) expression.get(i)).noisserpex).identifier, new Expr.Variable(
-									((Expr.Cup) ((Stmt.Noisserpxe) expression.get(i)).noisserpex).identifier));
-					boxPrimarys.add(cupInstance);
-				} else if (((Stmt.Noisserpxe) expression.get(i)).noisserpex instanceof Expr.Pocket) {
-					Object pocketInstance = lookUpVariable(
-							((Expr.Pocket) ((Stmt.Noisserpxe) expression.get(i)).noisserpex).identifier,
-							new Expr.Variable(
-									((Expr.Pocket) ((Stmt.Noisserpxe) expression.get(i)).noisserpex).identifier));
-					boxPrimarys.add(pocketInstance);
-				} else {
-					boxPrimarys.add(expression.get(i));
-				}
-			}
-		}
-	}
-
-	private void populateBoxPrimarysForPocket(Token theName, Expr.Pocket pocket, Token theEman,
-			ArrayList<Object> boxPrimarys, int count) {
-		for (int i = 0; i < pocket.expression.size(); i++) {
-			if (pocket.expression.get(i) instanceof Stmt.Expression) {
-				if (((Stmt.Expression) pocket.expression.get(i)).expression instanceof Expr.Boxx) {
-					Object boxInstance = lookUpVariable(
-							((Expr.Boxx) ((Stmt.Expression) pocket.expression.get(i)).expression).identifier,
-							new Expr.Variable(
-									((Expr.Boxx) ((Stmt.Expression) pocket.expression.get(i)).expression).identifier));
-					boxPrimarys.add(boxInstance);
-				} else if (((Stmt.Expression) pocket.expression.get(i)).expression instanceof Expr.Cup) {
-					Object cupInstance = lookUpVariable(
-							((Expr.Cup) ((Stmt.Expression) pocket.expression.get(i)).expression).identifier,
-							new Expr.Variable(
-									((Expr.Cup) ((Stmt.Expression) pocket.expression.get(i)).expression).identifier));
-					boxPrimarys.add(cupInstance);
-				} else if (((Stmt.Expression) pocket.expression.get(i)).expression instanceof Expr.Pocket) {
-					Object pocketInstance = lookUpVariable(
-							((Expr.Pocket) ((Stmt.Expression) pocket.expression.get(i)).expression).identifier,
-							new Expr.Variable(((Expr.Pocket) ((Stmt.Expression) pocket.expression
-									.get(i)).expression).identifier));
-					boxPrimarys.add(pocketInstance);
-				} else {
-					boxPrimarys.add(pocket.expression.get(i));
-				}
-			} else if (pocket.expression.get(i) instanceof Stmt.Noisserpxe) {
-				if (((Stmt.Noisserpxe) pocket.expression.get(i)).noisserpex instanceof Expr.Boxx) {
-					Object boxInstance = lookUpVariable(
-							((Expr.Boxx) ((Stmt.Noisserpxe) pocket.expression.get(i)).noisserpex).identifier,
-							new Expr.Variable(
-									((Expr.Boxx) ((Stmt.Noisserpxe) pocket.expression.get(i)).noisserpex).identifier));
-					boxPrimarys.add(boxInstance);
-				} else if (((Stmt.Noisserpxe) pocket.expression.get(i)).noisserpex instanceof Expr.Cup) {
-					Object cupInstance = lookUpVariable(
-							((Expr.Cup) ((Stmt.Noisserpxe) pocket.expression.get(i)).noisserpex).identifier,
-							new Expr.Variable(
-									((Expr.Cup) ((Stmt.Noisserpxe) pocket.expression.get(i)).noisserpex).identifier));
-					boxPrimarys.add(cupInstance);
-				} else if (((Stmt.Noisserpxe) pocket.expression.get(i)).noisserpex instanceof Expr.Pocket) {
-					Object pocketInstance = lookUpVariable(
-							((Expr.Pocket) ((Stmt.Noisserpxe) pocket.expression.get(i)).noisserpex).identifier,
-							new Expr.Variable(((Expr.Pocket) ((Stmt.Noisserpxe) pocket.expression
-									.get(i)).noisserpex).identifier));
-					boxPrimarys.add(pocketInstance);
-				} else {
-					boxPrimarys.add(pocket.expression.get(i));
-				}
-			}
-		}
-	}
-
-	private void executePocketPrimarysBoxCupPocketKnot(Expr.Pocket pocket) {
-		for (Stmt statement : pocket.expression) {
-			executeStatement(statement);
-
-		}
-	}
-
-	private void executePrimaryBoxCupPocketAndKnot(Expr stmt) {
-
-		if (stmt instanceof Cup) {
-			for (Stmt statement : ((Cup) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Pocket) {
-			for (Stmt statement : ((Pocket) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Cid) {
-			for (Stmt statement : ((Cid) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Pup) {
-			for (Stmt statement : ((Pup) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Pid) {
-			for (Stmt statement : ((Pid) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Lup) {
-			for (Stmt statement : ((Lup) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Lil) {
-			for (Stmt statement : ((Lil) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Expr.Locket) {
-			for (Stmt statement : ((Locket) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Expr.Cocket) {
-			for (Stmt statement : ((Cocket) stmt).expression) {
-				executeStatement(statement);
-			}
-		}
-
-	}
-
-	private void executeStatement(Stmt statement) {
-		if (statement instanceof Stmt.Expression) {
-			if (((Stmt.Expression) statement).expression instanceof Expr.Boxx) {
-				evaluate(((Stmt.Expression) statement).expression);
-			} else if (((Stmt.Expression) statement).expression instanceof Expr.Cup) {
-				evaluate(((Stmt.Expression) statement).expression);
-			} else if (((Stmt.Expression) statement).expression instanceof Expr.Pocket) {
-				evaluate(((Stmt.Expression) statement).expression);
-			} else if (((Stmt.Expression) statement).expression instanceof Expr.Knot) {
-				evaluate(((Stmt.Expression) statement).expression);
-			}
-		} else if (statement instanceof Stmt.Noisserpxe) {
-			if (((Stmt.Noisserpxe) statement).noisserpex instanceof Expr.Boxx) {
-				evaluate(((Stmt.Noisserpxe) statement).noisserpex);
-			} else if (((Stmt.Noisserpxe) statement).noisserpex instanceof Expr.Cup) {
-				evaluate(((Stmt.Noisserpxe) statement).noisserpex);
-			} else if (((Stmt.Noisserpxe) statement).noisserpex instanceof Expr.Pocket) {
-				evaluate(((Stmt.Noisserpxe) statement).noisserpex);
-			} else if (((Stmt.Noisserpxe) statement).noisserpex instanceof Expr.Knot) {
-				evaluate(((Stmt.Noisserpxe) statement).noisserpex);
-			}
-		}
-	}
-
-	private BoxFunction buildFunction1(Token theName, Stmt.Function method, BoxFunction function1) {
-		if (method.binFun1 instanceof Expr.Literal) {
-			if (((Bin) ((Expr.Literal) method.binFun1).value).isValueEqualTo(new Bin("10"))) {
-				if (method.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Literal) method.binFun1).value).isValueEqualTo(new Bin("11"))) {
-				if (method.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-			}
-			if (((Bin) ((Expr.Literal) method.binFun1).value).isValueEqualTo(new Bin("00"))) {
-				if (method.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Literal) method.binFun1).value).isValueEqualTo(new Bin("01"))) {
-				if (method.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-
-			}
-		} else if (method.binFun1 instanceof Expr.Laretil) {
-			if (((Bin) ((Expr.Laretil) method.binFun1).value).isValueEqualTo(new Bin("10"))) {
-				if (method.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Laretil) method.binFun1).value).isValueEqualTo(new Bin("11"))) {
-				if (method.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Laretil) method.binFun1).value).isValueEqualTo(new Bin("00"))) {
-				if (method.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Laretil) method.binFun1).value).isValueEqualTo(new Bin("01"))) {
-				if (method.identifierfun1 instanceof Expr.Variable)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun1 instanceof Expr.Elbairav)
-					function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-
-			}
-		} else if (method.binFun1 == null) {
-			if (method.identifierfun1 instanceof Expr.Variable)
-				function1 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun1).name.lexeme,
-						method.paramsfun1, environment,
-						((Expr.Variable) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-			if (method.identifierfun1 instanceof Expr.Elbairav)
-				function1 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun1).name.lexeme,
-						method.paramsfun1, environment,
-						((Expr.Elbairav) method.identifierfun1).name.lexeme.equals(theName.lexeme));
-
-		}
-		return function1;
-	}
-
-	private BoxFunction buildFunction0(Token theName, Stmt.Function method, BoxFunction function0) {
-		if (method.binFun0 instanceof Expr.Literal) {
-			if (((Bin) ((Expr.Literal) method.binFun0).value).isValueEqualTo(new Bin("10"))) {
-				if (method.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Literal) method.binFun0).value).isValueEqualTo(new Bin("11"))) {
-				if (method.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Literal) method.binFun0).value).isValueEqualTo(new Bin("00"))) {
-				if (method.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Literal) method.binFun0).value).isValueEqualTo(new Bin("01"))) {
-				if (method.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-			}
-		} else if (method.binFun0 instanceof Expr.Laretil) {
-			if (((Bin) ((Expr.Laretil) method.binFun0).value).isValueEqualTo(new Bin("10"))) {
-				if (method.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Laretil) method.binFun0).value).isValueEqualTo(new Bin("11"))) {
-				if (method.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Variable) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun0, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Laretil) method.binFun0).value).isValueEqualTo(new Bin("00"))) {
-				if (method.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-							method.paramsfun0, environment,
-							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-			}
-			if (((Bin) ((Expr.Laretil) method.binFun0).value).isValueEqualTo(new Bin("01"))) {
-				if (method.identifierfun0 instanceof Expr.Variable)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-				if (method.identifierfun0 instanceof Expr.Elbairav)
-					function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-							method.paramsfun1, environment,
-							((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-			}
-		} else if (method.binFun0 == null) {
-			if (method.identifierfun0 instanceof Expr.Variable)
-				function0 = new BoxFunction(method.knotfun1, ((Expr.Variable) method.identifierfun0).name.lexeme,
-						method.paramsfun0, environment,
-						((Expr.Variable) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-			if (method.identifierfun0 instanceof Expr.Elbairav)
-				function0 = new BoxFunction(method.knotfun1, ((Expr.Elbairav) method.identifierfun0).name.lexeme,
-						method.paramsfun0, environment,
-						((Expr.Elbairav) method.identifierfun0).name.lexeme.equals(theName.lexeme));
-
-		}
-		return function0;
-	}
-
-	@Override
-	public Object visitBoxxExpr(Boxx stmt) {
-		System.out.println("built Box");
-		return buildBoxClass(stmt);
-	}
-
-	@Override
-	public Object visitKnotExpr(Knot stmt) {
-
-		return executeKnotThirdTry(stmt, stmt.expression, new Environment(environment));
-
-	}
-
-	private void buildKnotClass(Knot stmt) {
-		Token theName = new Token(TokenType.IDENTIFIER, stmt.identifier.lexeme, null, null, null, -1, -1, -1, -1);
-		theName.lexeme = "Knot_" + theName.lexeme;
-		Token theEman = new Token(TokenType.IDENTIFIER, stmt.reifitnedi.lexeme, null, null, null, -1, -1, -1, -1);
-		theEman.lexeme = theEman.lexeme + "_Knot";
-
-		Variable theNameVariable = new Expr.Variable(theName);
-		Elbairav theNameElbairav = new Expr.Elbairav(theName);
-		Variable theEmanVariable = new Expr.Variable(theEman);
-		Elbairav theEmanElbairav = new Expr.Elbairav(theEman);
-
-		if (lookUpVariable(theName, theNameVariable) == null || lookUpVariable(theName, theNameElbairav) == null
-				|| lookUpVariable(theEman, theEmanVariable) == null
-				|| lookUpVariable(theEman, theEmanElbairav) == null) {
-
-			Token type = new Token(TokenType.KNOTCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			environment.define(theName.lexeme + "_Knot_Definition", type, null);
-			environment.define(theEman.lexeme + "_Knot_Definition", type, null);
-
-			ArrayList<Object> boxPrimarys = new ArrayList<Object>();
-			for (int i = 0; i < stmt.expression.size(); i++) {
-				if (stmt.expression.get(i) instanceof Stmt.Expression) {
-					if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Boxx) {
-						Object boxInstance = lookUpVariable(
-								((Expr.Boxx) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
-								new Expr.Variable(((Expr.Boxx) ((Stmt.Expression) stmt.expression
-										.get(i)).expression).identifier));
-						boxPrimarys.add(boxInstance);
-					} else if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Cup) {
-						Object cupInstance = lookUpVariable(
-								((Expr.Cup) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
-								new Expr.Variable(
-										((Expr.Cup) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier));
-						boxPrimarys.add(cupInstance);
-					} else if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Pocket) {
-						Object pocketInstance = lookUpVariable(
-								((Expr.Pocket) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
-								new Expr.Variable(((Expr.Pocket) ((Stmt.Expression) stmt.expression
-										.get(i)).expression).identifier));
-						boxPrimarys.add(pocketInstance);
-					} else {
-						boxPrimarys.add((Stmt.Expression) stmt.expression.get(i));
-					}
-				} else if (stmt.expression.get(i) instanceof Stmt.Noisserpxe) {
-					if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Boxx) {
-						Object boxInstance = lookUpVariable(
-								((Expr.Boxx) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
-								new Expr.Variable(((Expr.Boxx) ((Stmt.Noisserpxe) stmt.expression
-										.get(i)).noisserpex).identifier));
-						boxPrimarys.add(boxInstance);
-					} else if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Cup) {
-						Object cupInstance = lookUpVariable(
-								((Expr.Cup) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
-								new Expr.Variable(
-										((Expr.Cup) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier));
-						boxPrimarys.add(cupInstance);
-					} else if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Pocket) {
-						Object pocketInstance = lookUpVariable(
-								((Expr.Pocket) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
-								new Expr.Variable(((Expr.Pocket) ((Stmt.Noisserpxe) stmt.expression
-										.get(i)).noisserpex).identifier));
-						boxPrimarys.add(pocketInstance);
-					} else {
-						boxPrimarys.add((Stmt.Noisserpxe) stmt.expression.get(i));
-					}
-				} else {
-					boxPrimarys.add(stmt.expression.get(i));
-				}
-			}
-
-			BoxKnotClass boxKnotClass = new BoxKnotClass(theName.lexeme, boxPrimarys, TokenType.BOXCONTAINER, false,
-					new TypesOfObject(type, RunTimeTypes.getTypeBasedOfToken(type), null));
-
-			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Knot_Definition", null, null,
-					null, theName.column, theName.line, theName.start, theName.finish);
-			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Knot_Definition", null, null,
-					null, theName.column, theName.line, theName.start, theName.finish);
-			environment.assign(containerDefinitionName, type, boxKnotClass);
-			environment.assign(containerDefinitionEman, type, boxKnotClass);
-			Object instance = boxKnotClass.call(this, null);
-
-			environment.define(theName.lexeme, type, instance);
-			environment.define(theEman.lexeme, type, instance);
-
-		}
-	}
-
-	private void buildTonkClass(Tonk stmt) {
-		Token theName = new Token(TokenType.IDENTIFIER, stmt.identifier.lexeme, null, null, null, -1, -1, -1, -1);
-		theName.lexeme = "Tonk_" + theName.lexeme;
-		Token theEman = new Token(TokenType.IDENTIFIER, stmt.reifitnedi.lexeme, null, null, null, -1, -1, -1, -1);
-		theEman.lexeme = theEman.lexeme + "_Tonk";
-
-		Variable theNameVariable = new Expr.Variable(theName);
-		Elbairav theNameElbairav = new Expr.Elbairav(theName);
-		Variable theEmanVariable = new Expr.Variable(theEman);
-		Elbairav theEmanElbairav = new Expr.Elbairav(theEman);
-
-		if (lookUpVariable(theName, theNameVariable) == null || lookUpVariable(theName, theNameElbairav) == null
-				|| lookUpVariable(theEman, theEmanVariable) == null
-				|| lookUpVariable(theEman, theEmanElbairav) == null) {
-
-			Token type = new Token(TokenType.KNOTCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			environment.define(theName.lexeme + "_Tonk_Definition", type, null);
-			environment.define(theEman.lexeme + "_Tonk_Definition", type, null);
-
-			ArrayList<Object> boxPrimarys = new ArrayList<Object>();
-			for (int i = 0; i < stmt.expression.size(); i++) {
-				if (stmt.expression.get(i) instanceof Stmt.Expression) {
-					if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Boxx) {
-						Object boxInstance = lookUpVariable(
-								((Expr.Boxx) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
-								new Expr.Variable(((Expr.Boxx) ((Stmt.Expression) stmt.expression
-										.get(i)).expression).identifier));
-						boxPrimarys.add(boxInstance);
-					} else if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Cup) {
-						Object cupInstance = lookUpVariable(
-								((Expr.Cup) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
-								new Expr.Variable(
-										((Expr.Cup) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier));
-						boxPrimarys.add(cupInstance);
-					} else if (((Stmt.Expression) stmt.expression.get(i)).expression instanceof Expr.Pocket) {
-						Object pocketInstance = lookUpVariable(
-								((Expr.Pocket) ((Stmt.Expression) stmt.expression.get(i)).expression).identifier,
-								new Expr.Variable(((Expr.Pocket) ((Stmt.Expression) stmt.expression
-										.get(i)).expression).identifier));
-						boxPrimarys.add(pocketInstance);
-					} else {
-						boxPrimarys.add((Stmt.Expression) stmt.expression.get(i));
-					}
-				} else if (stmt.expression.get(i) instanceof Stmt.Noisserpxe) {
-					if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Boxx) {
-						Object boxInstance = lookUpVariable(
-								((Expr.Boxx) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
-								new Expr.Variable(((Expr.Boxx) ((Stmt.Noisserpxe) stmt.expression
-										.get(i)).noisserpex).identifier));
-						boxPrimarys.add(boxInstance);
-					} else if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Cup) {
-						Object cupInstance = lookUpVariable(
-								((Expr.Cup) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
-								new Expr.Variable(
-										((Expr.Cup) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier));
-						boxPrimarys.add(cupInstance);
-					} else if (((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex instanceof Expr.Pocket) {
-						Object pocketInstance = lookUpVariable(
-								((Expr.Pocket) ((Stmt.Noisserpxe) stmt.expression.get(i)).noisserpex).identifier,
-								new Expr.Variable(((Expr.Pocket) ((Stmt.Noisserpxe) stmt.expression
-										.get(i)).noisserpex).identifier));
-						boxPrimarys.add(pocketInstance);
-					} else {
-						boxPrimarys.add((Stmt.Noisserpxe) stmt.expression.get(i));
-					}
-				} else {
-					boxPrimarys.add(stmt.expression.get(i));
-				}
-			}
-
-			BoxKnotClass boxKnotClass = new BoxKnotClass(theName.lexeme, boxPrimarys, TokenType.BOXCONTAINER, false,
-					new TypesOfObject(type, RunTimeTypes.getTypeBasedOfToken(type), null));
-
-			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Tonk_Definition", null, null,
-					null, theName.column, theName.line, theName.start, theName.finish);
-			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Tonk_Definition", null, null,
-					null, theName.column, theName.line, theName.start, theName.finish);
-			environment.assign(containerDefinitionName, type, boxKnotClass);
-			environment.assign(containerDefinitionEman, type, boxKnotClass);
-			Object instance = boxKnotClass.call(this, null);
-
-			environment.define(theName.lexeme, type, instance);
-			environment.define(theEman.lexeme, type, instance);
-
-		}
-	}
-
-	@SuppressWarnings("finally")
-	public Object executeKnotThirdTry(Knot knotStatement, List<Stmt> statements, Environment env) {
-		Environment previous = this.environment;
-		tracker.add(new KnotStack());
-		tracker.loadStatements(statements);
-		buildKnotClass(knotStatement);
-		ArrayList<Object> evaluated = new ArrayList<Object>();
-		KnotMap<String, Expr> knotProgram = new KnotMap<String, Expr>();
-
-		KnotMap<String, String> eOrder = new KnotMap<String, String>();
-		buildEOrderKnot(eOrder, knotStatement);
-		buildKnotMap(knotProgram, knotStatement);
-
-		KnotProgram kntPgrm = new KnotProgram(eOrder, knotProgram);
-		Expr expr = kntPgrm.getExpression();
-
-		knotForward(knotProgram, eOrder, kntPgrm, expr);
-		try
-
-		{
-			this.environment = env;
-
-
-
-		} finally {
-			this.environment = previous;
-			tracker.remove();
-			return evaluated;
-		}
-	}
-
-	@SuppressWarnings("finally")
-	public Object executeTonkThirdTry(Tonk tonkStatement, List<Stmt> statements, Environment env) {
-		Environment previous = this.environment;
-		tracker.add(new KnotStack());
-		tracker.loadStatements(statements);
-		buildTonkClass(tonkStatement);
-		ArrayList<Object> evaluated = new ArrayList<Object>();
-
-		try
-
-		{
-			this.environment = env;
-
-		} finally {
-			this.environment = previous;
-			tracker.remove();
-			return evaluated;
-		}
-	}
-
-	private void knotForward(KnotMap<String, Expr> knotProgram, KnotMap<String, String> eOrder, KnotProgram kntPgrm,
-			Expr expr) {
-
-		while (kntPgrm.getLoopIndex() < kntPgrm.getLoopInd1exSize()) {
-			if (expr instanceof Expr.CupOpenLeft) {
-				if(kntPgrm.getLoopIndex()+1<kntPgrm.getLoopInd1exSize()) {
-
-					if(((Expr.CupOpenLeft)expr).Literal.reifitnediToken.lexeme.equals(eOrder.getExpr(kntPgrm.getLoopIndex()))) {
-						kntPgrm.IncrementLoopIndex();
-						for (int i = 0; i < knotProgram.expr.size(); i++) {
-							
-							if(knotProgram.getRef(i).equals(eOrder.getExpr(kntPgrm.getLoopIndex()))) {
-								kntPgrm.setProgramIndex(i);
-								kntPgrm.IncrementLoopIndex();
-								break;
-							}
-							
-						}
-					} else {
-						kntPgrm.incrementProgramIndex();
-						
-					}
-				}
-				
-			} else {
-				kntPgrm.incrementProgramIndex();
-				
-			}
-			evaluate(expr);
-			expr = kntPgrm.getExpression();
-		}
-		
-		evaluate(expr);
-		
-	}
-
-	
-	public class KnotProgram {
-
-		private KnotMap<String, String> eOrder;
-		private KnotMap<String, Expr> knotProgram;
-		Integer programIndex = 0;
-		Integer loopIndex = 0;
-		String startLoopToken = null;
-		String endLoopToken = null;
-
-		public KnotProgram(KnotMap<String, String> eOrder, KnotMap<String, Expr> knotProgram) {
-			this.eOrder = eOrder;
-			this.knotProgram = knotProgram;
-			
-				startLoopToken = eOrder.getRef(0);
-
-			
-				endLoopToken = eOrder.getExpr(0);
-
-		}
-
-		public void decrementProgramIndex() {
-			programIndex--;
-		}
-
-		public int getLoopInd1exSize() {
-
-			return eOrder.ref.size();
-		}
-
-		public String getEndLoopToken() {
-
-			return endLoopToken;
-		}
-
-		public void setProgramIndex(Integer valueOf) {
-			programIndex = valueOf;
-		}
-
-		public String getStartLoopToken() {
-
-			return startLoopToken;
-		}
-
-		public void setEndLoopToken(String expr) {
-			endLoopToken = expr;
-		}
-
-		public void setStartLoopToken(String ref) {
-			startLoopToken = ref;
-		}
-
-		public Integer getLoopIndex() {
-
-			return loopIndex;
-		}
-
-		public void IncrementLoopIndex() {
-			loopIndex++;
-			;
-		}
-
-		public Expr getExpression() {
-			Expr expr = knotProgram.getExpr(programIndex.intValue());
-			return expr;
-		}
-
-		public void incrementProgramIndex() {
-			programIndex++;
-		}
-
-	}
-
-	private void buildEOrderKnot(KnotMap<String, String> eOrder, Knot knotStatement) {
-		int count = 0;
-		Stmt stmt = knotStatement.expression.get(count);
-		while (count < knotStatement.expression.size()) {
-
-			if (stmt instanceof Stmt.Expression) {
-				if (((Stmt.Expression) stmt).expression instanceof Expr.CupOpenLeft) {
-					String start = ((Expr.CupOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme;
-					StringBuilder str = new StringBuilder(start);
-					StringBuilder reverseStr = str.reverse();
-
-					for (int j = knotStatement.expression.size() - 1; j >= 0; j--) {
-						Stmt finishStmt = knotStatement.expression.get(j);
-						if (((Stmt.Expression) finishStmt).expression instanceof Expr.CupOpenRight) {
-							String finish = ((Expr.CupOpenRight) ((Stmt.Expression) finishStmt).expression).Literal.identifierToken.lexeme;
-							if (finish.equals(reverseStr.toString())) {
-								int jCount = j + 1;
-								boolean match = false;
-								while (!match && jCount <= knotStatement.expression.size() - 1) {
-
-									if (((Stmt.Expression) knotStatement.expression
-											.get(jCount)).expression instanceof Expr.CupOpenRight) {
-										finish = ((Expr.CupOpenRight) ((Stmt.Expression) knotStatement.expression
-												.get(jCount)).expression).Literal.identifierToken.lexeme;
-										if (!finish.equals(reverseStr.toString())) {
-											stmt = ((Stmt.Expression) knotStatement.expression.get(jCount));
-											eOrder.put(start, finish);
-											match = true;
-										}
-									}
-									jCount++;
-								}
-
-								break;
-
-							}
-						}
-					}
-					count++;
-				} else if (((Stmt.Expression) stmt).expression instanceof Expr.CupOpenRight) {
-					String start = ((Expr.CupOpenRight) ((Stmt.Expression) stmt).expression).Literal.identifierToken.lexeme;
-					StringBuilder str = new StringBuilder(start);
-					StringBuilder reverseStr = str.reverse();
-					for (int j = 0; j < knotStatement.expression.size(); j++) {
-						Stmt finishStmt = knotStatement.expression.get(j);
-						if (((Stmt.Expression) finishStmt).expression instanceof Expr.CupOpenLeft) {
-							String fin = ((Expr.CupOpenLeft) ((Stmt.Expression) finishStmt).expression).Literal.reifitnediToken.lexeme;
-							if (fin.equals(reverseStr.toString())) {
-								stmt = finishStmt;
-								eOrder.put(start, fin);
-								break;
-							}
-						}
-					}
-					count++;
-				} else {
-					count++;
-					stmt = knotStatement.expression.get(count);
-				}
-			}
-		}
-
-		eOrder.put(((Expr.CupOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme,
-				eOrder.getRef(0));
-	}
-
-	private void buildEOrderTonk(KnotMap<Token, Token> eOrder, Tonk knotStatement) {
-		int count = 0;
-		Stmt stmt = knotStatement.expression.get(count);
-		while (count < knotStatement.expression.size()) {
-
-			if (stmt instanceof Stmt.Noisserpxe) {
-				if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.CupOpenLeft) {
-					String start = ((Expr.CupOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.reifitnediToken.lexeme;
-					StringBuilder str = new StringBuilder(start);
-					StringBuilder reverseStr = str.reverse();
-
-					for (int j = knotStatement.expression.size() - 1; j >= 0; j--) {
-						Stmt finishStmt = knotStatement.expression.get(j);
-						if (((Stmt.Noisserpxe) finishStmt).noisserpex instanceof Expr.CupOpenRight) {
-							String finish = ((Expr.CupOpenRight) ((Stmt.Noisserpxe) finishStmt).noisserpex).Literal.identifierToken.lexeme;
-							if (finish.equals(reverseStr.toString())) {
-								int jCount = j + 1;
-								boolean match = false;
-								while (!match && jCount <= knotStatement.expression.size() - 1) {
-
-									if (((Stmt.Noisserpxe) knotStatement.expression
-											.get(jCount)).noisserpex instanceof Expr.CupOpenRight) {
-										finish = ((Expr.CupOpenRight) ((Stmt.Noisserpxe) knotStatement.expression
-												.get(jCount)).noisserpex).Literal.identifierToken.lexeme;
-										if (!finish.equals(reverseStr.toString())) {
-											eOrder.put(((Expr.CupOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal,
-													((Expr.CupOpenRight) ((Stmt.Noisserpxe) knotStatement.expression
-															.get(jCount)).noisserpex).Literal);
-											stmt = ((Stmt.Noisserpxe) knotStatement.expression.get(jCount));
-											match = true;
-										}
-									}
-									jCount++;
-								}
-
-								break;
-
-							}
-						}
-					}
-					count++;
-				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.CupOpenRight) {
-					String start = ((Expr.CupOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.identifierToken.lexeme;
-					StringBuilder str = new StringBuilder(start);
-					StringBuilder reverseStr = str.reverse();
-					for (int j = 0; j < knotStatement.expression.size(); j++) {
-						Stmt finishStmt = knotStatement.expression.get(j);
-						if (((Stmt.Noisserpxe) finishStmt).noisserpex instanceof Expr.CupOpenLeft) {
-							String fin = ((Expr.CupOpenLeft) ((Stmt.Noisserpxe) finishStmt).noisserpex).Literal.reifitnediToken.lexeme;
-							if (fin.equals(reverseStr.toString())) {
-								eOrder.put(((Expr.CupOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal,
-										((Expr.CupOpenLeft) ((Stmt.Noisserpxe) finishStmt).noisserpex).Literal);
-								stmt = finishStmt;
-								break;
-							}
-						}
-					}
-					count++;
-				} else {
-					count++;
-					stmt = knotStatement.expression.get(count);
-				}
-			}
-		}
-
-		eOrder.put(((Expr.CupOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal, eOrder.getRef(0));
-
-	}
-
-	private void buildKnotMap(KnotMap<String, Expr> knotProgram, Knot knotStatement) {
-		BigInteger count = BigInteger.ZERO;
-		for (int i = 0; i < knotStatement.expression.size(); i++) {
-			Stmt stmt = knotStatement.expression.get(i);
-
-			if (stmt instanceof Stmt.Expression) {
-				if (((Stmt.Expression) stmt).expression instanceof Expr.CupOpenLeft) {
-					knotProgram.put(
-							((Expr.CupOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme,
-							((Stmt.Expression) stmt).expression);
-				} else if (((Stmt.Expression) stmt).expression instanceof Expr.CupOpenRight) {
-					knotProgram.put(
-							((Expr.CupOpenRight) ((Stmt.Expression) stmt).expression).Literal.identifierToken.lexeme,
-							((Stmt.Expression) stmt).expression);
-				} else if (((Stmt.Expression) stmt).expression instanceof Expr.PocketOpenLeft) {
-					knotProgram.put(
-							((Expr.PocketOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme,
-							((Stmt.Expression) stmt).expression);
-				} else if (((Stmt.Expression) stmt).expression instanceof Expr.PocketOpenRight) {
-					knotProgram.put(
-							((Expr.PocketOpenRight) ((Stmt.Expression) stmt).expression).Literal.identifierToken.lexeme,
-							((Stmt.Expression) stmt).expression);
-				} else if (((Stmt.Expression) stmt).expression instanceof Expr.BoxOpenLeft) {
-					knotProgram.put(
-							((Expr.BoxOpenLeft) ((Stmt.Expression) stmt).expression).Literal.reifitnediToken.lexeme,
-							((Stmt.Expression) stmt).expression);
-				} else if (((Stmt.Expression) stmt).expression instanceof Expr.BoxOpenRight) {
-					knotProgram.put(
-							((Expr.BoxOpenRight) ((Stmt.Expression) stmt).expression).Literal.identifierToken.lexeme,
-							((Stmt.Expression) stmt).expression);
-				} else {
-					knotProgram.put(count + "", ((Stmt.Expression) stmt).expression);
-					count.add(BigInteger.ONE);
-				}
-			}
-		}
-
-	}
-
-	private void buildTonkMap(KnotMap<String, Expr> tonkProgram, Tonk tonkStatement) {
-		BigInteger count = BigInteger.ZERO;
-		for (int i = 0; i < tonkStatement.expression.size(); i++) {
-			Stmt stmt = tonkStatement.expression.get(i);
-
-			if (stmt instanceof Stmt.Noisserpxe) {
-				if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.CupOpenLeft) {
-					tonkProgram.put(
-							((Expr.CupOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.reifitnediToken.lexeme,
-							((Stmt.Noisserpxe) stmt).noisserpex);
-				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.CupOpenRight) {
-					tonkProgram.put(
-							((Expr.CupOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.identifierToken.lexeme,
-							((Stmt.Noisserpxe) stmt).noisserpex);
-				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.PocketOpenLeft) {
-					tonkProgram.put(
-							((Expr.PocketOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.reifitnediToken.lexeme,
-							((Stmt.Noisserpxe) stmt).noisserpex);
-				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.PocketOpenRight) {
-					tonkProgram.put(
-							((Expr.PocketOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.identifierToken.lexeme,
-							((Stmt.Noisserpxe) stmt).noisserpex);
-				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.BoxOpenLeft) {
-					tonkProgram.put(
-							((Expr.BoxOpenLeft) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.reifitnediToken.lexeme,
-							((Stmt.Noisserpxe) stmt).noisserpex);
-				} else if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.BoxOpenRight) {
-					tonkProgram.put(
-							((Expr.BoxOpenRight) ((Stmt.Noisserpxe) stmt).noisserpex).Literal.identifierToken.lexeme,
-							((Stmt.Noisserpxe) stmt).noisserpex);
-				} else {
-					tonkProgram.put(count + "", ((Stmt.Noisserpxe) stmt).noisserpex);
-					count.add(BigInteger.ONE);
-				}
-			}
-		}
-
-	}
-
-	@SuppressWarnings("finally")
-	public Object executeKnot(List<Stmt> statements, Environment env) {
-		Environment previous = this.environment;
-		tracker.add(new KnotStack());
-		ArrayList<Object> evaluated = new ArrayList<Object>();
-		try {
-			this.environment = env;
-			Stmt stmt = statements.get(0);
-			if (stmt instanceof Stmt.Expression) {
-				if (((Stmt.Expression) stmt).expression instanceof Expr.Pocket) {
-					ArrayList<Object> visitPocketExpr = new ArrayList<Object>();
-					visitPocketExpr.add(visitPocketExpr((Pocket) ((Stmt.Expression) stmt).expression));
-					loopLeadingPocket(visitPocketExpr, statements);
-
-				}
-				if (((Stmt.Expression) stmt).expression instanceof Expr.Cup) {
-					loopLeadingCup(null, statements);
-				}
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.Pocket) {
-					ArrayList<Object> visitPocketExpr = new ArrayList<Object>();
-					visitPocketExpr.add(visitPocketExpr((Pocket) ((Stmt.Noisserpxe) stmt).noisserpex));
-					loopLeadingPocket(visitPocketExpr, statements);
-
-				}
-				if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.Cup) {
-					loopLeadingCup(null, statements);
-				}
-			}
-
-		} finally {
-			this.environment = previous;
-			tracker.remove();
-			return evaluated;
-		}
-	}
-
-	private boolean loopLeadingCup(ArrayList<Object> visitPocketExpr, List<Stmt> statements) {
-		if (visitPocketExpr == null) {
-			execute(statements.get(0));
-		} else {
-			ArrayList<Object> visitPocket2Expr = generateAndExecuteCupAndPocketStatements(statements);
-			if (!visitedPocketListIsTrue(visitPocket2Expr)) {
-				return false;
-			}
-		}
-		tracker.removeDuplicates();
-		ArrayList<Stmt> pocketStatements = generatePocketStatements(statements);
-		ArrayList<Object> visitPocket3Expr = executePocketStatements(pocketStatements);
-		if (visitedPocketListIsTrue(visitPocket3Expr)) {
-			return loopLeadingCup(visitPocket3Expr, statements);
-		}
-
-		return false;
-	}
-
-	private boolean loopLeadingPocket(ArrayList<Object> visitPocketExpr, List<Stmt> statements) {
-		if (visitedPocketListIsTrue(visitPocketExpr)) {
-			ArrayList<Object> visitPocket2Expr = generateAndExecuteCupAndPocketStatements(statements);
-			if (!visitedPocketListIsTrue(visitPocket2Expr)) {
-				return false;
-			}
-			tracker.removeDuplicates();
-			ArrayList<Stmt> pocketStatements = generatePocketStatements(statements);
-			ArrayList<Object> visitPocket3Expr = executePocketStatements(pocketStatements);
-			return loopLeadingPocket(visitPocket3Expr, statements);
-		}
-		return false;
-	}
-
-	private ArrayList<Object> executePocketStatements(ArrayList<Stmt> pocketStatements) {
-
-		ArrayList<Object> visitPocket2Expr = new ArrayList<Object>();
-
-		for (Stmt stmt : pocketStatements) {
-			if (stmt instanceof Stmt.Expression) {
-				visitPocket2Expr.add(visitPocketExpr((Pocket) ((Stmt.Expression) stmt).expression));
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				visitPocket2Expr.add(visitPocketExpr((Pocket) ((Stmt.Noisserpxe) stmt).noisserpex));
-			}
-		}
-
-		return visitPocket2Expr;
-	}
-
-	private ArrayList<Stmt> generatePocketStatements(List<Stmt> statements) {
-		ArrayList<Expr.PocketOpenRight> allPocketRight = tracker.getAllPocketRight();
-		ArrayList<Expr.PocketOpenLeft> allPocketLeft = tracker.getAllPocketLeft();
-
-		ArrayList<Stmt> rightStmt = new ArrayList<Stmt>();
-		for (PocketOpenRight pocketOpenRight : allPocketRight) {
-			rightStmt.add(findStmtWithPocketRight(statements, pocketOpenRight));
-
-		}
-		ArrayList<Stmt> leftStmt = new ArrayList<Stmt>();
-		for (PocketOpenLeft pocketOpenLeft : allPocketLeft) {
-			leftStmt.add(findStmtWithPocketLeft(statements, pocketOpenLeft));
-
-		}
-
-		tracker.clear();
-
-		ArrayList<Stmt> orderdStmt = orderStmtsPocket(rightStmt, leftStmt, statements);
-
-		return orderdStmt;
-	}
-
-	private ArrayList<Stmt> orderStmtsPocket(ArrayList<Stmt> rightStmt, ArrayList<Stmt> leftStmt,
-			List<Stmt> statements) {
-		ArrayList<Stmt> ordered = new ArrayList<Stmt>();
-		for (Stmt stmt : statements) {
-			if (stmt instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) stmt).expression;
-				if (expression instanceof Expr.Pocket) {
-					for (Stmt stmt2 : leftStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-					for (Stmt stmt2 : rightStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-				}
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				Expr expression = ((Stmt.Noisserpxe) stmt).noisserpex;
-				if (expression instanceof Expr.Pocket) {
-					for (Stmt stmt2 : leftStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-					for (Stmt stmt2 : rightStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		return ordered;
-	}
-
-	private ArrayList<Object> generateAndExecuteCupAndPocketStatements(List<Stmt> statements) {
-		ArrayList<Expr.CupOpenRight> allCupRight = tracker.getAllCupRight();
-		ArrayList<Expr.CupOpenLeft> allCupLeft = tracker.getAllCupLeft();
-
-		ArrayList<Expr.PocketOpenRight> allPocketRight = tracker.getAllPocketRight();
-		ArrayList<Expr.PocketOpenLeft> allPocketLeft = tracker.getAllPocketLeft();
-
-		tracker.clear();
-
-		ArrayList<Stmt> rightPocketStmt = new ArrayList<Stmt>();
-		for (PocketOpenRight pocketOpenRight : allPocketRight) {
-			rightPocketStmt.add(findStmtWithPocketRight(statements, pocketOpenRight));
-
-		}
-		ArrayList<Stmt> leftPocketStmt = new ArrayList<Stmt>();
-		for (PocketOpenLeft pocketOpenLeft : allPocketLeft) {
-			leftPocketStmt.add(findStmtWithPocketLeft(statements, pocketOpenLeft));
-
-		}
-
-		ArrayList<Stmt> rightCupStmt = new ArrayList<Stmt>();
-		for (CupOpenRight cupOpenRight : allCupRight) {
-			rightCupStmt.add(findStmtWithCupRight(statements, cupOpenRight));
-		}
-
-		ArrayList<Stmt> leftCupStmt = new ArrayList<Stmt>();
-		for (CupOpenLeft cupOpenLeft : allCupLeft) {
-			leftCupStmt.add(findStmtWithCupLeft(statements, cupOpenLeft));
-		}
-
-		ArrayList<Stmt> orderdStmt = orderStmtsCupAndPocket(rightCupStmt, leftCupStmt, rightPocketStmt, leftPocketStmt,
-				statements);
-		ArrayList<Object> visitPocket2Expr = new ArrayList<Object>();
-
-		for (Stmt stmt : orderdStmt) {
-			if (stmt instanceof Stmt.Expression) {
-				if (((Stmt.Expression) stmt).expression instanceof Expr.Pocket)
-					visitPocket2Expr.add(visitPocketExpr((Pocket) ((Stmt.Expression) stmt).expression));
-				else
-					execute(stmt);
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				if (((Stmt.Noisserpxe) stmt).noisserpex instanceof Expr.Pocket)
-					visitPocket2Expr.add(visitPocketExpr((Pocket) ((Stmt.Noisserpxe) stmt).noisserpex));
-				else
-					execute(stmt);
-			}
-		}
-
-		return visitPocket2Expr;
-
-	}
-
-	private ArrayList<Stmt> orderStmtsCupAndPocket(ArrayList<Stmt> rightStmt, ArrayList<Stmt> leftStmt,
-			List<Stmt> rightPocktStmt, ArrayList<Stmt> leftPocketStmt, List<Stmt> statements) {
-		ArrayList<Stmt> ordered = new ArrayList<Stmt>();
-		for (Stmt stmt : statements) {
-			if (stmt instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) stmt).expression;
-				if (expression instanceof Expr.Cup) {
-					for (Stmt stmt2 : leftStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Cup) {
-								if (((Expr.Cup) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Cup) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Cup) {
-								if (((Expr.Cup) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Cup) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-					for (Stmt stmt2 : rightStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Cup) {
-								if (((Expr.Cup) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Cup) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Cup) {
-								if (((Expr.Cup) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Cup) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-				}
-				if (expression instanceof Expr.Pocket) {
-					for (Stmt stmt2 : leftPocketStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-					for (Stmt stmt2 : rightPocktStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-				}
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				Expr expression = ((Stmt.Noisserpxe) stmt).noisserpex;
-				if (expression instanceof Expr.Cup) {
-					for (Stmt stmt2 : leftStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Cup) {
-								if (((Expr.Cup) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Cup) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Cup) {
-								if (((Expr.Cup) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Cup) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-					for (Stmt stmt2 : rightStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Cup) {
-								if (((Expr.Cup) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Cup) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Cup) {
-								if (((Expr.Cup) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Cup) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-				}
-				if (expression instanceof Expr.Pocket) {
-					for (Stmt stmt2 : leftPocketStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-					for (Stmt stmt2 : rightPocktStmt) {
-						if (stmt2 instanceof Stmt.Expression) {
-							Expr expression2 = ((Stmt.Expression) stmt2).expression;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-						if (stmt2 instanceof Stmt.Noisserpxe) {
-							Expr expression2 = ((Stmt.Noisserpxe) stmt).noisserpex;
-							if (expression2 instanceof Expr.Pocket) {
-								if (((Expr.Pocket) expression).identifier.lexeme
-										.equalsIgnoreCase(((Expr.Pocket) expression2).identifier.lexeme)) {
-									ordered.add(stmt2);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		return ordered;
-	}
-
-	private Stmt findStmtWithCupLeft(List<Stmt> statements, CupOpenLeft cupOpenLeft) {
-		for (Stmt stmt : statements) {
-			if (stmt instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) stmt).expression;
-				if (expression instanceof Expr.Cup) {
-					if (((Expr.Cup) expression).identifier.lexeme
-							.equalsIgnoreCase(cupOpenLeft.Literal.reifitnediToken.lexeme)) {
-						return stmt;
-					}
-				}
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				Expr expression = ((Stmt.Noisserpxe) stmt).noisserpex;
-				if (expression instanceof Expr.Cup) {
-					if (((Expr.Cup) expression).identifier.lexeme
-							.equalsIgnoreCase(cupOpenLeft.Literal.reifitnediToken.lexeme)) {
-						return stmt;
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	private Stmt findStmtWithPocketLeft(List<Stmt> statements, PocketOpenLeft pocketOpenLeft) {
-		for (Stmt stmt : statements) {
-			if (stmt instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) stmt).expression;
-				if (expression instanceof Expr.Pocket) {
-					if (((Expr.Pocket) expression).identifier.lexeme
-							.equalsIgnoreCase(pocketOpenLeft.Literal.reifitnediToken.lexeme)) {
-						return stmt;
-					}
-				}
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				Expr expression = ((Stmt.Noisserpxe) stmt).noisserpex;
-				if (expression instanceof Expr.Pocket) {
-					if (((Expr.Pocket) expression).identifier.lexeme
-							.equalsIgnoreCase(pocketOpenLeft.Literal.reifitnediToken.lexeme)) {
-						return stmt;
-					}
-				}
-			}
-
-		}
-		return null;
-	}
-
-	private boolean visitedPocketListIsTrue(ArrayList<Object> visitPocket2Expr) {
-		boolean istrue = true;
-		for (Object visitPocketExpr : visitPocket2Expr) {
-			if (visitPocketExpr instanceof ArrayList) {
-				for (Object entry : (ArrayList<?>) visitPocketExpr) {
-					if (entry instanceof Boolean) {
-						if ((Boolean) entry == false)
-							istrue = istrue && false;
-					}
-				}
-			}
-		}
-
-		return istrue;
-	}
-
-	private Stmt findStmtWithPocketRight(List<Stmt> statements, PocketOpenRight pocketOpenRight) {
-		for (Stmt stmt : statements) {
-			if (stmt instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) stmt).expression;
-				if (expression instanceof Expr.Pocket) {
-					if (((Expr.Pocket) expression).identifier.lexeme
-							.equalsIgnoreCase(pocketOpenRight.Literal.identifierToken.lexeme)) {
-						return stmt;
-					}
-				}
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				Expr expression = ((Stmt.Noisserpxe) stmt).noisserpex;
-				if (expression instanceof Expr.Pocket) {
-					if (((Expr.Pocket) expression).identifier.lexeme
-							.equalsIgnoreCase(pocketOpenRight.Literal.identifierToken.lexeme)) {
-						return stmt;
-					}
-				}
-			}
-
-		}
-		return null;
-	}
-
-	private boolean visitedPocketIsTrue(Object visitPocketExpr) {
-		if (visitPocketExpr instanceof ArrayList) {
-			for (Object entry : (ArrayList<?>) visitPocketExpr) {
-				if (entry instanceof Boolean) {
-					if ((Boolean) entry == false)
-						return false;
-				}
-				if (entry instanceof ArrayList) {
-					return findrootofPocketReturnValues(entry);
-				}
-			}
-		}
-		return true;
-	}
-
-	private boolean findrootofPocketReturnValues(Object visitPocketExpr) {
-		for (Object entry : (ArrayList<?>) visitPocketExpr) {
-			if (entry instanceof Boolean) {
-				if ((Boolean) entry == false)
-					return false;
-
-			}
-			if (entry instanceof ArrayList) {
-				return findrootofPocketReturnValues(entry);
-			}
-		}
-		return true;
-	}
-
-	private Stmt findStmtWithCupRight(List<Stmt> statements, CupOpenRight cupOpenRight) {
-		for (Stmt stmt : statements) {
-			if (stmt instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) stmt).expression;
-				if (expression instanceof Expr.Cup) {
-					if (((Expr.Cup) expression).identifier.lexeme
-							.equalsIgnoreCase(cupOpenRight.Literal.identifierToken.lexeme)) {
-						return stmt;
-					}
-				}
-			}
-			if (stmt instanceof Stmt.Noisserpxe) {
-				Expr expression = ((Stmt.Noisserpxe) stmt).noisserpex;
-				if (expression instanceof Expr.Cup) {
-					if (((Expr.Cup) expression).identifier.lexeme
-							.equalsIgnoreCase(cupOpenRight.Literal.identifierToken.lexeme)) {
-						return stmt;
-					}
-				}
-			}
-
-		}
-		return null;
-	}
-
-	@Override
-	public Object visitCupOpenRightExpr(CupOpenRight expr) {
-		System.out.println("CupOpenRight " + expr.Literal.lexeme);
-		return null;
-
-	}
-
-	private void setStatements(ArrayList<Stmt> statements) {
-		this.statements = statements;
-		this.cupExecute = true;
-	}
-
-	@Override
-	public Object visitCupOpenLeftExpr(CupOpenLeft expr) {
-		System.out.println("CupOpenLeft " + expr.Literal.lexeme);
-		return null;
-	}
-
-	@Override
-	public Object visitPocketOpenRightExpr(PocketOpenRight expr) {
-		System.out.println("PocketOpenRight " + expr.Literal.lexeme);
-		return null;
-
-	}
-
-	@Override
-	public Object visitPocketOpenLeftExpr(PocketOpenLeft expr) {
-		System.out.println("PocketOpenLeft " + expr.Literal.lexeme);
-		return null;
-	}
-
-	@Override
-	public Object visitBoxOpenRightExpr(BoxOpenRight expr) {
-		System.out.println("BoxOpenRight " + expr.Literal.lexeme);
-		return null;
-	}
-
-	@Override
-	public Object visitBoxOpenLeftExpr(BoxOpenLeft expr) {
-		System.out.println("BoxOpenLeft " + expr.Literal.lexeme);
-		return null;
-	}
-
 	@Override
 	public Void visitTnirpStmt(Tnirp stmt) {
 		Object value = evaluate(stmt.expression);
@@ -4440,25 +1892,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		if (stmt.expression != null)
 			value = evaluate(stmt.expression);
 		throw new Snruter(value);
-	}
-
-	@Override
-	public Void visitNoisserpxeStmt(Noisserpxe stmt) {
-		evaluate(stmt.noisserpex);
-		return null;
-	}
-
-	@Override
-	public Void visitFiStmt(Fi stmt) {
-		if (visitedPocketIsTrue(evaluate(stmt.fiPocket))) {
-			evaluate(stmt.fiCup);
-		} else if (stmt.fiesleStmt != null) {
-			execute(stmt.fiesleStmt);
-		} else if (stmt.fiesleStmt == null) {
-			if (stmt.esleCup != null)
-				evaluate(stmt.esleCup);
-		}
-		return null;
 	}
 
 	@Override
@@ -4484,9 +1917,9 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 				if (myObj.createNewFile()) {
 					evaluate(stmt.objecttosave);
 					String str = "";
-					if (stmt.objecttosave instanceof Expr.Boxx) {
-						Object boxInstance = lookUpVariable(((Expr.Boxx) stmt.objecttosave).identifier,
-								((Expr.Boxx) stmt.objecttosave));
+					if (stmt.objecttosave instanceof Expr.Box) {
+						Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
+								((Expr.Box) stmt.objecttosave));
 						str = boxInstance.toString();
 
 					} else if (stmt.objecttosave instanceof Expr.Cup) {
@@ -4504,18 +1937,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 					} else if (stmt.objecttosave instanceof Expr.Variable) {
 						Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
 								((Expr.Variable) stmt.objecttosave));
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Elbairav) {
-						Object knotInstance = lookUpVariable(((Expr.Elbairav) stmt.objecttosave).name,
-								((Expr.Elbairav) stmt.objecttosave));
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.GetBoxCupPocket) {
-						Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.objecttosave));
-
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.TegBoxCupPocket) {
-						Object knotInstance = visitTegBoxCupPocketExpr(((Expr.TegBoxCupPocket) stmt.objecttosave));
-
 						str = knotInstance.toString();
 					}
 
@@ -4546,9 +1967,9 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 
 			}
 			evaluate(stmt.objectToReadInto);
-			if (stmt.objectToReadInto instanceof Expr.Boxx) {
-				Object boxInstance = lookUpVariable(((Expr.Boxx) stmt.objectToReadInto).identifier,
-						((Expr.Boxx) stmt.objectToReadInto));
+			if (stmt.objectToReadInto instanceof Expr.Box) {
+				Object boxInstance = lookUpVariable(((Expr.Box) stmt.objectToReadInto).identifier,
+						((Expr.Box) stmt.objectToReadInto));
 				if (boxInstance instanceof BoxInstance) {
 					((BoxInstance) boxInstance).setAt(data, 0);
 				}
@@ -4568,18 +1989,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 			} else if (stmt.objectToReadInto instanceof Expr.Knot) {
 				Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objectToReadInto).identifier,
 						((Expr.Knot) stmt.objectToReadInto));
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.GetBoxCupPocket) {
-				Object knotInstance = visitGetBoxCupPocketExpr(((Expr.GetBoxCupPocket) stmt.objectToReadInto));
-
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.TegBoxCupPocket) {
-				Object knotInstance = visitTegBoxCupPocketExpr(((Expr.TegBoxCupPocket) stmt.objectToReadInto));
-
 				if (knotInstance instanceof BoxInstance) {
 					((BoxInstance) knotInstance).setAt(data, 0);
 				}
@@ -4618,18 +2027,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	@Override
-	public Object visitLashExpr(Lash expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitLidExpr(Lid expr) {
-
-		return null;
-	}
-
-	@Override
 	public Object visitTnemngissaExpr(Tnemngissa expr) {
 		Object value = evaluate(expr.value);
 		Integer distance = locals.get(expr);
@@ -4638,12 +2035,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		else
 			globals.assign(expr.name, expr.value, value, this);
 		return value;
-	}
-
-	@Override
-	public Object visitSniatnocExpr(Sniatnoc expr) {
-
-		return null;
 	}
 
 	@Override
@@ -4741,21 +2132,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	@Override
-	public Object visitLacigolExpr(Lacigol expr) {
-		Object left = evaluate(expr.left);
-
-		if (expr.operator.type == TokenType.OR) {
-			if (isTruthy(left))
-				return left;
-		} else {
-			if (!isTruthy(left))
-				return left;
-
-		}
-		return evaluate(expr.right);
-	}
-
-	@Override
 	public Object visitGolExpr(Gol expr) {
 		Double evaluateDoubleValue = findDoubleValue(expr.value) - 1;
 		Double evaluateDoubleValueBase = findDoubleValue(expr.valueBase) - 1;
@@ -4806,91 +2182,20 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		}
 
 		if (!(callee instanceof BoxCallable)) {
-			throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+			throw new RuntimeError(expr.calleeToken, "Can only call functions and classes.");
 		}
 
 		BoxCallable function = (BoxCallable) callee;
 		if (arguments.size() != function.arity()) {
-			throw new RuntimeError(expr.paren,
+			throw new RuntimeError(expr.calleeToken,
 					"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
 		}
 
 		return function.call(this, arguments);
 	}
 
-	@Override
-	public Void visitPassThroughStmt(PassThrough stmt) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitParameterExpr(Parameter expr) {
-
-		return null;
-	}
-
-	@Override
-	public Void visitConstructorStmt(Constructor stmt) {
-
-		return null;
-	}
-
 	public void resolve(Expr expr, int i) {
 		locals.put(expr, i);
-	}
-
-	@Override
-	public Object visitLiteralCharExpr(LiteralChar expr) {
-
-		return expr.value;
-	}
-
-	@Override
-	public Object visitLaretilCharExpr(LaretilChar expr) {
-
-		return expr.value;
-	}
-
-	@Override
-	public Object visitTypeExpr(Type expr) {
-
-		return getTypeOfExpression(expr.expression);
-	}
-
-	@Override
-	public Object visitEpytExpr(Epyt expr) {
-
-		return getTypeOfExpression(expr.expression);
-	}
-
-	private Object getTypeOfExpression(Expr expression) {
-		if (expression instanceof Literal) {
-
-		} else if (expression instanceof LiteralChar) {
-			return RunTimeTypes.getObjectType(expression, evaluate(expression), this);
-		} else if (expression instanceof Variable) {
-			return lookUpType(expression);
-		} else if (expression instanceof Pocket) {
-			return RunTimeTypes.Pocket;
-		} else if (expression instanceof Cup) {
-			return RunTimeTypes.Cup;
-		} else if (expression instanceof Boxx) {
-			return RunTimeTypes.Box;
-		} else if (expression instanceof Knot) {
-			return RunTimeTypes.Knot;
-		} else if (expression instanceof Lash) {
-			return RunTimeTypes.Lash;
-		} else if (expression instanceof Lid) {
-			return RunTimeTypes.Lid;
-		} else if (expression instanceof Laretil) {
-			return RunTimeTypes.getObjectType(expression, evaluate(expression), this);
-		} else if (expression instanceof LaretilChar) {
-			return RunTimeTypes.Char;
-		} else if (expression instanceof Elbairav) {
-			return lookUpType(expression);
-		}
-		return null;
 	}
 
 	private Object lookUpType(Expr expression) {
@@ -4902,93 +2207,6 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 		}
 	}
 
-	@Override
-	public Object visitGetBoxCupPocketExpr(GetBoxCupPocket expr) {
-		fromCall = false;
-		Expr boxCupOrPocket = expr;
-		ArrayList<Integer> theIndexes = new ArrayList<Integer>();
-		while (boxCupOrPocket instanceof GetBoxCupPocket) {
-			if (boxCupOrPocket instanceof GetBoxCupPocket) {
-				if (((GetBoxCupPocket) boxCupOrPocket).name.type == TokenType.INTNUM) {
-					theIndexes.add((Integer) ((GetBoxCupPocket) boxCupOrPocket).name.literal);
-				}
-			}
-			boxCupOrPocket = ((GetBoxCupPocket) boxCupOrPocket).object;
-		}
-
-		Object object = evaluate(boxCupOrPocket);
-		Object objectToFind = null;
-		if (object instanceof BoxInstance) {
-			Integer firstIndex = theIndexes.get(theIndexes.size() - 1);
-			theIndexes.remove(theIndexes.size() - 1);
-			objectToFind = ((BoxInstance) object).get(firstIndex, theIndexes);
-		}
-		Object evaluate = null;
-		if (objectToFind instanceof Expr) {
-			evaluate = evaluate((Expr) objectToFind);
-			return evaluate;
-		}
-		if (objectToFind instanceof Stmt.Expression) {
-			evaluate = evaluate(((Stmt.Expression) objectToFind).expression);
-			return evaluate;
-		}
-		if (objectToFind instanceof Stmt.Noisserpxe) {
-			evaluate = evaluate(((Stmt.Noisserpxe) objectToFind).noisserpex);
-			return evaluate;
-		}
-
-		return objectToFind;
-	}
-
-	@Override
-	public Object visitTegBoxCupPocketExpr(TegBoxCupPocket expr) {
-		fromCall = false;
-		Expr boxCupOrPocket = new Expr.Variable(expr.name);
-		ArrayList<Integer> theIndexes = new ArrayList<Integer>();
-		Expr theNumbers = expr.object;
-		while (theNumbers instanceof TegBoxCupPocket) {
-			if (theNumbers instanceof TegBoxCupPocket) {
-				if (((TegBoxCupPocket) theNumbers).name.type == TokenType.INTNUM) {
-					theIndexes.add((Integer) ((TegBoxCupPocket) theNumbers).name.literal);
-				}
-			}
-			theNumbers = ((TegBoxCupPocket) theNumbers).object;
-		}
-		if (theNumbers instanceof Expr.Literal) {
-			theIndexes.add((Integer) ((Expr.Literal) theNumbers).value);
-		}
-		if (theNumbers instanceof Expr.Laretil) {
-			theIndexes.add((Integer) ((Expr.Laretil) theNumbers).value);
-		}
-		ArrayList<Integer> reverseTheIndexes = new ArrayList<>();
-		for (int i = theIndexes.size() - 1; i >= 0; i--) {
-			reverseTheIndexes.add(theIndexes.get(i));
-		}
-
-		Object object = evaluate(boxCupOrPocket);
-		Object objectToFind = null;
-		if (object instanceof BoxInstance) {
-			Integer firstIndex = reverseTheIndexes.get(reverseTheIndexes.size() - 1);
-			reverseTheIndexes.remove(reverseTheIndexes.size() - 1);
-			objectToFind = ((BoxInstance) object).get(firstIndex, reverseTheIndexes);
-		}
-		Object evaluate = null;
-		if (objectToFind instanceof Expr) {
-			evaluate = evaluate((Expr) objectToFind);
-			return evaluate;
-		}
-		if (objectToFind instanceof Stmt.Expression) {
-			evaluate = evaluate(((Stmt.Expression) objectToFind).expression);
-			return evaluate;
-		}
-		if (objectToFind instanceof Stmt.Noisserpxe) {
-			evaluate = evaluate(((Stmt.Noisserpxe) objectToFind).noisserpex);
-			return evaluate;
-		}
-
-		return objectToFind;
-	}
-
 	public void setForward(boolean forward) {
 		this.forward = forward;
 	}
@@ -4998,51 +2216,498 @@ public class Interpreter extends Thread implements Expr.Visitor<Object>, Stmt.Vi
 	}
 
 	@Override
-	public Object visitPassThroughExpr(Expr.PassThrough expr) {
-
+	public Object visitFunDeclDeclaration(FunDecl declaration) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Void visitUnDeterminedStmt(UnDetermined stmt) {
-
+	public Object visitStmtDeclDeclaration(StmtDecl declaration) {
+		declaration.statement.accept(this);
 		return null;
 	}
 
 	@Override
-	public Object visitCallExpr(Call expr) {
+	public Object visitFunctionFun(Function fun) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public Object visitIfStmt(If stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitSaveStmt(Save stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitExpelStmt(Expel stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitReadStmt(Read stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitConsumeStmt(Consume stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitVarStmt(Var stmt) {
+		environment.define(stmt.name.lexeme, stmt.type, stmt.num, stmt.initilizer, this);
+		return null;
+	}
+
+	@Override
+	public Object visitRavStmt(Rav stmt) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visitGetExpr(Get expr) {
-
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Object visitUnKnownExpr(UnKnown expr) {
-
+	public Object visitSetExpr(Set expr) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Object visitUnknownnwonknUExpr(UnknownnwonknU expr) {
-
+	public Object visitSniatnocExpr(Sniatnoc expr) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Void visitVarFBStmt(VarFB stmt) {
+	public Object visitTegExpr(Teg expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public Object visitTesExpr(Tes expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitLiteralCharExpr(LiteralChar expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitCupExpr(Cup expr) {
+		// TODO Auto-generated method stub
+		return runContainer(expr);
+	}
+
+	@Override
+	public Object visitPocketExpr(Pocket expr) {
+		// TODO Auto-generated method stub
+		return runContainer(expr);
+	}
+
+	@SuppressWarnings("finally")
+	private Object runContainer(Expr stmt) {
+		buildClass(stmt);
+		Token theName = null;
+		Pocket pktStmt = null;
+		Cup cupStmt = null;
+
+		List<Stmt> expression = null;
+		List<Declaration> expression1 = null;
+
+		ArrayList<Object> evaluated = new ArrayList<Object>();
+		if (stmt instanceof Pocket) {
+			pktStmt = (Pocket) stmt;
+			theName = pktStmt.identifier;
+			expression = pktStmt.expression;
+
+			Variable theNameVariable = new Expr.Variable(theName);
+			Environment previous = null;
+			if (lookUpVariable(theName, theNameVariable) == null) {
+				previous = this.environment;
+			}
+
+			try {
+				if (lookUpVariable(theName, theNameVariable) == null) {
+					this.environment = new Environment(environment);
+				}
+
+				for (Stmt stmt2 : expression) {
+					if (stmt2 instanceof Stmt.Expression)
+						if (((Stmt.Expression) stmt2).expression != null)
+							evaluated.add(evaluate(((Stmt.Expression) stmt2).expression));
+					if (((Stmt.Expression) stmt2).noisserpxe != null)
+						evaluated.add(evaluate(((Stmt.Expression) stmt2).noisserpxe));
+					else {
+						execute(stmt2);
+					}
+				}
+			} finally {
+				if (lookUpVariable(theName, theNameVariable) == null) {
+					this.environment = previous;
+				}
+			}
+
+		} else if (stmt instanceof Cup) {
+			cupStmt = (Cup) stmt;
+			theName = cupStmt.identifier;
+			expression1 = cupStmt.expression;
+
+			Variable theNameVariable = new Expr.Variable(theName);
+			Environment previous = null;
+			if (lookUpVariable(theName, theNameVariable) == null) {
+				previous = this.environment;
+			}
+
+			try {
+				if (lookUpVariable(theName, theNameVariable) == null) {
+					this.environment = new Environment(environment);
+				}
+
+				for (Declaration stmt2 : expression1) {
+					if (stmt2 instanceof Declaration.StmtDecl) {
+						if ((((Declaration.StmtDecl) stmt2).statement) instanceof Stmt.Expression) {
+							if (((Stmt.Expression) ((((Declaration.StmtDecl) stmt2).statement))).expression != null) {
+								evaluated.add(evaluate(
+										((Stmt.Expression) ((((Declaration.StmtDecl) stmt2).statement))).expression));
+							}
+							if (((Stmt.Expression) ((((Declaration.StmtDecl) stmt2).statement))).noisserpxe != null) {
+								evaluated.add(evaluate(
+										((Stmt.Expression) ((((Declaration.StmtDecl) stmt2).statement))).noisserpxe));
+							}
+						}
+
+					} else {
+						execute(stmt2);
+					}
+				}
+			} finally {
+				if (lookUpVariable(theName, theNameVariable) == null) {
+					this.environment = previous;
+				}
+			}
+
+		}
+		return evaluated;
+	}
+
+	private void buildClass(Expr stmt) {
+
+		Object superclass = null;
+
+		Token theName = null;
+		Cup cup = null;
+		Pocket pocket = null;
+		Token theEman = null;
+
+		if (stmt instanceof Expr.Cup) {
+			cup = (Cup) stmt;
+			theName = cup.identifier;
+			theEman = cup.reifitnedi;
+		} else if (stmt instanceof Expr.Pocket) {
+			pocket = (Pocket) stmt;
+			theName = pocket.identifier;
+			theEman = pocket.reifitnedi;
+		}
+
+		Variable theNameVariable = new Expr.Variable(theName);
+
+		if (lookUpVariable(theName, theNameVariable) == null) {
+
+			Token superclassToken = null;
+			if (theName.identifierToken != null)
+				superclassToken = new Token(theName.type, theName.identifierToken.lexeme + "Class_Definition", null,
+						null, null, theName.column, theName.line, theName.start, theName.finish);
+
+			BoxClass superclassVariable = (BoxClass) lookUpVariableByName(superclassToken);
+
+			if (superclassVariable != null) {
+				superclass = superclassVariable;
+			}
+			Token type = null;
+			if (cup != null) {
+				type = new Token(TokenType.CUPCONTAINER, "", null, null, null, -1, -1, -1, -1);
+			} else if (pocket != null) {
+				type = new Token(TokenType.POCKETCONTAINER, "", null, null, null, -1, -1, -1, -1);
+			}
+
+			environment.define(theName.lexeme + "_Class_Definition", type, null);
+			environment.define(theEman.lexeme + "_noitinifeD_ssalC", type, null);
+			if (superclass != null) {
+				environment = new Environment(environment);
+				Token superclassType = new Token(((BoxClass) superclass).type, "", null, null, null, -1, -1, -1, -1);
+				environment.define("super", superclassType, superclass);
+
+			}
+
+			Map<String, BoxFunction> methodsBoxFunction = new HashMap<>();
+
+			List<Fun.Function> methods = new ArrayList<Fun.Function>();
+			if (stmt instanceof Expr.Cup) {
+				List<Declaration> declaration = ((Expr.Cup) stmt).expression;
+				for (Declaration stmt2 : declaration) {
+					if (stmt2 instanceof Fun.Function) {
+						methods.add((Fun.Function) stmt2);
+					}
+				}
+
+				for (Fun.Function method : methods) {
+					System.out.println("functions not implemented yet");
+				}
+			}
+			BoxClass boxClass = null;
+			if (cup != null) {
+				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
+						TokenType.CUPCONTAINER);
+			} else if (pocket != null) {
+				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
+						TokenType.POCKETCONTAINER);
+			}
+
+			if (superclass != null) {
+				environment = environment.enclosing;
+			}
+
+			Token classDefinitionName = new Token(theName.type, theName.lexeme + "_Class_Definition", null, null, null,
+					theName.column, theName.line, theName.start, theName.finish);
+			Token classDefinitionEman = new Token(theEman.type, theEman.lexeme + "_noitinifeD_ssalC", null, null, null,
+					theName.column, theName.line, theName.start, theName.finish);
+			environment.assign(classDefinitionName, type, boxClass);
+			environment.assign(classDefinitionEman, type, boxClass);
+			Object instance = boxClass.call(this, null);
+
+			environment.define(theName.lexeme, type, instance);
+			environment.define(theEman.lexeme, type, instance);
+
+		}
+
+	}
+
+	private BoxClass executeAndBuildBoxClass(Object superclass, Token theName, Cup cup, Token theEman,
+			Map<String, BoxFunction> methodsBoxFunction, TokenType containerType) {
+		BoxClass boxClass;
+		executePrimaryBoxCupPocketAndKnot(cup);
+		ArrayList<Object> boxPrimarys = new ArrayList<Object>();
+		int count = 0;
+		populateBoxPrimarys(theName, cup, theEman, boxPrimarys, count);
+
+		boxClass = new BoxClass(theName.lexeme, (BoxClass) superclass, boxPrimarys, methodsBoxFunction, containerType,
+				false, null);
+		return boxClass;
+	}
+
+	private void populateBoxPrimarys(Token theName, Expr container, Token theEman, ArrayList<Object> boxPrimarys,
+			int count) {
+		List<Stmt> expression = null;
+		List<Declaration> expression1 = null;
+		List<Expr> primarys = null;
+		if (container instanceof Expr.Cup) {
+			expression1 = ((Expr.Cup) container).expression;
+			primarysForCup(boxPrimarys, expression1);
+		} else if (container instanceof Expr.Pocket) {
+			expression = ((Expr.Pocket) container).expression;
+			primarysForBoxAndPocket(boxPrimarys, expression);
+		}
+
+	}
+
+	private void primarysForBoxAndPocket(ArrayList<Object> boxPrimarys, List<Stmt> expression) {
+		for (int i = 0; i < expression.size(); i++) {
+			if (expression.get(i) instanceof Stmt.Expression) {
+				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.Box) {
+					Object boxInstance = lookUpVariable(
+							((Expr.Box) ((Stmt.Expression) expression.get(i)).expression).identifier, new Expr.Variable(
+									((Expr.Box) ((Stmt.Expression) expression.get(i)).expression).identifier));
+					boxPrimarys.add(boxInstance);
+				} else if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.Pocket) {
+					Object pocketInstance = lookUpVariable(
+							((Expr.Pocket) ((Stmt.Expression) expression.get(i)).expression).identifier,
+							new Expr.Variable(
+									((Expr.Pocket) ((Stmt.Expression) expression.get(i)).expression).identifier));
+					boxPrimarys.add(pocketInstance);
+				} else {
+					boxPrimarys.add(expression.get(i));
+				}
+			}
+		}
+	}
+
+	private void primarysForCup(ArrayList<Object> boxPrimarys, List<Declaration> expression) {
+		for (int i = 0; i < expression.size(); i++) {
+			if (expression.get(i) instanceof Stmt.Expression) {
+				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.Cup) {
+					Object cupInstance = lookUpVariable(
+							((Expr.Cup) ((Stmt.Expression) expression.get(i)).expression).identifier, new Expr.Variable(
+									((Expr.Cup) ((Stmt.Expression) expression.get(i)).expression).identifier));
+					boxPrimarys.add(cupInstance);
+				} else {
+					boxPrimarys.add(expression.get(i));
+				}
+			}
+		}
+	}
+
+	private void executePrimaryBoxCupPocketAndKnot(Expr stmt) {
+
+		if (stmt instanceof Cup) {
+			for (Declaration statement : ((Cup) stmt).expression) {
+				executeStatement(statement);
+			}
+		} else if (stmt instanceof Pocket) {
+			for (Stmt statement : ((Pocket) stmt).expression) {
+				executeStatement(statement);
+			}
+		}
+
+	}
+
+	private void executeStatement(Stmt statement) {
+		if (statement instanceof Stmt.Expression) {
+			if (((Stmt.Expression) statement).expression instanceof Expr.Box) {
+				evaluate(((Stmt.Expression) statement).expression);
+			} else if (((Stmt.Expression) statement).expression instanceof Expr.Pocket) {
+				evaluate(((Stmt.Expression) statement).expression);
+			} else if (((Stmt.Expression) statement).expression instanceof Expr.Knot) {
+				evaluate(((Stmt.Expression) statement).expression);
+			}
+		}
+	}
+
+	private void executeStatement(Declaration statement) {
+		if (statement instanceof Declaration.StmtDecl) {
+			if (((Declaration.StmtDecl) statement).statement instanceof Stmt.Expression) {
+				if (((Stmt.Expression) ((Declaration.StmtDecl) statement).statement).expression != null)
+					evaluate(((Stmt.Expression) ((Declaration.StmtDecl) statement).statement).expression);
+				if (((Stmt.Expression) ((Declaration.StmtDecl) statement).statement).noisserpxe != null)
+					evaluate(((Stmt.Expression) ((Declaration.StmtDecl) statement).statement).noisserpxe);
+			}
+		}
+	}
+
+	@Override
+	public Object visitKnotExpr(Knot expr) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visitTonkExpr(Tonk expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-		return executeTonkThirdTry(expr, expr.expression, new Environment(environment));
+	@Override
+	public Object visitBoxExpr(Expr.Box expr) {
+		buildBoxClass(expr);
+		Token theName = expr.identifier;
+		Variable theNameVariable = new Expr.Variable(theName);
+		Environment previous = null;
+		ArrayList<Object> evaluated = new ArrayList<Object>();
+		if (lookUpVariable(theName, theNameVariable) == null) {
+			previous = this.environment;
+		}
+
+		try {
+			if (lookUpVariable(theName, theNameVariable) == null) {
+				this.environment = new Environment(environment);
+			}
+
+			for (Stmt stmt2 : expr.expression) {
+				if (stmt2 instanceof Stmt.Expression)
+					if (((Stmt.Expression) stmt2).expression != null)
+						evaluated.add(evaluate(((Stmt.Expression) stmt2).expression));
+				if (((Stmt.Expression) stmt2).noisserpxe != null)
+					evaluated.add(evaluate(((Stmt.Expression) stmt2).noisserpxe));
+				else {
+					execute(stmt2);
+				}
+			}
+		} finally {
+			if (lookUpVariable(theName, theNameVariable) == null) {
+				this.environment = previous;
+			}
+		}
+
+		return evaluated;
+	}
+
+	private Object buildBoxClass(Expr.Box stmt) {
+
+		Token theName = stmt.identifier;
+		Token theEman = stmt.reifitnedi;
+
+		if (lookUpVariable(theName, stmt) == null) {
+
+			Token type = new Token(TokenType.BOXCONTAINER, "", null, null, null, -1, -1, -1, -1);
+			environment.define(theName.lexeme + "_Box_Definition", type, null);
+			environment.define(theEman.lexeme + "_Box_Definition", type, null);
+
+			for (Stmt expr : stmt.expression) {
+				evaluate(expr);
+			}
+			ArrayList<Object> boxPrimarys = new ArrayList<Object>();
+
+			int count = 0;
+			populateBoxPrimarys(theName, stmt, theEman, boxPrimarys, count);
+
+			BoxContainerClass boxContainerClass = new BoxContainerClass(theName.lexeme, boxPrimarys,
+					TokenType.BOXCONTAINER, false,
+					new TypesOfObject(type, RunTimeTypes.getTypeBasedOfToken(type), null));
+
+			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Box_Definition", null, null,
+					null, theName.column, theName.line, theName.start, theName.finish);
+			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Box_Definition", null, null,
+					null, theName.column, theName.line, theName.start, theName.finish);
+			environment.assign(containerDefinitionName, type, boxContainerClass);
+			environment.assign(containerDefinitionEman, type, boxContainerClass);
+			Object instance = boxContainerClass.call(this, null);
+
+			environment.define(stmt.identifier.lexeme, type, instance);
+			environment.define(stmt.reifitnedi.lexeme, type, instance);
+			return instance;
+		}
+		return lookUpVariable(theName, stmt);
+	}
+
+	private Object evaluate(Stmt expr) {
+		// TODO Auto-generated method stub
+		return expr.accept(this);
+	}
+
+	@Override
+	public Object visitFiStmt(Fi stmt) {
+		// TODO Auto-generated method stubevaluate(stmt.expression);
+		return null;
+	}
+
+	@Override
+	public Object visitCallExpr(Call expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitSwapExpr(Swap expr) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

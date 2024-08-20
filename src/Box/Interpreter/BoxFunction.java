@@ -2,10 +2,9 @@ package Box.Interpreter;
 
 import java.util.List;
 
-import Box.Syntax.Expr;
-import Box.Syntax.Expr.Variable;
-import Box.Syntax.Stmt;
-import Box.Syntax.Stmt.Function;
+import Box.Parser.Stmt;
+import Box.Syntax.ExprOLD;
+import Box.Syntax.ExprOLD.Variable;
 import Box.Token.Token;
 import Box.Token.TokenType;
 
@@ -13,35 +12,33 @@ public class BoxFunction extends BoxCallable {
 
 	private final Environment closure;
 	private boolean isInitilizer;
-	private List<Expr> params;
+	private List<ExprOLD> params;
 	private String name;
-	private Expr body;
+	private ExprOLD body;
 	private Token type;
 
-	public BoxFunction(Expr body, String name, List<Expr> params, Environment closure, boolean isInitilizer) {
+	public BoxFunction(ExprOLD body, String name, List<ExprOLD> params, Environment closure, boolean isInitilizer) {
 		this.body = body;
 		this.name = name;
 		this.params = params;
 		String paramsString = "";
 		for (int i = 0; i < params.size(); i++) {
 			if (i < params.size() - 1) {
-				if (params.get(i) instanceof Expr.Variable)
-					paramsString += ((Expr.Variable) params.get(i)).name.lexeme + " , ";
-				if (params.get(i) instanceof Expr.Elbairav)
-					paramsString += ((Expr.Elbairav) params.get(i)).name.lexeme + " , ";
+				if (params.get(i) instanceof ExprOLD.Variable)
+					paramsString += ((ExprOLD.Variable) params.get(i)).name.lexeme + " , ";
+				
 			} else {
-				if (params.get(i) instanceof Expr.Variable)
-					paramsString += ((Expr.Variable) params.get(i)).name.lexeme;
-				if (params.get(i) instanceof Expr.Elbairav)
-					paramsString += ((Expr.Elbairav) params.get(i)).name.lexeme;
+				if (params.get(i) instanceof ExprOLD.Variable)
+					paramsString += ((ExprOLD.Variable) params.get(i)).name.lexeme;
+				
 			}
 		}
 		String bodyString = "";
-		if (body instanceof Expr.Cup) {
-			bodyString = ((Expr.Cup) body).lexeme;
+		if (body instanceof ExprOLD.Cup) {
+			bodyString = ((ExprOLD.Cup) body).lexeme;
 		}
-		if (body instanceof Expr.Knot) {
-			bodyString = ((Expr.Cup) body).lexeme;
+		if (body instanceof ExprOLD.Knot) {
+			bodyString = ((ExprOLD.Cup) body).lexeme;
 		}
 
 		this.type = new Token(TokenType.FUN, name + "( " + paramsString + " )"+bodyString,null,null,null,-1,-1,-1,-1);
@@ -56,20 +53,18 @@ public class BoxFunction extends BoxCallable {
 		Environment environment1 = new Environment(closure);
 		if (params != null) {
 			for (int i = 0; i < params.size(); i++) {
-				if (params.get(i) instanceof Expr.Variable) {
-					environment1.define(((Expr.Variable) params.get(i)).name.lexeme,((Expr.Variable)params).name, arguments.get(i));
+				if (params.get(i) instanceof ExprOLD.Variable) {
+					environment1.define(((ExprOLD.Variable) params.get(i)).name.lexeme,((ExprOLD.Variable)params).name, arguments.get(i));
 				}
-				if (params.get(i) instanceof Expr.Elbairav) {
-					environment1.define(((Expr.Elbairav) params.get(i)).name.lexeme,((Expr.Variable)params).name, arguments.get(i));
-				}
+				
 			}
 		}
 		try {
-			if (body instanceof Expr.Knot)
-				interpreter.executeBlock(((Expr.Knot) body).expression, environment1);
-			else if (body instanceof Expr.Cup)
-				interpreter.executeBlock(((Expr.Cup) body).expression, environment1);
-			
+//			if (body instanceof Expr.Knot)
+//				interpreter.executeBlock(((Expr.Knot) body).expression, environment1);
+//			else if (body instanceof Expr.Cup)
+//				interpreter.executeBlock(((Expr.Cup) body).expression, environment1);
+//			
 
 		} catch (Returns returnValue) {
 			if (isInitilizer)

@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import Box.Syntax.Expr;
-import Box.Syntax.Expr.Literal;
-import Box.Syntax.Stmt;
-import Box.Syntax.Stmt.Expression;
+import Box.Parser.Stmt;
+import Box.Parser.Stmt.Expression;
+import Box.Syntax.ExprOLD;
+import Box.Syntax.ExprOLD.Literal;
 import Box.Token.Token;
 import Box.Token.TokenType;
 
@@ -25,7 +25,7 @@ public class BoxClass extends BoxCallable {
 			TokenType type, boolean enforce, TypesOfObject typesOfObject) {
 		this.name = name;
 		this.superclass = superclass;
-		this.contents = filterPrimarys(boxPrimarys);
+		this.contents = boxPrimarys;
 		this.methods = methods;
 		this.type = type;
 		this.enforce = enforce;
@@ -34,28 +34,7 @@ public class BoxClass extends BoxCallable {
 
 	}
 
-	private List<Object> filterPrimarys(ArrayList<Object> boxPrimarys) {
-		ArrayList<Object> filtered = new ArrayList<Object>();
-		for (Object object : boxPrimarys) {
-			
-				if (object instanceof BoxInstance) {
-					filtered.add(object);
 
-				}
-				if(object instanceof Expr && !(object instanceof Expr.Lash)  ) {
-					filtered.add(object);
-					
-				} 
-				if (object instanceof Stmt.Expression) {
-					if(!(((Stmt.Expression)object).expression instanceof Expr.Lash))
-						filtered.add(object);
-				}
-			
-
-		}
-
-		return filtered;
-	}
 	@Override
 	public String toString() {
 		String contents = "";
@@ -130,16 +109,9 @@ public class BoxClass extends BoxCallable {
 
 					}
 				}
-			} else if (expression instanceof Expr.Knot) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Knot) {
-					if (typesOfObject.checkKnotPrototype((Expr.Knot) expression)) {
-						if (integer == 0 && contents.size() - 1 == -1) {
-							this.contents.add(expression);
-						} else
-							this.contents.set(integer, expression);
-					}
-				}
-			} else if (expression instanceof Expr.Cup) {
+			} else if (expression instanceof ExprOLD.Knot) {
+				
+			} else if (expression instanceof ExprOLD.Cup) {
 				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Cup) {
 
 					if (integer == 0 && contents.size() - 1 == -1) {
@@ -148,7 +120,7 @@ public class BoxClass extends BoxCallable {
 						this.contents.set(integer, expression);
 
 				}
-			} else if (expression instanceof Expr.Pocket) {
+			} else if (expression instanceof ExprOLD.Pocket) {
 				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Pocket) {
 
 					if (integer == 0 && contents.size() - 1 == -1) {
@@ -157,7 +129,7 @@ public class BoxClass extends BoxCallable {
 						this.contents.set(integer, expression);
 
 				}
-			} else if (expression instanceof Expr.Boxx) {
+			} else if (expression instanceof ExprOLD.Box) {
 				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Box) {
 
 					if (integer == 0 && contents.size() - 1 == -1) {
@@ -166,7 +138,7 @@ public class BoxClass extends BoxCallable {
 						this.contents.set(integer, expression);
 
 				}
-			} else if (expression instanceof Expr.Literal) {
+			} else if (expression instanceof ExprOLD.Literal) {
 				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Int
 						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Double
 						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Bin
@@ -180,105 +152,8 @@ public class BoxClass extends BoxCallable {
 						this.contents.set(integer, expression);
 
 				}
-			} else if (expression instanceof Expr.Laretil) {
-
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Tni
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Elbuod
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Nib
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Gnirts
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Naeloob
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.LLUN) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-
-			} else if (expression instanceof Expr.LiteralChar) {
+			} else if (expression instanceof ExprOLD.LiteralChar) {
 				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Char) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.LaretilChar) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Rahc) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.CupOpenRight) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.CupOpenRight) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.CupOpenLeft) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.CupOpenLeft) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.PocketOpenRight) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.PocketOpenRight) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.PocketOpenLeft) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.PocketOpenLeft) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.BoxOpenRight) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.BoxOpenRight) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.BoxOpenLeft) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.BoxOpenLeft) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.Lash) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Lash) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof Expr.Lid) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Lid) {
 
 					if (integer == 0 && contents.size() - 1 == -1) {
 						this.contents.add(expression);
@@ -319,7 +194,7 @@ public class BoxClass extends BoxCallable {
 	}
 
 	public void setContentsAtEnd(String data) {
-		Literal literal = new Expr.Literal(data);
+		Literal literal = new ExprOLD.Literal(data);
 		contents.add(literal);
 	}
 

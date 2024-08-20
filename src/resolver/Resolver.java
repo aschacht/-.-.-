@@ -8,216 +8,195 @@ import java.util.Stack;
 
 import Box.Box.Box;
 import Box.Interpreter.Interpreter;
-import Box.Interpreter.KnotTracker;
-import Box.Syntax.Expr;
-import Box.Syntax.Expr.Assignment;
-import Box.Syntax.Expr.Binary;
-import Box.Syntax.Expr.BoxOpenLeft;
-import Box.Syntax.Expr.BoxOpenRight;
-import Box.Syntax.Expr.Boxx;
-import Box.Syntax.Expr.Call;
-import Box.Syntax.Expr.Cid;
-import Box.Syntax.Expr.Cocket;
-import Box.Syntax.Expr.Contains;
-import Box.Syntax.Expr.Cup;
-import Box.Syntax.Expr.CupOpenLeft;
-import Box.Syntax.Expr.CupOpenRight;
-import Box.Syntax.Expr.Elbairav;
-import Box.Syntax.Expr.Epyt;
-import Box.Syntax.Expr.Factorial;
-import Box.Syntax.Expr.Get;
-import Box.Syntax.Expr.GetBoxCupPocket;
-import Box.Syntax.Expr.Gol;
-import Box.Syntax.Expr.Knot;
-import Box.Syntax.Expr.Lacigol;
-import Box.Syntax.Expr.Lairotcaf;
-import Box.Syntax.Expr.Laretil;
-import Box.Syntax.Expr.LaretilChar;
-import Box.Syntax.Expr.Lash;
-import Box.Syntax.Expr.Lid;
-import Box.Syntax.Expr.Lil;
-import Box.Syntax.Expr.Literal;
-import Box.Syntax.Expr.LiteralChar;
-import Box.Syntax.Expr.Llac;
-import Box.Syntax.Expr.Locket;
-import Box.Syntax.Expr.Log;
-import Box.Syntax.Expr.Logical;
-import Box.Syntax.Expr.Lup;
-import Box.Syntax.Expr.Mono;
-import Box.Syntax.Expr.Onom;
-import Box.Syntax.Expr.Parameter;
-import Box.Syntax.Expr.Pid;
-import Box.Syntax.Expr.Pocket;
-import Box.Syntax.Expr.PocketOpenLeft;
-import Box.Syntax.Expr.PocketOpenRight;
-import Box.Syntax.Expr.Pup;
-import Box.Syntax.Expr.Set;
-import Box.Syntax.Expr.Sniatnoc;
-import Box.Syntax.Expr.Teg;
-import Box.Syntax.Expr.TegBoxCupPocket;
-import Box.Syntax.Expr.Tes;
-import Box.Syntax.Expr.Tnemngissa;
-import Box.Syntax.Expr.Tonk;
-import Box.Syntax.Expr.Type;
-import Box.Syntax.Expr.UnKnown;
-import Box.Syntax.Expr.Unary;
-import Box.Syntax.Expr.UnknownnwonknU;
-import Box.Syntax.Expr.Variable;
-import Box.Syntax.Expr.Yranib;
-import Box.Syntax.Expr.Yranu;
-import Box.Syntax.Stmt;
-import Box.Syntax.Stmt.Constructor;
-import Box.Syntax.Stmt.Consume;
-import Box.Syntax.Stmt.Daer;
-import Box.Syntax.Stmt.Emaner;
-import Box.Syntax.Stmt.Evas;
-import Box.Syntax.Stmt.Evom;
-import Box.Syntax.Stmt.Expel;
-import Box.Syntax.Stmt.Expression;
-import Box.Syntax.Stmt.Fi;
-import Box.Syntax.Stmt.Function;
-import Box.Syntax.Stmt.If;
-import Box.Syntax.Stmt.Move;
-import Box.Syntax.Stmt.Noisserpxe;
-import Box.Syntax.Stmt.Nruter;
-import Box.Syntax.Stmt.PassThrough;
-import Box.Syntax.Stmt.Print;
-import Box.Syntax.Stmt.Rav;
-import Box.Syntax.Stmt.Read;
-import Box.Syntax.Stmt.Rename;
-import Box.Syntax.Stmt.Return;
-import Box.Syntax.Stmt.Save;
-import Box.Syntax.Stmt.Tnirp;
-import Box.Syntax.Stmt.UnDetermined;
-import Box.Syntax.Stmt.Var;
-import Box.Syntax.Stmt.VarFB;
+import Box.Parser.Declaration;
+import Box.Parser.Expr;
+import Box.Parser.Fun;
+import Box.Parser.Stmt;
+import Box.Parser.Declaration.FunDecl;
+import Box.Parser.Declaration.StmtDecl;
+import Box.Parser.Expr.Assignment;
+import Box.Parser.Expr.Binary;
+import Box.Parser.Expr.Call;
+import Box.Parser.Expr.Contains;
+import Box.Parser.Expr.Cup;
+import Box.Parser.Expr.Factorial;
+import Box.Parser.Expr.Get;
+import Box.Parser.Expr.Gol;
+import Box.Parser.Expr.Knot;
+import Box.Parser.Expr.Lairotcaf;
+import Box.Parser.Expr.Literal;
+import Box.Parser.Expr.LiteralChar;
+import Box.Parser.Expr.Llac;
+import Box.Parser.Expr.Log;
+import Box.Parser.Expr.Mono;
+import Box.Parser.Expr.Onom;
+import Box.Parser.Expr.Pocket;
+import Box.Parser.Expr.Set;
+import Box.Parser.Expr.Sniatnoc;
+import Box.Parser.Expr.Swap;
+import Box.Parser.Expr.Teg;
+import Box.Parser.Expr.Tes;
+import Box.Parser.Expr.Tnemngissa;
+import Box.Parser.Expr.Tonk;
+import Box.Parser.Expr.Unary;
+import Box.Parser.Expr.Variable;
+import Box.Parser.Expr.Yranib;
+import Box.Parser.Expr.Yranu;
+import Box.Parser.Fun.Function;
+import Box.Parser.Stmt.Consume;
+import Box.Parser.Stmt.Daer;
+import Box.Parser.Stmt.Emaner;
+import Box.Parser.Stmt.Evas;
+import Box.Parser.Stmt.Evom;
+import Box.Parser.Stmt.Expel;
+import Box.Parser.Stmt.Expression;
+import Box.Parser.Stmt.Fi;
+import Box.Parser.Stmt.If;
+import Box.Parser.Stmt.Move;
+import Box.Parser.Stmt.Nruter;
+import Box.Parser.Stmt.Print;
+import Box.Parser.Stmt.Rav;
+import Box.Parser.Stmt.Read;
+import Box.Parser.Stmt.Rename;
+import Box.Parser.Stmt.Return;
+import Box.Parser.Stmt.Save;
+import Box.Parser.Stmt.Tnirp;
+import Box.Parser.Stmt.Var;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Box.Syntax.*;
 
-public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-
+public class Resolver implements Declaration.Visitor<Void> {
 	private Interpreter interpreter;
 	private final Stack<Map<String, Boolean>> scopes = new Stack<>();
 	private FunctionType currentFunction = FunctionType.NONE;
-	private KnotTracker tracker = new KnotTracker();
-
 	private ClassType currentClass = ClassType.NONE;
 
 	public Resolver(Interpreter interpreter) {
 		this.interpreter = interpreter;
-
-	}
-
-	private void endScope() {
-		scopes.pop();
 	}
 
 	private void beginScope() {
 		scopes.push(new HashMap<String, Boolean>());
 	}
 
-	public void resolve(List<List<Stmt>> statementLists) {
-
-		for (List<Stmt> statements : statementLists) {
-			
-			for (Stmt stmt : statements) {
-				resolve(stmt);
-				
-			}
-			
-		}
-
+	private void endScope() {
+		scopes.pop();
 	}
 
-	private void resolve(Stmt stmt) {
-		stmt.accept(this);
+	public void resolve(List<List<Declaration>> statementLists) {
+
+		for (List<Declaration> statements : statementLists) {
+
+			for (Declaration stmt : statements) {
+				resolve(stmt);
+
+			}
+
+		}
+
 	}
 
 	private void resolve(Expr expr) {
 		expr.accept(this);
 	}
 
+	private void resolve(Stmt stmt) {
+		stmt.accept(this);
+	}
+
+	private void resolve(Fun func) {
+		func.accept(this);
+	}
+
+	private void resolve(Declaration dec) {
+		dec.accept(this);
+	}
+
+	private void resolveLocal(Expr expr, Token name) {
+		for (int i = scopes.size() - 1; i >= 0; i--) {
+			if (scopes.get(i).containsKey(name.lexeme)) {
+				interpreter.resolve(expr, scopes.size() - 1 - i);
+				return;
+			}
+		}
+	}
+
+	private void define(Token name) {
+		if (scopes.isEmpty())
+			return;
+		scopes.peek().put(name.lexeme, true);
+	}
+
+	private void declare(Token name) {
+		if (scopes.isEmpty())
+			return;
+		Map<String, Boolean> scope = scopes.peek();
+		if (scope.containsKey(name.lexeme)) {
+			Box.error(name, "Already variable with this name in this scope.",true);
+		}
+		scope.put(name.lexeme, false);
+
+	}
+
 	@Override
-	public Void visitFunctionStmt(Function stmt) {
-		if (stmt.identifierfun0 instanceof Expr.Variable) {
-			declare(((Expr.Variable) stmt.identifierfun0).name);
-			define(((Expr.Variable) stmt.identifierfun0).name);
-		}
-		if (stmt.identifierfun0 instanceof Expr.Elbairav) {
-			declare(((Expr.Elbairav) stmt.identifierfun0).name);
-			define(((Expr.Elbairav) stmt.identifierfun0).name);
-		}
-
-		if (stmt.identifierfun1 instanceof Expr.Variable) {
-			declare(((Expr.Variable) stmt.identifierfun1).name);
-			define(((Expr.Variable) stmt.identifierfun1).name);
-		}
-		if (stmt.identifierfun1 instanceof Expr.Elbairav) {
-			declare(((Expr.Elbairav) stmt.identifierfun1).name);
-			define(((Expr.Elbairav) stmt.identifierfun1).name);
-		}
-
-
-		resolveFunction(stmt, FunctionType.FUNCTION);
+	public Void visitFunDeclDeclaration(FunDecl dec) {
+		resolve(dec.function);
 		return null;
 	}
 
-	private void resolveFunction(Function stmt, FunctionType function) {
-		FunctionType enclosingFunction = currentFunction;
-		currentFunction = function;
+	@Override
+	public Void visitStmtDeclDeclaration(StmtDecl dec) {
+		resolve(dec.statement);
+		return null;
+	}
 
-		beginScope();
-		if (stmt.paramsfun0 != null)
-			for (Expr param : stmt.paramsfun0) {
-				if (param instanceof Expr.Variable) {
-					declare(((Expr.Variable) param).name);
-					define(((Expr.Variable) param).name);
-				}
-				if (param instanceof Expr.Elbairav) {
-					declare(((Expr.Elbairav) param).name);
-					define(((Expr.Elbairav) param).name);
-				}
+	@Override
+	public Void visitFunctionFun(Function fun) {
+		if (fun.forwardIdentifier != null) {
+			declare(fun.forwardIdentifier);
+			define(fun.forwardIdentifier);
+			FunctionType enclosingFunction = currentFunction;
+			currentFunction = FunctionType.FUNCTION;
+
+			beginScope();
+			for (Token param : fun.forwardPrametersNames) {
+				declare(param);
+				define(param);
 			}
-		if (((Expr.Knot) stmt.knotfun0) != null) {
-			for (Stmt stmtExpression : ((Expr.Knot) stmt.knotfun0).expression) {
-				resolve(stmtExpression);
-				
-			}
-			
-			
+			resolve(fun.sharedCupOrPocketOrKnot);
+			endScope();
+			currentFunction = enclosingFunction;
 		}
-		endScope();
-		currentFunction = enclosingFunction;
+		if (fun.backwardIdentifier != null) {
+			declare(fun.backwardIdentifier);
+			define(fun.backwardIdentifier);
+			FunctionType enclosingFunction = currentFunction;
+			currentFunction = FunctionType.FUNCTION;
 
-		enclosingFunction = currentFunction;
-		currentFunction = function;
-
-		beginScope();
-		if (stmt.paramsfun1 != null)
-			for (Expr param : stmt.paramsfun1) {
-				if (param instanceof Expr.Variable) {
-					declare(((Expr.Variable) param).name);
-					define(((Expr.Variable) param).name);
-				}
-				if (param instanceof Expr.Elbairav) {
-					declare(((Expr.Elbairav) param).name);
-					define(((Expr.Elbairav) param).name);
-				}
+			beginScope();
+			for (Token param : fun.backwardPrametersNames) {
+				declare(param);
+				define(param);
 			}
-		if (((Expr.Knot) stmt.knotfun1) != null) {
-			for (Stmt stmtExpression : ((Expr.Knot) stmt.knotfun1).expression) {
-				resolve(stmtExpression);
-				
-			}
-			
+			resolve(fun.sharedCupOrPocketOrKnot);
+			endScope();
+			currentFunction = enclosingFunction;
 		}
-		endScope();
-		currentFunction = enclosingFunction;
+		return null;
+	}
+
+	@Override
+	public Void visitExpressionStmt(Expression stmt) {
+		if(stmt.expression!=null)
+		resolve(stmt.expression);
+		if(stmt.noisserpxe!=null)
+			resolve(stmt.noisserpxe);
+		return null;
 	}
 
 	@Override
 	public Void visitIfStmt(If stmt) {
-
 		resolve(stmt.ifPocket);
 		resolve(stmt.ifCup);
 		if (stmt.elseIfStmt != null) {
@@ -240,109 +219,14 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	public Void visitReturnStmt(Return stmt) {
 
 		if (currentFunction == FunctionType.NONE) {
-			Box.error(stmt.keyWord, "Can't return from top-level code.");
+			Box.error(stmt.keyWord, "Can't return from top-level code.",true);
 		}
 		if (stmt.expression != null) {
 			if (currentFunction == FunctionType.INITILIZER) {
-				Box.error(stmt.keyWord, "Can't return a value from an initilizer.");
+				Box.error(stmt.keyWord, "Can't return a value from an initilizer.",true);
 			}
 			resolve(stmt.expression);
 		}
-		return null;
-	}
-
-	@Override
-	public Void visitVarStmt(Var stmt) {
-		declare(stmt.name);
-//		if (stmt.initializer != null) {
-//			resolve(stmt.initializer);
-//		}
-		define(stmt.name);
-		return null;
-	}
-
-	private void define(Token name) {
-		if (scopes.isEmpty())
-			return;
-		scopes.peek().put(name.lexeme, true);
-	}
-
-	private void declare(Token name) {
-		if (scopes.isEmpty())
-			return;
-		Map<String, Boolean> scope = scopes.peek();
-		if (scope.containsKey(name.lexeme)) {
-			Box.error(name, "Already variable with this name in this scope.");
-		}
-		scope.put(name.lexeme, false);
-
-	}
-
-	@Override
-	public Void visitAssignmentExpr(Assignment expr) {
-		resolve(expr.value);
-		resolveLocal(expr, expr.name);
-		return null;
-	}
-
-	@Override
-	public Void visitBinaryExpr(Binary expr) {
-		resolve(expr.left);
-		resolve(expr.right);
-
-		return null;
-	}
-
-
-	@Override
-	public Void visitLiteralExpr(Literal expr) {
-
-		return null;
-	}
-
-	@Override
-	public Void visitLogicalExpr(Logical expr) {
-		resolve(expr.left);
-		resolve(expr.right);
-		return null;
-	}
-
-	@Override
-	public Void visitUnaryExpr(Unary expr) {
-		resolve(expr.right);
-		return null;
-	}
-
-	@Override
-	public Void visitVariableExpr(Variable expr) {
-
-		if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
-			Box.error(expr.name, "Can't read local variable in its own initilizer.");
-		}
-		resolveLocal(expr, expr.name);
-		return null;
-	}
-
-	private void resolveLocal(Expr expr, Token name) {
-		for (int i = scopes.size() - 1; i >= 0; i--) {
-			if (scopes.get(i).containsKey(name.lexeme)) {
-				interpreter.resolve(expr, scopes.size() - 1 - i);
-				return;
-			}
-		}
-	}
-
-
-	@Override
-	public Void visitSetExpr(Set expr) {
-		resolve(expr.value);
-		resolve(expr.object);
-		return null;
-	}
-
-	@Override
-	public Void visitExpressionStmt(Expression stmt) {
-		resolve(stmt.expression);
 		return null;
 	}
 
@@ -390,14 +274,8 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
-	public Void visitConstructorStmt(Constructor stmt) {
-		resolve(stmt.prototype);
-		return null;
-	}
-
-	@Override
-	public Void visitNoisserpxeStmt(Noisserpxe stmt) {
-		resolve(stmt.noisserpex);
+	public Void visitFiStmt(Fi stmt) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -410,11 +288,11 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Void visitNruterStmt(Nruter stmt) {
 		if (currentFunction == FunctionType.NONE) {
-			Box.error(stmt.keyword, "Can't return from top-level code.");
+			Box.error(stmt.keyWord, "Can't return from top-level code.",true);
 		}
 		if (stmt.expression != null) {
 			if (currentFunction == FunctionType.INITILIZER) {
-				Box.error(stmt.keyword, "Can't return a value from an initilizer.");
+				Box.error(stmt.keyWord, "Can't return a value from an initilizer.",true);
 			}
 			resolve(stmt.expression);
 		}
@@ -451,202 +329,138 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
-	public Void visitRavStmt(Rav stmt) {
+	public Void visitVarStmt(Var stmt) {
 		declare(stmt.name);
-		if (stmt.initializer != null) {
-			resolve(stmt.initializer);
+		if (stmt.initilizer != null) {
+			resolve(stmt.initilizer);
 		}
 		define(stmt.name);
 		return null;
 	}
 
 	@Override
-	public Void visitPassThroughStmt(PassThrough stmt) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitContainsExpr(Contains expr) {
-		resolve(expr.container);
-		resolve(expr.contents);
-		return null;
-	}
-
-	@Override
-	public Object visitMonoExpr(Mono expr) {
-		resolve(expr.value);
-		return null;
-	}
-
-	@Override
-	public Object visitLogExpr(Log expr) {
-		resolve(expr.value);
-		resolve(expr.valueBase);
-
-		return null;
-	}
-
-	@Override
-	public Object visitFactorialExpr(Factorial expr) {
-		resolve(expr.value);
-		return null;
-	}
-
-	@Override
-	public Object visitPocketExpr(Pocket expr) {
-		declare(expr.identifier);
-		define(expr.identifier);
-		beginScope();
-		
-		for (Stmt stmtExpression : expr.expression) {
-			resolve(stmtExpression);
-			
+	public Void visitRavStmt(Rav stmt) {
+		declare(stmt.name);
+		if (stmt.initilizer != null) {
+			resolve(stmt.initilizer);
 		}
-		endScope();
-		resolveLocal(expr, expr.identifier);
-
+		define(stmt.name);
 		return null;
 	}
 
 	@Override
-	public Object visitCupExpr(Cup expr) {
-		declare(expr.identifier);
-		define(expr.identifier);
-		beginScope();
-		for (Stmt stmtExpression : expr.expression) {
-			resolve(stmtExpression);
-			
-		}
-		endScope();
-		resolveLocal(expr, expr.identifier);
-
-		return null;
-	}
-
-	@Override
-	public Object visitBoxxExpr(Boxx expr) {
-		declare(expr.identifier);
-		define(expr.identifier);
-		beginScope();
-		List<Expr> primarys = expr.primarys;
-		for (Expr prim : primarys) {
-			resolve(prim);
-		}
-		endScope();
-		resolveLocal(expr, expr.identifier);
-
-		return null;
-	}
-
-	@Override
-	public Object visitKnotExpr(Knot expr) {
-		beginScope();
-		for (Stmt stmtExpression : expr.expression) {
-			resolve(stmtExpression);
-			
-		}
-		endScope();
-		return null;
-	}
-
-	@Override
-	public Object visitCupOpenRightExpr(CupOpenRight expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitCupOpenLeftExpr(CupOpenLeft expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitPocketOpenRightExpr(PocketOpenRight expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitPocketOpenLeftExpr(PocketOpenLeft expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitBoxOpenRightExpr(BoxOpenRight expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitBoxOpenLeftExpr(BoxOpenLeft expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitLashExpr(Lash expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitLidExpr(Lid expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitTnemngissaExpr(Tnemngissa expr) {
+	public Void visitAssignmentExpr(Assignment expr) {
 		resolve(expr.value);
 		resolveLocal(expr, expr.name);
 		return null;
 	}
 
 	@Override
-	public Object visitSniatnocExpr(Sniatnoc expr) {
+	public Void visitContainsExpr(Contains expr) {
 		resolve(expr.container);
 		resolve(expr.contents);
 		return null;
 	}
 
 	@Override
-	public Object visitYranibExpr(Yranib expr) {
+	public Void visitBinaryExpr(Binary expr) {
 		resolve(expr.left);
 		resolve(expr.right);
+
 		return null;
 	}
 
 	@Override
-	public Object visitOnomExpr(Onom expr) {
+	public Void visitMonoExpr(Mono expr) {
 		resolve(expr.value);
 		return null;
 	}
 
 	@Override
-	public Object visitLacigolExpr(Lacigol expr) {
+	public Void visitLogExpr(Log expr) {
+		resolve(expr.value);
+		resolve(expr.valueBase);
+
+		return null;
+	}
+
+	@Override
+	public Void visitFactorialExpr(Factorial expr) {
+		resolve(expr.value);
+		return null;
+	}
+
+	@Override
+	public Void visitUnaryExpr(Unary expr) {
+		resolve(expr.right);
+		return null;
+	}
+
+	@Override
+	public Void visitCallExpr(Call expr) {
+		return null;
+	}
+
+	@Override
+	public Void visitGetExpr(Get expr) {
+		return null;
+	}
+
+	@Override
+	public Void visitSetExpr(Set expr) {
+		resolve(expr.value);
+		resolve(expr.object);
+		return null;
+	}
+
+	@Override
+	public Void visitTnemngissaExpr(Tnemngissa expr) {
+		resolve(expr.value);
+		resolveLocal(expr, expr.name);
+		return null;
+	}
+
+	@Override
+	public Void visitSniatnocExpr(Sniatnoc expr) {
+		resolve(expr.container);
+		resolve(expr.contents);
+		return null;
+	}
+
+	@Override
+	public Void visitYranibExpr(Yranib expr) {
 		resolve(expr.left);
 		resolve(expr.right);
 		return null;
 	}
 
 	@Override
-	public Object visitGolExpr(Gol expr) {
+	public Void visitOnomExpr(Onom expr) {
+		resolve(expr.value);
+		return null;
+	}
+
+	@Override
+	public Void visitGolExpr(Gol expr) {
 		resolve(expr.value);
 		resolve(expr.valueBase);
 		return null;
 	}
 
 	@Override
-	public Object visitYranuExpr(Yranu expr) {
-		resolve(expr.left);
+	public Void visitLairotcafExpr(Lairotcaf expr) {
+		resolve(expr.value);
 		return null;
 	}
 
 	@Override
-	public Object visitLlacExpr(Llac expr) {
+	public Void visitYranuExpr(Yranu expr) {
+		resolve(expr.right);
+		return null;
+	}
+
+	@Override
+	public Void visitLlacExpr(Llac expr) {
 		resolve(expr.callee);
 
 		for (Expr argument : expr.arguments) {
@@ -656,200 +470,120 @@ public class Resolver implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
-	public Object visitTegExpr(Teg expr) {
+	public Void visitTegExpr(Teg expr) {
 		resolve(expr.object);
 		return null;
 	}
 
 	@Override
-	public Object visitTesExpr(Tes expr) {
+	public Void visitTesExpr(Tes expr) {
 		resolve(expr.value);
 		resolve(expr.object);
 		return null;
 	}
 
 	@Override
-	public Object visitLaretilExpr(Laretil expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitLairotcafExpr(Lairotcaf expr) {
-		resolve(expr.value);
-		return null;
-	}
-
-	@Override
-	public Object visitElbairavExpr(Elbairav expr) {
+	public Void visitVariableExpr(Variable expr) {
 		if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
-			Box.error(expr.name, "Can't read local variable in its own initilizer.");
+			Box.error(expr.name, "Can't read local variable in its own initilizer.",true);
 		}
 		resolveLocal(expr, expr.name);
 		return null;
 	}
 
 	@Override
-	public Object visitParameterExpr(Parameter expr) {
-
+	public Void visitLiteralExpr(Literal expr) {
+		
 		return null;
 	}
 
 	@Override
-	public Void visitFiStmt(Fi stmt) {
-		resolve(stmt.fiPocket);
-		resolve(stmt.fiCup);
-		if (stmt.fiesleStmt != null) {
-			resolve(stmt.fiesleStmt);
+	public Void visitLiteralCharExpr(LiteralChar expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitCupExpr(Cup expr) {
+		declare(expr.identifier);
+		define(expr.identifier);
+		declare(expr.reifitnedi);
+		define(expr.reifitnedi);
+		beginScope();
+		for (Declaration stmtExpression : expr.expression) {
+			resolve(stmtExpression);
+
 		}
-		if (stmt.esleCup != null) {
-			resolve(stmt.esleCup);
+		endScope();
+		resolveLocal(expr, expr.identifier);
+		resolveLocal(expr, expr.reifitnedi);
+
+		return null;
+	}
+
+	@Override
+	public Void visitPocketExpr(Pocket expr) {
+		declare(expr.identifier);
+		define(expr.identifier);
+		declare(expr.reifitnedi);
+		define(expr.reifitnedi);
+		beginScope();
+
+		for (Stmt stmtExpression : expr.expression) {
+			resolve(stmtExpression);
+
 		}
-		return null;
-	}
-
-	@Override
-	public Object visitLiteralCharExpr(LiteralChar expr) {
+		endScope();
+		resolveLocal(expr, expr.identifier);
+		resolveLocal(expr, expr.reifitnedi);
 
 		return null;
 	}
 
 	@Override
-	public Object visitLaretilCharExpr(LaretilChar expr) {
+	public Void visitKnotExpr(Knot expr) {
+		beginScope();
+		for (Declaration stmtExpression : expr.expression) {
+			resolve(stmtExpression);
 
-		return null;
-	}
-
-	@Override
-	public Object visitTypeExpr(Type expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitEpytExpr(Epyt expr) {
-
-		return null;
-	}
-
-	@Override
-	public Object visitGetBoxCupPocketExpr(GetBoxCupPocket expr) {
-		Expr boxCupOrPocket = expr;
-		ArrayList<Integer> theIndexes = new ArrayList<Integer>();
-		while (boxCupOrPocket instanceof GetBoxCupPocket) {
-			if (boxCupOrPocket instanceof GetBoxCupPocket) {
-				if (((GetBoxCupPocket) boxCupOrPocket).name.type == TokenType.INTNUM) {
-					theIndexes.add((Integer) ((GetBoxCupPocket) boxCupOrPocket).name.literal);
-				}
-			}
-			boxCupOrPocket = ((GetBoxCupPocket) boxCupOrPocket).object;
 		}
-		resolve(boxCupOrPocket);
+		endScope();
+		return null;
+	}
+
+	@Override
+	public Void visitTonkExpr(Tonk expr) {
+		beginScope();
+		for (Declaration stmtExpression : expr.expression) {
+			resolve(stmtExpression);
+
+		}
+		endScope();
+		return null;
+	}
+
+	@Override
+	public Void visitBoxExpr(Expr.Box expr) {
+		beginScope();
+		declare(expr.identifier);
+		declare(expr.reifitnedi);
+		List<Stmt> primarys = expr.expression;
+		for (Stmt prim : primarys) {
+			resolve(prim);
+		}
+		define(expr.identifier);
+		define(expr.reifitnedi);
+		resolveLocal(expr, expr.identifier);
+		resolveLocal(expr, expr.reifitnedi);
+		endScope();
 
 		return null;
 	}
 
 	@Override
-	public Object visitTegBoxCupPocketExpr(TegBoxCupPocket expr) {
-
+	public Void visitSwapExpr(Swap expr) {
+		// TODO Auto-generated method stub
 		return null;
 	}
-
-
-
-	@Override
-	public Object visitPupExpr(Pup expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitCocketExpr(Cocket expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitLocketExpr(Locket expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitLupExpr(Lup expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitLilExpr(Lil expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitPidExpr(Pid expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitCidExpr(Cid expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitPassThroughExpr(Expr.PassThrough expr) {
-		
-		return null;
-	}
-
-
-
-	@Override
-	public Void visitUnDeterminedStmt(UnDetermined stmt) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitCallExpr(Call expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitGetExpr(Get expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitUnKnownExpr(UnKnown expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitUnknownnwonknUExpr(UnknownnwonknU expr) {
-		
-		return null;
-	}
-
-	@Override
-	public Void visitVarFBStmt(VarFB stmt) {
-		
-		return null;
-	}
-
-	@Override
-	public Object visitTonkExpr(Tonk expr) {
-		
-		return null;
-	}
-
-
-
 
 }

@@ -13,9 +13,9 @@ import java.util.List;
 import Box.Grouper.Grouper;
 import Box.Interpreter.Interpreter;
 import Box.Interpreter.RuntimeError;
-import Box.Parser.Parser;
+import Box.Parser.Declaration;
+import Box.Parser.ParserTest;
 import Box.Scanner.Scanner;
-import Box.Syntax.Stmt;
 import Box.Token.Token;
 import Box.Token.TokenType;
 import resolver.Resolver;
@@ -34,7 +34,8 @@ public class Box extends Thread {
 		Box box = new Box(baos);
 		StringBuilder content = new StringBuilder();
 
-		try (java.util.Scanner scanner = new java.util.Scanner(new java.io.File("/home/wes/Wisper Tech 1.0/THEORY/GAMES/PBC/TEST/TEST"))) {
+		try (java.util.Scanner scanner = new java.util.Scanner(
+				new java.io.File("/home/wes/Wisper Tech 1.0/THEORY/GAMES/PBC/TEST/TEST"))) {
 			while (scanner.hasNextLine()) {
 				content.append(scanner.nextLine()).append(System.lineSeparator());
 			}
@@ -189,11 +190,8 @@ public class Box extends Thread {
 		Grouper grouper = new Grouper((ArrayList<Token>) tokens);
 		ArrayList<Token> toks = grouper.scanTokensSecondPass();
 
-		Parser parser = new Parser(toks, forward, backward);
-		List<List<Stmt>> statements = parser.parse();
-
-		if (hadError)
-			return;
+		ParserTest parser = new ParserTest(toks, forward, backward);
+		List<List<Declaration>> statements = parser.parse();
 
 		interpreter.setForward(forward);
 		interpreter.setBackward(backward);
@@ -208,24 +206,26 @@ public class Box extends Thread {
 
 	}
 
-	public static void error(int column, int line, String message) {
-		report(column, line, "", message);
+	public static void error(int column, int line, String message, boolean report) {
+		report(column, line, "", message, report);
 	}
 
-	public static void error(Token token, String message) {
+	public static void error(Token token, String message, boolean report) {
 		if (token != null) {
 			if (token.type == TokenType.EOF)
-				report(token.column, token.line, " at end", message);
+				report(token.column, token.line, " at end", message, report);
 			else
-				report(token.column, token.line, " at '" + token.lexeme + "'", message);
+				report(token.column, token.line, " at '" + token.lexeme + "'", message, report);
 		} else
-			report(-1, -1, " at -1", message);
+			report(-1, -1, " at -1", message, report);
 
 	}
 
-	private static void report(int column, int line, String where, String message) {
-		System.err.println("[column " + column + ", line " + line + "] Error " + where + ": " + message);
-		hadError = true;
+	private static void report(int column, int line, String where, String message, boolean report) {
+		if (report) {
+			System.err.println("[column " + column + ", line " + line + "] Error " + where + ": " + message);
+			hadError = true;
+		}
 	}
 
 	public static void runtimeError(RuntimeError e) {

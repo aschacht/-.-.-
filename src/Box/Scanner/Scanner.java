@@ -8,8 +8,8 @@ import java.util.Stack;
 
 import Box.Box.Box;
 import Box.Interpreter.Bin;
-import Box.Syntax.Expr;
-import Box.Syntax.Stmt;
+import Box.Parser.Stmt;
+import Box.Syntax.ExprOLD;
 import Box.Token.TTDynamic;
 import Box.Token.Token;
 import Box.Token.TokenType;
@@ -259,7 +259,7 @@ public class Scanner {
 				if (match('<')) {
 					addToken(TokenType.CONSUME, tokens);
 				} else {
-					Box.error(column, line, "Unexpected character " + c);
+					Box.error(column, line, "Unexpected character " + c,true);
 				}
 			} else {
 				addToken(TokenType.LESSTHEN, tokens);
@@ -272,7 +272,7 @@ public class Scanner {
 				if (match('>')) {
 					addToken(TokenType.EXPELL, tokens);
 				} else {
-					Box.error(column, line, "Unexpected character " + c);
+					Box.error(column, line, "Unexpected character " + c,true);
 				}
 			} else {
 				addToken(TokenType.GREATERTHEN, tokens);
@@ -323,7 +323,7 @@ public class Scanner {
 			else if (isAlpha(c))
 				ident_BinNum_IntNum(tokens, c, false);
 			else
-				Box.error(column, line, "Unexpected character " + c);
+				Box.error(column, line, "Unexpected character " + c,true);
 		}
 
 	}
@@ -513,11 +513,8 @@ public class Scanner {
 			while (isDigit(peek())) {
 				advance();
 			}
-			if (isNewline_Space_Tab_Return_Eof(peek())) {
 				addToken(TokenType.DOUBLENUM, Double.valueOf(source.substring(start, current)), tokens);
-			} else {
-				addToken(TokenType.UNKNOWN, source.substring(start, current), tokens);
-			}
+			
 		} else {
 			if (hasAlpha) {
 				addToken(TokenType.IDENTIFIER, source.substring(start, current), tokens);
@@ -701,7 +698,7 @@ public class Scanner {
 		}
 
 		if (isAtEnd()) {
-			Box.error(column, line, "Unterminated String");
+			Box.error(column, line, "Unterminated String",true);
 			return;
 		}
 
@@ -720,7 +717,7 @@ public class Scanner {
 		}
 
 		if (isAtEnd()) {
-			Box.error(column, line, "Unterminated char");
+			Box.error(column, line, "Unterminated char",true);
 			return;
 		}
 
