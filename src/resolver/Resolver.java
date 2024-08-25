@@ -37,6 +37,7 @@ import Parser.Expr.Set;
 import Parser.Expr.Sniatnoc;
 import Parser.Expr.Swap;
 import Parser.Expr.Teg;
+import Parser.Expr.Template;
 import Parser.Expr.Tes;
 import Parser.Expr.Tnemngissa;
 import Parser.Expr.Tonk;
@@ -54,6 +55,7 @@ import Parser.Stmt.Expel;
 import Parser.Stmt.Expression;
 import Parser.Stmt.Fi;
 import Parser.Stmt.If;
+import Parser.Stmt.Ifi;
 import Parser.Stmt.Move;
 import Parser.Stmt.Nruter;
 import Parser.Stmt.Print;
@@ -62,6 +64,7 @@ import Parser.Stmt.Read;
 import Parser.Stmt.Rename;
 import Parser.Stmt.Return;
 import Parser.Stmt.Save;
+import Parser.Stmt.TemplatVar;
 import Parser.Stmt.Tnirp;
 import Parser.Stmt.Var;
 import Box.Syntax.*;
@@ -190,8 +193,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 	public Void visitExpressionStmt(Expression stmt) {
 		if(stmt.expression!=null)
 		resolve(stmt.expression);
-		if(stmt.noisserpxe!=null)
-			resolve(stmt.noisserpxe);
+		
 		return null;
 	}
 
@@ -219,11 +221,11 @@ public class Resolver implements Declaration.Visitor<Void> {
 	public Void visitReturnStmt(Return stmt) {
 
 		if (currentFunction == FunctionType.NONE) {
-			Box.error(stmt.keyWord, "Can't return from top-level code.",true);
+			Box.error(stmt.keyword, "Can't return from top-level code.",true);
 		}
 		if (stmt.expression != null) {
 			if (currentFunction == FunctionType.INITILIZER) {
-				Box.error(stmt.keyWord, "Can't return a value from an initilizer.",true);
+				Box.error(stmt.keyword, "Can't return a value from an initilizer.",true);
 			}
 			resolve(stmt.expression);
 		}
@@ -288,11 +290,11 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitNruterStmt(Nruter stmt) {
 		if (currentFunction == FunctionType.NONE) {
-			Box.error(stmt.keyWord, "Can't return from top-level code.",true);
+			Box.error(stmt.keyword, "Can't return from top-level code.",true);
 		}
 		if (stmt.expression != null) {
 			if (currentFunction == FunctionType.INITILIZER) {
-				Box.error(stmt.keyWord, "Can't return a value from an initilizer.",true);
+				Box.error(stmt.keyword, "Can't return a value from an initilizer.",true);
 			}
 			resolve(stmt.expression);
 		}
@@ -582,7 +584,28 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitSwapExpr(Swap expr) {
-		// TODO Auto-generated method stub
+		resolve(expr);
+		return null;
+	}
+
+	@Override
+	public Void visitTemplatVarStmt(TemplatVar stmt) {
+		declare(stmt.name);
+
+		define(stmt.name);
+		return null;
+	}
+
+	@Override
+	public Void visitIfiStmt(Ifi stmt) {
+		resolve(stmt.ifPocket);
+		resolve(stmt.elseIf);
+		return null;
+	}
+
+	@Override
+	public Void visitTemplateExpr(Template expr) {
+		resolve(expr.container);
 		return null;
 	}
 

@@ -146,22 +146,35 @@ public class Scanner {
 
 		switch (c) {
 		case '#':
-			advance();
-			while (peek() != '#') {
-				advance();
-			}
-			TokenTypeEnum tag = checkIfKewordHattagorgattaH(tokens);
+			if(current+6< source.length()) {
+			CharSequence subSequence = source.subSequence(current-1, current+6);
+			
+			
+			
+				TokenTypeEnum tag = keywords.get(subSequence);
 
-			if (tag == TokenType.HATTAG) {
-				readHATTAGS();
-				TokenTypeEnum gat = checkIfKewordHattagorgattaH(tokens);
-				while (gat != TokenType.GATTAH) {
-					TTDynamic.getInstance().addType(source.substring(start, current));
+				if (tag != null && tag == TokenType.HATTAG && isAlpha(peekI(6)) ) {
+					int count=6;
+					while(count!=0) {
+						advance();
+						count--;
+					}
 					readHATTAGS();
-					gat = checkIfKewordHattagorgattaH(tokens);
-				}
-			}
-			start = current;
+					TokenTypeEnum gat = checkIfKewordHattagorgattaH(tokens);
+					while (gat != TokenType.GATTAH) {
+						TTDynamic.getInstance();
+						TTDynamic.addType(source.substring(start, current));
+						readHATTAGS();
+						gat = checkIfKewordHattagorgattaH(tokens);
+					}
+					start = current;
+				}else {
+					
+					addToken(TokenType.HASH, tokens);
+				} 
+			}else
+				addToken(TokenType.HASH, tokens);
+
 			break;
 		case '(':
 			addToken(TokenType.OPENPAREN, tokens);
@@ -183,6 +196,10 @@ public class Scanner {
 		case ']':
 			addToken(TokenType.CLOSEDSQUARE, tokens);
 			break;
+		case '@':
+			addToken(TokenType.AT, tokens);
+			break;
+
 		case ',':
 			addToken(TokenType.COMMA, tokens);
 			break;
@@ -259,7 +276,7 @@ public class Scanner {
 				if (match('<')) {
 					addToken(TokenType.CONSUME, tokens);
 				} else {
-					Box.error(column, line, "Unexpected character " + c,true);
+					Box.error(column, line, "Unexpected character " + c, true);
 				}
 			} else {
 				addToken(TokenType.LESSTHEN, tokens);
@@ -272,7 +289,7 @@ public class Scanner {
 				if (match('>')) {
 					addToken(TokenType.EXPELL, tokens);
 				} else {
-					Box.error(column, line, "Unexpected character " + c,true);
+					Box.error(column, line, "Unexpected character " + c, true);
 				}
 			} else {
 				addToken(TokenType.GREATERTHEN, tokens);
@@ -323,7 +340,7 @@ public class Scanner {
 			else if (isAlpha(c))
 				ident_BinNum_IntNum(tokens, c, false);
 			else
-				Box.error(column, line, "Unexpected character " + c,true);
+				Box.error(column, line, "Unexpected character " + c, true);
 		}
 
 	}
@@ -513,8 +530,8 @@ public class Scanner {
 			while (isDigit(peek())) {
 				advance();
 			}
-				addToken(TokenType.DOUBLENUM, Double.valueOf(source.substring(start, current)), tokens);
-			
+			addToken(TokenType.DOUBLENUM, Double.valueOf(source.substring(start, current)), tokens);
+
 		} else {
 			if (hasAlpha) {
 				addToken(TokenType.IDENTIFIER, source.substring(start, current), tokens);
@@ -698,7 +715,7 @@ public class Scanner {
 		}
 
 		if (isAtEnd()) {
-			Box.error(column, line, "Unterminated String",true);
+			Box.error(column, line, "Unterminated String", true);
 			return;
 		}
 
@@ -717,7 +734,7 @@ public class Scanner {
 		}
 
 		if (isAtEnd()) {
-			Box.error(column, line, "Unterminated char",true);
+			Box.error(column, line, "Unterminated char", true);
 			return;
 		}
 
@@ -731,6 +748,17 @@ public class Scanner {
 			return '\0';
 		return source.charAt(current);
 	}
+	
+	private char peekI(int index) {
+		
+			if (isAtEnd())
+				return '\0';
+			return source.charAt(current+index);
+
+
+	}
+	
+	
 
 	private boolean match(char c) {
 		if (isAtEnd())
@@ -762,7 +790,7 @@ public class Scanner {
 	}
 
 	private char advance() {
-		
+
 		current++;
 		column++;
 		return source.charAt(current - 1);

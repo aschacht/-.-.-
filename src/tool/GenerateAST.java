@@ -15,55 +15,68 @@ public class GenerateAST {
 		String outputDir = "/home/wes/Wisper Tech 1.0/THEORY/GAMES/PBC/src/Parser";
 
 		List<String> exprDefinition = Arrays.asList(
-				"Assignment		:Token name , Expr value",
-				"Contains		:Expr container , boolean open , Expr contents",
-				"Binary		:Expr left , Token operator , Expr right", // logical - yroot
-				"Mono		:Expr value , Token operator", // sin -tanh
-				"Log		:Token operator , Expr valueBase , Expr value", "Factorial	:Expr value , Token operator",
-				"Unary		: Token operator , Expr right ",
-				"Call 		: Expr callee , Token calleeToken , List<Expr> arguments",
-				"Get 		: Expr object , Token name", "Set 		: Expr object, Token name, Expr value",
+				"Assignment		: Token name , Expr value",
+				"Contains		: Expr container , boolean open , Expr contents",
+				"Binary			: Expr left , Token operator , Expr right", // logical - yroot
+				"Mono			: Expr value , Token operator", // sin -tanh
+				"Log			: Token operator , Expr valueBase , Expr value", 
+				"Factorial	:Expr value , Token operator",
+				"Unary			: Token operator , Expr right ",
+				"Call 			: Expr callee , Token calleeToken , List<Expr> arguments",
+				"Get 			: Expr object , Token name",
+				"Set 			: Expr object, Token name, Expr value",
+				"Knot 			: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
 
-				"Swap		: Expr swap1 , Expr Swap2",
-				
-				"Tnemngissa		:Token name , Expr value",
-				"Sniatnoc		:Expr container , boolean open , Expr contents",
-				"Yranib		:Expr left , Token operator , Expr right", // logical - yroot
-				"Onom		:Expr value , Token operator", // sin -tanh
-				"Gol		:Token operator , Expr valueBase , Expr value", "Lairotcaf	:Expr value , Token operator",
-				"Yranu		: Token operator , Expr right ",
-				"Llac 		: Expr callee , Token calleeToken , List<Expr> arguments",
-				"Teg 		: Expr object , Token name", "Tes 		: Expr object, Token name, Expr value",
-				
-				"Variable : Token name",
-				"Literal	: Object value",
+				"Cup 			: Token identifier , List<Declaration> expression , String lexeme, Token reifitnedi",
+				"Template 		: Expr container",
+				"Pocket 		: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
+				"Box 			: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
+
+				"Swap			: Expr swap1 , Expr Swap2",
+				"Variable 		: Token name",
 				"LiteralChar	: char value",
-				"Cup : Token identifier , List<Declaration> expression , String lexeme, Token reifitnedi",
-				"Pocket : Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
-				"Knot :Token identifier , List<Declaration> expression , String lexeme, Token reifitnedi ",
-				"Tonk :Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
-				"Box :Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi "
+				"Literal		: Object value",
 
-		);
+				"Tonk 			: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
+				"Tes 			: Expr object, Token name, Expr value",
+				"Teg 			: Expr object , Token name",
+				"Llac 			: Expr callee , Token calleeToken , List<Expr> arguments",
+				"Gol			: Token operator , Expr valueBase , Expr value",
+				"Lairotcaf		: Expr value , Token operator",
+				"Onom			: Expr value , Token operator", // sin -tanh
+				"Yranib			: Expr left , Token operator , Expr right", // logical - yroot
+				"Yranu			: Token operator , Expr right ",
+				"Sniatnoc		: Expr container , boolean open , Expr contents",
+				"Tnemngissa		: Token name , Expr value"
+);
 
 		List<String> stmtDefintion = Arrays.asList(
-				"Expression : Expr expression , Expr noisserpxe",
-				"If			:Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup",
-				"Print		:Token keyword , Expr expression", "Return		:Token keyWord , Expr expression",
-				"Save		:Token keyword , Expr filePathFileName , Expr objecttosave",
-				"Expel		:Token keyword , Expr toExpell , Expr filePath",
-				"Read		:Token keyword , Expr filePath , Expr objectToReadInto",
-				"Consume	:Token keyword , Expr boxToFill , Expr filePath",
-				"Rename		:Token keyword , Expr filePathAndName , Expr filenewname",
-				"Move		:Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
-				"Fi			:Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup",
-				"Tnirp		:Token keyword , Expr expression", "Nruter		:Token keyWord , Expr expression",
-				"Evas		:Token keyword , Expr filePathFileName , Expr objecttosave",
-				"Daer		:Token keyword , Expr filePath , Expr objectToReadInto",
-				"Emaner		:Token keyword , Expr filePathAndName , Expr filenewname",
-				"Evom		:Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
+				"Expression : Expr expression ",
+
+				"If			: Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup",
+				"Print		: Token keyword , Expr expression", 
+				"Save		: Token keyword , Expr filePathFileName , Expr objecttosave",
+				"Read		: Token keyword , Expr filePath , Expr objectToReadInto",
+				"Rename		: Token keyword , Expr filePathAndName , Expr filenewname",
+				"Move		: Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
+				"Return 	: Token keyword , Expr expression",
 				"Var 		: Token name , Token type, int num , Stmt initilizer",
-				"Rav 		: Token name , Token type, int num , Stmt initilizer");
+
+				"TemplatVar	: Token name, Token superclass",
+				"Expel		: Token keyword , Expr toExpell , Expr filePath",
+				"Ifi		: Expr ifPocket , Stmt elseIf",
+				"Consume	: Token keyword , Expr boxToFill , Expr filePath",
+				
+				
+				"Rav 		: Token name , Token type, int num , Stmt initilizer",
+				"Nruter 	: Token keyword , Expr expression",
+				"Evom		: Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
+				"Emaner		: Token keyword , Expr filePathAndName , Expr filenewname",
+				"Daer		: Token keyword , Expr filePath , Expr objectToReadInto",
+				"Evas		: Token keyword , Expr filePathFileName , Expr objecttosave",
+				"Tnirp		: Token keyword , Expr expression",
+				"Fi			: Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup"
+				);
 		List<String> funDefintion = Arrays.asList(
 				"Function : Token forwardIdentifier , ArrayList<Token> forwardPrametersType , ArrayList<Token> forwardPrametersNames , Expr sharedCupOrPocketOrKnot , ArrayList<Token> backwardPrametersType , ArrayList<Token> backwardPrametersNames , Token backwardIdentifier");
 		List<String> seclarationDefintion = Arrays.asList("FunDecl : Fun function", "StmtDecl : Stmt statement");

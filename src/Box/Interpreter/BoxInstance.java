@@ -7,6 +7,13 @@ import java.util.Map;
 
 import Box.Box.Box;
 import Box.Token.Token;
+import Parser.Expr;
+import Parser.Expr.Cup;
+import Parser.Expr.Knot;
+import Parser.Expr.Literal;
+import Parser.Expr.LiteralChar;
+import Parser.Expr.Pocket;
+import Parser.Expr.Tonk;
 
 public class BoxInstance {
 
@@ -144,28 +151,6 @@ public class BoxInstance {
 		}
 	}
 
-	public boolean contains(BoxInstance lookUpContents) {
-		
-		boolean compairPrimarys =false;
-		if (boxClass instanceof BoxCallable) {
-			if (lookUpContents.boxClass instanceof BoxCallable) {
-				List<Object> contents = ((BoxCallable) boxClass).contents;
-				for (Object object : contents) {
-					if (object instanceof BoxInstance) {
-						if (((BoxInstance) object).boxClass instanceof BoxCallable) {
-							if (((BoxCallable) ((BoxInstance) object).boxClass).type == ((BoxCallable) lookUpContents.boxClass).type) {
-								compairPrimarys = ((BoxCallable) ((BoxInstance) object).boxClass).compairPrimarys(((BoxCallable) lookUpContents.boxClass));
-								if(compairPrimarys)return true;
-							}
-						}
-					}
-				}
-			}
-		}
-
-		
-		return false;
-	}
 
 	public int size() {
 		
@@ -181,5 +166,47 @@ public class BoxInstance {
 		
 		
 		
+	}
+	public boolean contains(BoxInstance lookUpContents) {
+		
+		System.out.println("Does the container contain"+lookUpContents.toString() );
+		
+		return false;
+	}
+
+	public boolean contains(Literal contents) {
+		System.out.println("Does the container contain"+contents.toString() );
+		
+		return false;
+	}
+
+	public boolean contains(LiteralChar contents) {
+		System.out.println("Does the container contain"+contents.toString() );
+		return false;
+	}
+
+	public boolean contains(Expr.Box contents) {
+		System.out.println("Does the container contain"+contents.toString() );
+		return false;
+	}
+
+	public boolean contains(Pocket contents) {
+		System.out.println("Does the container contain"+contents.toString() );
+		return false;
+	}
+
+	public boolean contains(Cup contents) {
+		System.out.println("Does the container contain"+contents.toString() );
+		return false;
+	}
+
+	public boolean contains(Knot contents) {
+		System.out.println("Does the container contain"+contents.toString() );
+		return false;
+	}
+
+	public boolean contains(Tonk contents) {
+		System.out.println("Does the container contain"+contents.toString() );
+		return false;
 	}
 }

@@ -2,43 +2,45 @@ package Box.Interpreter;
 
 import java.util.List;
 
-import Box.Syntax.ExprOLD;
-import Box.Syntax.ExprOLD.Variable;
+
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Parser.Expr;
 import Parser.Stmt;
 
 public class BoxFunction extends BoxCallable {
 
 	private final Environment closure;
 	private boolean isInitilizer;
-	private List<ExprOLD> params;
+	private List<Token> params;
 	private String name;
-	private ExprOLD body;
+	private Expr body;
 	private Token type;
+	private List<Token> paramsTypes;
 
-	public BoxFunction(ExprOLD body, String name, List<ExprOLD> params, Environment closure, boolean isInitilizer) {
+	public BoxFunction(Expr body, String name, List<Token> paramsTypes,List<Token> paramsNames, Environment closure, boolean isInitilizer) {
 		this.body = body;
 		this.name = name;
-		this.params = params;
+		this.paramsTypes = paramsTypes;
+		this.params = paramsNames;
 		String paramsString = "";
+		if(params!=null)
 		for (int i = 0; i < params.size(); i++) {
 			if (i < params.size() - 1) {
-				if (params.get(i) instanceof ExprOLD.Variable)
-					paramsString += ((ExprOLD.Variable) params.get(i)).name.lexeme + " , ";
+				
+					paramsString += paramsTypes.get(i)+" "+params.get(i).lexeme+ " , ";
 				
 			} else {
-				if (params.get(i) instanceof ExprOLD.Variable)
-					paramsString += ((ExprOLD.Variable) params.get(i)).name.lexeme;
+				paramsString += paramsTypes.get(i)+" "+params.get(i).lexeme;
 				
 			}
 		}
 		String bodyString = "";
-		if (body instanceof ExprOLD.Cup) {
-			bodyString = ((ExprOLD.Cup) body).lexeme;
+		if (body instanceof Expr.Cup) {
+			bodyString = ((Expr.Cup) body).lexeme;
 		}
-		if (body instanceof ExprOLD.Knot) {
-			bodyString = ((ExprOLD.Cup) body).lexeme;
+		if (body instanceof Expr.Knot) {
+			bodyString = ((Expr.Cup) body).lexeme;
 		}
 
 		this.type = new Token(TokenType.FUN, name + "( " + paramsString + " )"+bodyString,null,null,null,-1,-1,-1,-1);
@@ -47,15 +49,16 @@ public class BoxFunction extends BoxCallable {
 
 	}
 
+
+
 	@Override
 	public Object call(Interpreter interpreter, List<Object> arguments) {
 		
 		Environment environment1 = new Environment(closure);
 		if (params != null) {
 			for (int i = 0; i < params.size(); i++) {
-				if (params.get(i) instanceof ExprOLD.Variable) {
-					environment1.define(((ExprOLD.Variable) params.get(i)).name.lexeme,((ExprOLD.Variable)params).name, arguments.get(i));
-				}
+					environment1.define(params.get(i).lexeme,paramsTypes.get(i), arguments.get(i));
+			
 				
 			}
 		}
@@ -101,7 +104,7 @@ public class BoxFunction extends BoxCallable {
 
 		environment.define(name, getType(),boxInstance);
 
-		return new BoxFunction(body, name, params, environment, isInitilizer);
+		return new BoxFunction(body, name,paramsTypes, params, environment, isInitilizer);
 	}
 
 	public Token getType() {

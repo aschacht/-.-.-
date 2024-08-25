@@ -227,6 +227,10 @@ public class Box extends Thread {
 			hadError = true;
 		}
 	}
+	
+	public static void resetHadError() {
+		hadError = false;
+	}
 
 	public static void runtimeError(RuntimeError e) {
 		System.err.println(e.getMessage() + " \n[line: " + e.token.line + " column: " + e.token.column + "]");

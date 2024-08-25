@@ -12,31 +12,30 @@
 
 <backwardParameterCup> ::= <leftSquareToken> <backwardParameters>? <rightSquareToken> <dotToken><IDEIdentifier>;
 
+<forwardParameters> ::= (<type>|<epyt>) <IDEIdentifier> (<commaToken> (<type>|<epyt>) <IDEIdentifier>)*;
 
-<forwardParameters> ::= (<type>|<epyt>) <IDEIdentifier> (<commaToken> <type> <IDEIdentifier>)*;
 
+<backwardParameters> ::= <IDEIdentifier> (<type>|<epyt>)(<commaToken><IDEIdentifier> (<type>|<epyt>) )* ;
 
-<backwardParameters> ::= <IDEIdentifier> (<type>|<epyt>)(<commaToken><IDEIdentifier> <epyt> )* ;
-
-<statement>::= <exxeSt>|<print>|<return>|<save>|<read>|<rename>|<move>|<expel>|<consume>|<tnirp>|<nruter>|<evas>|<daer>|<emaner>|<evom>|<var>|<rav>|<if>|<fi>;
-
+<statement>::= <exxeSt>|<print>|<return>|<save>|<read>|<rename>|<move>|<expel>|<consume>|<tnirp>|<nruter>|<evas>|<daer>|<emaner>|<evom>|<var>|<rav>|<if>|<fi>|<ifi>;
 
 <exxeSt> ::= <expressionnoisserpex> ;
 
+<a>::= <leftParenToken> <expressionnoisserpex>* <rightParenToken>;
+<b>::= <dotToken><leftBracketToken> <statement>* <rightBracketToken>;
+<c>::= <leftBracketToken> <statement>* <rightBracketToken><dotToken>;
+<d>::= <dotToken><leftBracketToken> <statement>* <rightBracketToken><dotToken>;
+
+<if>::=(<a> <b>)+ <b>?;
+<fi>::= c? (<c> <a>)+;
+<ifi> ::= <a> (<d> <a>)+;
 
 
-<if> ::= <leftParenToken> <expressionnoisserpex> <rightParenToken> <dotToken> 
-		 <leftBracketToken> <statement>* <rightBracketToken>
-		(<dotToken><leftParenToken> <expressionnoisserpex> <rightParenToken> <dotToken> 
-		 <leftBracketToken> <statement>* <rightBracketToken>)*
-		 (<dotToken><leftBracketToken> <statement>* <rightBracketToken>)?;
-		 
-		 
-<fi> ::= (<leftBracketToken> <statement>* <rightBracketToken><dotToken>)?
-		(<leftBracketToken> <statement>* <rightBracketToken><dotToken>
-		<leftParenToken> <expressionnoisserpex> <rightParenToken> <dotToken>)*
-		 <leftBracketToken> <statement>* <rightBracketToken>
-		  <dotToken> <leftParenToken> <expressionnoisserpex> <rightParenToken>;  
+
+
+
+
+
 		  
 <print>::= <printToken > <dotToken> <enclosedExpression> ;
 
@@ -111,11 +110,11 @@
 
 <comparisonnosirapmoc>::= <termmert> ((<normalTwoCharCompairison> | <normalCompairison>) <termmert>)* |  (<termmert> (<backwardsCompairison> | <normalCompairison>))* <termmert>  | <termmert> ;
 
-<termmert> ::= <factorrotcaf> ((<minusToken >|<plusToken >) <factorrotcaf>)* | (<factorrotcaf> (<minusToken >|<plusToken >))* <factorrotcaf>  |<factorrotcaf>;
+<termmert> ::= <factorrotcaf> ((<minusToken >|<plusToken >) <factorrotcaf>)* | <factorrotcaf>;
 
 <factorrotcaf> ::= <powerrewop> ((<forwardSlashToken> | <timesToken>) <powerrewop>)* | (<powerrewop> (<timesToken> | <backslashToken>))* <powerrewop>| <powerrewop>;
 
-<powerrewop> ::= <yroottoory> (<powerToken> <yroottoory>)* | (<yroottoory> <powerToken>)* <yroottoory>| <yroottoory>;
+<powerrewop> ::= <yroottoory> (<powerToken> <yroottoory>)* |  <yroottoory>;
 
 <yroottoory> ::= <yrootToken> <dotToken> <leftParenToken> <sinnis><commaToken> <sinnis> <rightParenToken> | <leftParenToken> <sinnis> <commaToken> <sinnis> <rightParenToken> <dotToken> <tooryToken> | <sinnis>;
 
@@ -152,11 +151,11 @@
 
 
 
-<var> ::=<type> <intValue>? <IDEIdentifier> (<equalToken> <primary>)?;
+<var> ::=<type> <intValue>? <IDEIdentifier> (<equalToken> <primary>)? ;
 
+<classVar>::= <IDEIdentifier> <atToken> <IDEIdentifier> ;
 
-<rav> ::= (<primary> <equalToken>)? <IDEIdentifier> <intValue>? <epyt>
-
+<rav> ::= (<primary> <equalToken>)? <IDEIdentifier> <intValue>? <epyt> ;
 
 <container> ::= <box> |<pocket> |<cup> | <knot>;
 
@@ -164,17 +163,23 @@
 <box> ::= (<IDEIdentifier>? <leftSquareToken> (<expressionnoisserpex> (<commaToken> <expressionnoisserpex>)*)? <rightSquareToken> <IDEIdentifier>?);
 
 
+<pocket> ::= <pocketBase> | <hashToken> <pocketBase> <hashToken> ;
 
-<pocket> ::= (<IDEIdentifier>? <leftParenToken> <statement>* <rightParenToken> <IDEIdentifier>?) ;
-
-
-<cup> ::= (<IDEIdentifier>? <leftBracketToken> <dec>* <rightBracketToken> <IDEIdentifier>?)  ;
+<pocketBase> ::= (<IDEIdentifier>? <leftParenToken> <expression>* <rightParenToken> <IDEIdentifier>?) ;
 
 
-<knot> ::= (<cupknot> | <pocketknot>) ;
+
+<cup>::= <cupBase> | <hashToken> <cupBase> <hashToken>;
+
+<cupBase> ::= (<IDEIdentifier>? <leftBracketToken> <dec>* <rightBracketToken> <IDEIdentifier>?)  ;
 
 
-<cupknot> ::= <cf> <dec>* <cb>;
+<knot> ::= <knotBase> | <hashToken> <knotBase> <hashToken>;
+
+<knotBase> ::= <hashToken> (<cupknot> | <pocketknot>) <hashToken> ;
+
+
+<cupknot> ::= <cf> <statement>* <cb>;
 
 
 <pocketknot> ::= <pf>  <statement>* <pb>;
@@ -183,13 +188,13 @@
 
 
 
-<cb> ::= <rightBracketToken> <IDEIdentifier>? | <pf> <dec>*  <cb>  <dec>* <pb> | <cf> <dec>* <cb> <dec>* <cb>;
+<cb> ::= <rightBracketToken> <IDEIdentifier>? | <pf> <statement>*  <cb>  <statement>* <pb> | <cf> <statement>* <cb> <statement>* <cb>;
 
 
 <pb> ::= <rightParenToken> <IDEIdentifier>? | <cf> <statement>* <pb> <statement>* <cb> | <pf>  <statement>* <pb> <statement>* <pb>;
 
 
-<cf> ::= <IDEIdentifier>? <leftBracketToken> | <pf>  <dec>* <cf> <dec>* <pb> | <cf> <dec>* <cf> <dec>* <cb>;
+<cf> ::= <IDEIdentifier>? <leftBracketToken> | <pf>  <statement>* <cf> <statement>* <pb> | <cf> <statement>* <cf> <statement>* <cb>;
 
 
 <pf> ::= <IDEIdentifier>? <leftParenToken> | <cf> <statement>* <pf> <statement>* <cb> | <pf> <statement>* <pf>  <statement>* <pb>;
@@ -270,6 +275,7 @@
 
 <atToken> ::= "@";
 
+<hashToken> ::= "#";
 
 <semicolenToken> ::= ";";
 

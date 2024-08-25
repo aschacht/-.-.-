@@ -125,6 +125,10 @@ public class TokensToTrack {
 		backTracking = true;
 	}
 	
+	public void turnOffBackTracking() {
+		backTracking = false;
+	}
+	
 	public int getCurrent() {
 		if (isParseForward() == true) {
 			if (currentStackForward.size() > 0)

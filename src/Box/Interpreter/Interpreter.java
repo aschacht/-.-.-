@@ -12,12 +12,10 @@ import java.util.Map;
 import java.util.Scanner;
 
 import Box.Box.Box;
-import Box.Syntax.*;
 import Box.Token.Token;
 import Box.Token.TokenType;
 import Parser.Declaration;
 import Parser.Expr;
-import Parser.Fun;
 import Parser.Stmt;
 import Parser.Declaration.FunDecl;
 import Parser.Declaration.StmtDecl;
@@ -42,6 +40,7 @@ import Parser.Expr.Set;
 import Parser.Expr.Sniatnoc;
 import Parser.Expr.Swap;
 import Parser.Expr.Teg;
+import Parser.Expr.Template;
 import Parser.Expr.Tes;
 import Parser.Expr.Tnemngissa;
 import Parser.Expr.Tonk;
@@ -58,6 +57,7 @@ import Parser.Stmt.Evom;
 import Parser.Stmt.Expel;
 import Parser.Stmt.Fi;
 import Parser.Stmt.If;
+import Parser.Stmt.Ifi;
 import Parser.Stmt.Move;
 import Parser.Stmt.Nruter;
 import Parser.Stmt.Print;
@@ -65,6 +65,7 @@ import Parser.Stmt.Rav;
 import Parser.Stmt.Read;
 import Parser.Stmt.Rename;
 import Parser.Stmt.Save;
+import Parser.Stmt.TemplatVar;
 import Parser.Stmt.Tnirp;
 import Parser.Stmt.Var;
 
@@ -95,11 +96,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Environment environment = globals;
 	private Map<Expr, Integer> locals = new HashMap<>();
 	private boolean fromCall = false;
-	private ArrayList<Stmt> statements;
-	private boolean cupExecute = false;
-	private boolean pocketExecute = false;
 	private boolean forward;
 	private boolean backward;
+	HashMap<String, String> nameMap = new HashMap<>();
+	HashMap<String, String> classMapToSuperClass = new HashMap<>();
 
 	public Interpreter() {
 
@@ -138,28 +138,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		} catch (RuntimeError e) {
 			Box.runtimeError(e);
 		}
-
-	}
-
-	private Object interpretKnot(List<Stmt> statements) {
-		pocketExecute = true;
-		ArrayList<Object> visitPocket = new ArrayList<Object>();
-		try {
-			for (Stmt stmt : statements) {
-				if (stmt instanceof Stmt.Expression) {
-					if (((Stmt.Expression) stmt).expression instanceof Expr.Pocket) {
-						visitPocket.add(visitPocketExpr((Pocket) ((Stmt.Expression) stmt).expression));
-					} else {
-						execute(stmt);
-					}
-				}
-
-			}
-
-		} catch (RuntimeError e) {
-			Box.runtimeError(e);
-		}
-		return visitPocket;
 
 	}
 
@@ -238,9 +216,30 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	}
 
 	Object lookUpVariable(Token name, Expr expr) {
-		Integer distance = locals.get(expr);
+
+		Integer distance = null;
+		String tokenName = null;
+		boolean inmap = false;
+		if (nameMap.keySet().contains(name.lexeme)) {
+			java.util.Set<Expr> keySet = locals.keySet();
+			for (Expr expr2 : keySet) {
+				tokenName = getTokenName(expr2);
+				if (nameMap.get(name.lexeme).equals(tokenName)) {
+					distance = locals.get(expr2);
+					inmap = true;
+					break;
+				}
+			}
+		} else {
+			distance = locals.get(expr);
+
+		}
+
 		if (distance != null) {
-			return environment.getAt(distance, name.lexeme);
+			if (inmap)
+				return environment.getAt(distance, tokenName);
+			else
+				return environment.getAt(distance, name.lexeme);
 		} else {
 			if (fromCall) {
 				fromCall = false;
@@ -251,42 +250,26 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 	}
 
-	private Object lookUpVariableByName(Token name) {
-		java.util.Set<Expr> keySet = locals.keySet();
-		Expr exprToFind = null;
-		if (name != null) {
-			for (Expr keyExpr : keySet) {
-				if (keyExpr instanceof Expr.Variable) {
-
-					if (((Expr.Variable) keyExpr).name.lexeme == name.lexeme) {
-						exprToFind = keyExpr;
-					}
-				}
-			}
-		}
-		Integer distance = locals.get(exprToFind);
-		if (name != null) {
-			if (distance != null) {
-				return environment.getAt(distance, name.lexeme);
-			} else {
-				return globals.get(name, false);
-			}
+	private String getTokenName(Expr evaluate) {
+		if (evaluate instanceof Expr.Box) {
+			return ((Expr.Box) evaluate).identifier.lexeme;
+		} else if (evaluate instanceof Expr.Pocket) {
+			return ((Expr.Pocket) evaluate).identifier.lexeme;
+		} else if (evaluate instanceof Expr.Cup) {
+			return ((Expr.Cup) evaluate).identifier.lexeme;
+		} else if (evaluate instanceof Expr.Knot) {
+			return ((Expr.Knot) evaluate).identifier.lexeme;
+		} else if (evaluate instanceof Expr.Tonk) {
+			return ((Tonk) evaluate).identifier.lexeme;
+		} else if (evaluate instanceof Expr.Variable) {
+			return ((Variable) evaluate).name.lexeme;
 		}
 		return null;
 	}
 
 	@Override
 	public Void visitPrintStmt(Print stmt) {
-		// Object value = evaluate(stmt.expression);
-		// System.out.println(stringify(value));
 
-//		BoxMath.test("x=25 integral from 0 to 25 (x^2)dx");
-//		Double x = 25.0;
-//		Double numerator = (3*x+5)*Math.sin(x);
-//		Double dnominator = Math.pow(Math.cos(x),2);
-//		Double other = 3 /Math.cos(x);
-//		Double result =  (numerator/dnominator)+other;
-//		System.out.println("result: " + result);
 		Object value = evaluate(stmt.expression);
 		System.out.println(stringify(value));
 
@@ -893,47 +876,28 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	}
 
 	private Object evaluateBoxPocketCup(Stmt.Expression theLeft, Object theRight) {
-		
-		if(theLeft.expression!=null) {
-		Object evaluate = evaluate(theLeft.expression);
-		ArrayList<?> arr = null;
-		ArrayList<Integer> arr1 = new ArrayList<>();
-		if(evaluate instanceof ArrayList) {
-			arr = ((ArrayList)evaluate);
-			for (Object object : arr) {
-				if(object instanceof Integer) {
-					Integer teger = ((Integer)object); 
-					
-					teger +=(Integer)theRight;
-					arr1.add(teger);
-				}
-			}
-			
-		
-		}
-		
-		return arr1;
-		}
-		if(theLeft.noisserpxe!=null) {
-			Object evaluate = evaluate(theLeft.noisserpxe);
+
+		if (theLeft.expression != null) {
+			Object evaluate = evaluate(theLeft.expression);
 			ArrayList<?> arr = null;
 			ArrayList<Integer> arr1 = new ArrayList<>();
-			if(evaluate instanceof ArrayList) {
-				arr = ((ArrayList)evaluate);
+			if (evaluate instanceof ArrayList) {
+				arr = ((ArrayList<?>) evaluate);
 				for (Object object : arr) {
-					if(object instanceof Integer) {
-						Integer teger = ((Integer)object); 
-						
-						teger +=(Integer)theRight;
+					if (object instanceof Integer) {
+						Integer teger = ((Integer) object);
+
+						teger += (Integer) theRight;
 						arr1.add(teger);
 					}
 				}
-				
-			
+
 			}
+
 			return arr1;
 		}
-			return null;
+
+		return null;
 	}
 
 	private Object findRootForLeftAndRightAndGreaterThen(Object left, Object right, Expr expr) {
@@ -1254,21 +1218,21 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		} else if (theLeft instanceof String && theRight instanceof BoxInstance) {
 			return (String) theLeft + theRight.toString();
 		} else if (theLeft instanceof BoxInstance && theRight instanceof Integer) {
-			return addBoxInstance(expr, theLeft, theRight);
+			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
 		} else if (theLeft instanceof Integer && theRight instanceof BoxInstance) {
-			return addBoxInstance(expr, theLeft, theRight);
+			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
 		} else if (theLeft instanceof BoxInstance && theRight instanceof Double) {
-			return addBoxInstance(expr, theLeft, theRight);
+			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
 		} else if (theLeft instanceof Double && theRight instanceof BoxInstance) {
-			return addBoxInstance(expr, theLeft, theRight);
+			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
 		} else if (theLeft instanceof BoxInstance && theRight instanceof Bin) {
-			return addBoxInstance(expr, theLeft, theRight);
+			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
 		} else if (theLeft instanceof Bin && theRight instanceof BoxInstance) {
-			return addBoxInstance(expr, theLeft, theRight);
+			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
 		} else if (theLeft instanceof BoxInstance && theRight instanceof BoxInstance) {
 			System.out.println("the Left: " + theLeft);
 			System.out.println("the Right: " + theRight);
-			return addBoxInstance(expr, theLeft, theRight);
+			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
 
 		}
 		if (binExpr != null)
@@ -1278,7 +1242,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
-	private ArrayList<Object> addBoxInstance(Expr expr, Object theLeft, Object theRight) {
+	private ArrayList<Object> addBoxInstanceBinaryYranib(Expr expr, Object theLeft, Object theRight) {
 		ArrayList<Object> returnedObject = new ArrayList<Object>();
 		int leftSize = 1;
 		if (theLeft instanceof BoxInstance) {
@@ -1708,14 +1672,56 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitContainsExpr(Contains expr) {
 
 		if (expr.container instanceof Expr.Variable) {
-			BoxInstance lookUpContainer = (BoxInstance) lookUpVariable(((Expr.Variable) expr.container).name,
-					expr.container);
+			Object lookUpVariable = lookUpVariable(((Expr.Variable) expr.container).name, expr.container);
+			BoxInstance lookUpContainer = (BoxInstance) lookUpVariable;
 			System.out.println("hey");
 			if (expr.contents instanceof Expr.Variable) {
 				BoxInstance lookUpContents = (BoxInstance) lookUpVariable(((Expr.Variable) expr.contents).name,
 						expr.contents);
 				System.out.println("hi");
 				boolean contains = lookUpContainer.contains(lookUpContents);
+				if (contains) {
+					System.out.println("hey");
+				}
+			} else if (expr.contents instanceof Expr.Literal) {
+
+				boolean contains = lookUpContainer.contains((Expr.Literal) expr.contents);
+				if (contains) {
+					System.out.println("hey");
+				}
+			} else if (expr.contents instanceof Expr.LiteralChar) {
+
+				boolean contains = lookUpContainer.contains((Expr.LiteralChar) expr.contents);
+				if (contains) {
+					System.out.println("hey");
+				}
+			} else if (expr.contents instanceof Expr.Box) {
+
+				boolean contains = lookUpContainer.contains((Expr.Box) expr.contents);
+				if (contains) {
+					System.out.println("hey");
+				}
+			} else if (expr.contents instanceof Expr.Pocket) {
+
+				boolean contains = lookUpContainer.contains((Expr.Pocket) expr.contents);
+				if (contains) {
+					System.out.println("hey");
+				}
+			} else if (expr.contents instanceof Expr.Cup) {
+
+				boolean contains = lookUpContainer.contains((Expr.Cup) expr.contents);
+				if (contains) {
+					System.out.println("hey");
+				}
+			} else if (expr.contents instanceof Expr.Knot) {
+
+				boolean contains = lookUpContainer.contains((Expr.Knot) expr.contents);
+				if (contains) {
+					System.out.println("hey");
+				}
+			} else if (expr.contents instanceof Expr.Tonk) {
+
+				boolean contains = lookUpContainer.contains((Expr.Tonk) expr.contents);
 				if (contains) {
 					System.out.println("hey");
 				}
@@ -1913,41 +1919,68 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			File myObj = new File(filePathAndName);
 			File myObjFolderPath = new File(folderPath);
 			myObjFolderPath.mkdir();
-			if (split[split.length - 1].contains(".")) {
-				if (myObj.createNewFile()) {
-					evaluate(stmt.objecttosave);
-					String str = "";
-					if (stmt.objecttosave instanceof Expr.Box) {
-						Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
-								((Expr.Box) stmt.objecttosave));
-						str = boxInstance.toString();
 
-					} else if (stmt.objecttosave instanceof Expr.Cup) {
-						Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
-								((Expr.Cup) stmt.objecttosave));
-						str = cupInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Pocket) {
-						Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
-								((Expr.Pocket) stmt.objecttosave));
-						str = pocketInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Knot) {
-						Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
-								((Expr.Knot) stmt.objecttosave));
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Variable) {
-						Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
-								((Expr.Variable) stmt.objecttosave));
-						str = knotInstance.toString();
-					}
+			if (myObj.createNewFile()) {
+				evaluate(stmt.objecttosave);
+				String str = "";
+				if (stmt.objecttosave instanceof Expr.Box) {
+					Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
+							((Expr.Box) stmt.objecttosave));
+					str = boxInstance.toString();
 
-					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
-					writer.write(str);
-
-					writer.close();
-
-				} else {
-					System.out.println("File already exists.");
+				} else if (stmt.objecttosave instanceof Expr.Cup) {
+					Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
+							((Expr.Cup) stmt.objecttosave));
+					str = cupInstance.toString();
+				} else if (stmt.objecttosave instanceof Expr.Pocket) {
+					Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
+							((Expr.Pocket) stmt.objecttosave));
+					str = pocketInstance.toString();
+				} else if (stmt.objecttosave instanceof Expr.Knot) {
+					Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
+							((Expr.Knot) stmt.objecttosave));
+					str = knotInstance.toString();
+				} else if (stmt.objecttosave instanceof Expr.Variable) {
+					Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
+							((Expr.Variable) stmt.objecttosave));
+					str = knotInstance.toString();
 				}
+
+				BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
+				writer.write(str);
+
+				writer.close();
+
+			} else {
+				evaluate(stmt.objecttosave);
+				String str = "";
+				if (stmt.objecttosave instanceof Expr.Box) {
+					Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
+							((Expr.Box) stmt.objecttosave));
+					str = boxInstance.toString();
+
+				} else if (stmt.objecttosave instanceof Expr.Cup) {
+					Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
+							((Expr.Cup) stmt.objecttosave));
+					str = cupInstance.toString();
+				} else if (stmt.objecttosave instanceof Expr.Pocket) {
+					Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
+							((Expr.Pocket) stmt.objecttosave));
+					str = pocketInstance.toString();
+				} else if (stmt.objecttosave instanceof Expr.Knot) {
+					Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
+							((Expr.Knot) stmt.objecttosave));
+					str = knotInstance.toString();
+				} else if (stmt.objecttosave instanceof Expr.Variable) {
+					Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
+							((Expr.Variable) stmt.objecttosave));
+					str = knotInstance.toString();
+				}
+
+				BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
+				writer.write(str);
+
+				writer.close();
 			}
 		} catch (IOException e) {
 			System.out.println("An error occurred.");
@@ -2198,15 +2231,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		locals.put(expr, i);
 	}
 
-	private Object lookUpType(Expr expression) {
-		Integer distance = locals.get((Variable) expression);
-		if (distance != null) {
-			return environment.getTypeAt(distance, ((Variable) expression).name.lexeme);
-		} else {
-			return globals.getType(((Variable) expression).name);
-		}
-	}
-
 	public void setForward(boolean forward) {
 		this.forward = forward;
 	}
@@ -2266,7 +2290,28 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitVarStmt(Var stmt) {
 		environment.define(stmt.name.lexeme, stmt.type, stmt.num, stmt.initilizer, this);
+		if (stmt.initilizer instanceof Stmt.Expression)
+			if (((Stmt.Expression) stmt.initilizer).expression != null) {
+				mapVarNameToInitilizer(stmt.name, ((Stmt.Expression) stmt.initilizer).expression);
+				evaluate(((Stmt.Expression) stmt.initilizer).expression);
+
+			}
 		return null;
+	}
+
+	private void mapVarNameToInitilizer(Token name, Expr evaluate) {
+		if (evaluate instanceof Expr.Box) {
+			nameMap.put(name.lexeme, ((Expr.Box) evaluate).identifier.lexeme);
+		} else if (evaluate instanceof Expr.Pocket) {
+			nameMap.put(name.lexeme, ((Expr.Pocket) evaluate).identifier.lexeme);
+		} else if (evaluate instanceof Expr.Cup) {
+			nameMap.put(name.lexeme, ((Expr.Cup) evaluate).identifier.lexeme);
+		} else if (evaluate instanceof Expr.Knot) {
+			nameMap.put(name.lexeme, ((Expr.Knot) evaluate).identifier.lexeme);
+		} else if (evaluate instanceof Expr.Tonk) {
+			nameMap.put(name.lexeme, ((Expr.Tonk) evaluate).identifier.lexeme);
+		}
+
 	}
 
 	@Override
@@ -2314,204 +2359,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitCupExpr(Cup expr) {
 		// TODO Auto-generated method stub
-		return runContainer(expr);
+		return null;
 	}
 
 	@Override
 	public Object visitPocketExpr(Pocket expr) {
 		// TODO Auto-generated method stub
-		return runContainer(expr);
-	}
-
-	@SuppressWarnings("finally")
-	private Object runContainer(Expr stmt) {
-		buildClass(stmt);
-		Token theName = null;
-		Pocket pktStmt = null;
-		Cup cupStmt = null;
-
-		List<Stmt> expression = null;
-		List<Declaration> expression1 = null;
-
-		ArrayList<Object> evaluated = new ArrayList<Object>();
-		if (stmt instanceof Pocket) {
-			pktStmt = (Pocket) stmt;
-			theName = pktStmt.identifier;
-			expression = pktStmt.expression;
-
-			Variable theNameVariable = new Expr.Variable(theName);
-			Environment previous = null;
-			if (lookUpVariable(theName, theNameVariable) == null) {
-				previous = this.environment;
-			}
-
-			try {
-				if (lookUpVariable(theName, theNameVariable) == null) {
-					this.environment = new Environment(environment);
-				}
-
-				for (Stmt stmt2 : expression) {
-					if (stmt2 instanceof Stmt.Expression)
-						if (((Stmt.Expression) stmt2).expression != null)
-							evaluated.add(evaluate(((Stmt.Expression) stmt2).expression));
-					if (((Stmt.Expression) stmt2).noisserpxe != null)
-						evaluated.add(evaluate(((Stmt.Expression) stmt2).noisserpxe));
-					else {
-						execute(stmt2);
-					}
-				}
-			} finally {
-				if (lookUpVariable(theName, theNameVariable) == null) {
-					this.environment = previous;
-				}
-			}
-
-		} else if (stmt instanceof Cup) {
-			cupStmt = (Cup) stmt;
-			theName = cupStmt.identifier;
-			expression1 = cupStmt.expression;
-
-			Variable theNameVariable = new Expr.Variable(theName);
-			Environment previous = null;
-			if (lookUpVariable(theName, theNameVariable) == null) {
-				previous = this.environment;
-			}
-
-			try {
-				if (lookUpVariable(theName, theNameVariable) == null) {
-					this.environment = new Environment(environment);
-				}
-
-				for (Declaration stmt2 : expression1) {
-					if (stmt2 instanceof Declaration.StmtDecl) {
-						if ((((Declaration.StmtDecl) stmt2).statement) instanceof Stmt.Expression) {
-							if (((Stmt.Expression) ((((Declaration.StmtDecl) stmt2).statement))).expression != null) {
-								evaluated.add(evaluate(
-										((Stmt.Expression) ((((Declaration.StmtDecl) stmt2).statement))).expression));
-							}
-							if (((Stmt.Expression) ((((Declaration.StmtDecl) stmt2).statement))).noisserpxe != null) {
-								evaluated.add(evaluate(
-										((Stmt.Expression) ((((Declaration.StmtDecl) stmt2).statement))).noisserpxe));
-							}
-						}
-
-					} else {
-						execute(stmt2);
-					}
-				}
-			} finally {
-				if (lookUpVariable(theName, theNameVariable) == null) {
-					this.environment = previous;
-				}
-			}
-
-		}
-		return evaluated;
-	}
-
-	private void buildClass(Expr stmt) {
-
-		Object superclass = null;
-
-		Token theName = null;
-		Cup cup = null;
-		Pocket pocket = null;
-		Token theEman = null;
-
-		if (stmt instanceof Expr.Cup) {
-			cup = (Cup) stmt;
-			theName = cup.identifier;
-			theEman = cup.reifitnedi;
-		} else if (stmt instanceof Expr.Pocket) {
-			pocket = (Pocket) stmt;
-			theName = pocket.identifier;
-			theEman = pocket.reifitnedi;
-		}
-
-		Variable theNameVariable = new Expr.Variable(theName);
-
-		if (lookUpVariable(theName, theNameVariable) == null) {
-
-			Token superclassToken = null;
-			if (theName.identifierToken != null)
-				superclassToken = new Token(theName.type, theName.identifierToken.lexeme + "Class_Definition", null,
-						null, null, theName.column, theName.line, theName.start, theName.finish);
-
-			BoxClass superclassVariable = (BoxClass) lookUpVariableByName(superclassToken);
-
-			if (superclassVariable != null) {
-				superclass = superclassVariable;
-			}
-			Token type = null;
-			if (cup != null) {
-				type = new Token(TokenType.CUPCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			} else if (pocket != null) {
-				type = new Token(TokenType.POCKETCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			}
-
-			environment.define(theName.lexeme + "_Class_Definition", type, null);
-			environment.define(theEman.lexeme + "_noitinifeD_ssalC", type, null);
-			if (superclass != null) {
-				environment = new Environment(environment);
-				Token superclassType = new Token(((BoxClass) superclass).type, "", null, null, null, -1, -1, -1, -1);
-				environment.define("super", superclassType, superclass);
-
-			}
-
-			Map<String, BoxFunction> methodsBoxFunction = new HashMap<>();
-
-			List<Fun.Function> methods = new ArrayList<Fun.Function>();
-			if (stmt instanceof Expr.Cup) {
-				List<Declaration> declaration = ((Expr.Cup) stmt).expression;
-				for (Declaration stmt2 : declaration) {
-					if (stmt2 instanceof Fun.Function) {
-						methods.add((Fun.Function) stmt2);
-					}
-				}
-
-				for (Fun.Function method : methods) {
-					System.out.println("functions not implemented yet");
-				}
-			}
-			BoxClass boxClass = null;
-			if (cup != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.CUPCONTAINER);
-			} else if (pocket != null) {
-				boxClass = executeAndBuildBoxClass(superclass, theName, cup, theEman, methodsBoxFunction,
-						TokenType.POCKETCONTAINER);
-			}
-
-			if (superclass != null) {
-				environment = environment.enclosing;
-			}
-
-			Token classDefinitionName = new Token(theName.type, theName.lexeme + "_Class_Definition", null, null, null,
-					theName.column, theName.line, theName.start, theName.finish);
-			Token classDefinitionEman = new Token(theEman.type, theEman.lexeme + "_noitinifeD_ssalC", null, null, null,
-					theName.column, theName.line, theName.start, theName.finish);
-			environment.assign(classDefinitionName, type, boxClass);
-			environment.assign(classDefinitionEman, type, boxClass);
-			Object instance = boxClass.call(this, null);
-
-			environment.define(theName.lexeme, type, instance);
-			environment.define(theEman.lexeme, type, instance);
-
-		}
-
-	}
-
-	private BoxClass executeAndBuildBoxClass(Object superclass, Token theName, Cup cup, Token theEman,
-			Map<String, BoxFunction> methodsBoxFunction, TokenType containerType) {
-		BoxClass boxClass;
-		executePrimaryBoxCupPocketAndKnot(cup);
-		ArrayList<Object> boxPrimarys = new ArrayList<Object>();
-		int count = 0;
-		populateBoxPrimarys(theName, cup, theEman, boxPrimarys, count);
-
-		boxClass = new BoxClass(theName.lexeme, (BoxClass) superclass, boxPrimarys, methodsBoxFunction, containerType,
-				false, null);
-		return boxClass;
+		return null;
 	}
 
 	private void populateBoxPrimarys(Token theName, Expr container, Token theEman, ArrayList<Object> boxPrimarys,
@@ -2565,43 +2419,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 	}
 
-	private void executePrimaryBoxCupPocketAndKnot(Expr stmt) {
-
-		if (stmt instanceof Cup) {
-			for (Declaration statement : ((Cup) stmt).expression) {
-				executeStatement(statement);
-			}
-		} else if (stmt instanceof Pocket) {
-			for (Stmt statement : ((Pocket) stmt).expression) {
-				executeStatement(statement);
-			}
-		}
-
-	}
-
-	private void executeStatement(Stmt statement) {
-		if (statement instanceof Stmt.Expression) {
-			if (((Stmt.Expression) statement).expression instanceof Expr.Box) {
-				evaluate(((Stmt.Expression) statement).expression);
-			} else if (((Stmt.Expression) statement).expression instanceof Expr.Pocket) {
-				evaluate(((Stmt.Expression) statement).expression);
-			} else if (((Stmt.Expression) statement).expression instanceof Expr.Knot) {
-				evaluate(((Stmt.Expression) statement).expression);
-			}
-		}
-	}
-
-	private void executeStatement(Declaration statement) {
-		if (statement instanceof Declaration.StmtDecl) {
-			if (((Declaration.StmtDecl) statement).statement instanceof Stmt.Expression) {
-				if (((Stmt.Expression) ((Declaration.StmtDecl) statement).statement).expression != null)
-					evaluate(((Stmt.Expression) ((Declaration.StmtDecl) statement).statement).expression);
-				if (((Stmt.Expression) ((Declaration.StmtDecl) statement).statement).noisserpxe != null)
-					evaluate(((Stmt.Expression) ((Declaration.StmtDecl) statement).statement).noisserpxe);
-			}
-		}
-	}
-
 	@Override
 	public Object visitKnotExpr(Knot expr) {
 		// TODO Auto-generated method stub
@@ -2616,80 +2433,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitBoxExpr(Expr.Box expr) {
-		buildBoxClass(expr);
-		Token theName = expr.identifier;
-		Variable theNameVariable = new Expr.Variable(theName);
-		Environment previous = null;
-		ArrayList<Object> evaluated = new ArrayList<Object>();
-		if (lookUpVariable(theName, theNameVariable) == null) {
-			previous = this.environment;
-		}
 
-		try {
-			if (lookUpVariable(theName, theNameVariable) == null) {
-				this.environment = new Environment(environment);
-			}
-
-			for (Stmt stmt2 : expr.expression) {
-				if (stmt2 instanceof Stmt.Expression)
-					if (((Stmt.Expression) stmt2).expression != null)
-						evaluated.add(evaluate(((Stmt.Expression) stmt2).expression));
-				if (((Stmt.Expression) stmt2).noisserpxe != null)
-					evaluated.add(evaluate(((Stmt.Expression) stmt2).noisserpxe));
-				else {
-					execute(stmt2);
-				}
-			}
-		} finally {
-			if (lookUpVariable(theName, theNameVariable) == null) {
-				this.environment = previous;
-			}
-		}
-
-		return evaluated;
-	}
-
-	private Object buildBoxClass(Expr.Box stmt) {
-
-		Token theName = stmt.identifier;
-		Token theEman = stmt.reifitnedi;
-
-		if (lookUpVariable(theName, stmt) == null) {
-
-			Token type = new Token(TokenType.BOXCONTAINER, "", null, null, null, -1, -1, -1, -1);
-			environment.define(theName.lexeme + "_Box_Definition", type, null);
-			environment.define(theEman.lexeme + "_Box_Definition", type, null);
-
-			for (Stmt expr : stmt.expression) {
-				evaluate(expr);
-			}
-			ArrayList<Object> boxPrimarys = new ArrayList<Object>();
-
-			int count = 0;
-			populateBoxPrimarys(theName, stmt, theEman, boxPrimarys, count);
-
-			BoxContainerClass boxContainerClass = new BoxContainerClass(theName.lexeme, boxPrimarys,
-					TokenType.BOXCONTAINER, false,
-					new TypesOfObject(type, RunTimeTypes.getTypeBasedOfToken(type), null));
-
-			Token containerDefinitionName = new Token(theName.type, theName.lexeme + "_Box_Definition", null, null,
-					null, theName.column, theName.line, theName.start, theName.finish);
-			Token containerDefinitionEman = new Token(theEman.type, theEman.lexeme + "_Box_Definition", null, null,
-					null, theName.column, theName.line, theName.start, theName.finish);
-			environment.assign(containerDefinitionName, type, boxContainerClass);
-			environment.assign(containerDefinitionEman, type, boxContainerClass);
-			Object instance = boxContainerClass.call(this, null);
-
-			environment.define(stmt.identifier.lexeme, type, instance);
-			environment.define(stmt.reifitnedi.lexeme, type, instance);
-			return instance;
-		}
-		return lookUpVariable(theName, stmt);
-	}
-
-	private Object evaluate(Stmt expr) {
-		// TODO Auto-generated method stub
-		return expr.accept(this);
+		return null;
 	}
 
 	@Override
@@ -2708,6 +2453,200 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitSwapExpr(Swap expr) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Object visitTemplatVarStmt(TemplatVar stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitIfiStmt(Ifi stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitTemplateExpr(Template expr) {
+		buildClass(expr);
+		return null;
+	}
+
+	private Object lookUpVariableByName(Token name) {
+		java.util.Set<Expr> keySet = locals.keySet();
+		Expr exprToFind = null;
+		if (name != null) {
+			for (Expr keyExpr : keySet) {
+				if (keyExpr instanceof Expr.Variable) {
+
+					if (((Expr.Variable) keyExpr).name.lexeme == name.lexeme) {
+						exprToFind = keyExpr;
+					}
+				}
+			}
+		}
+		Integer distance = locals.get(exprToFind);
+		if (name != null) {
+			if (distance != null) {
+				return environment.getAt(distance, name.lexeme);
+			} else {
+				return globals.get(name, false);
+			}
+		}
+		return null;
+	}
+
+	private void buildClass(Expr expr) {
+		Object superclass = null;
+		if (expr instanceof Expr.Cup) {
+			buildCupClass(expr, superclass);
+		} else if (expr instanceof Expr.Pocket) {
+			buildPocketClass(expr, superclass);
+
+		} else if (expr instanceof Expr.Knot) {
+			buildKnotClass(expr, superclass);
+
+		} else if (expr instanceof Expr.Tonk) {
+			buildTonkClass(expr, superclass);
+
+		} else if (expr instanceof Expr.Template) {
+			buildClass(((Template) expr).container);
+		}
+
+	}
+
+	private void buildTonkClass(Expr expr, Object superclass) {
+		if (((Tonk) expr).identifier.identifierToken != null) {
+			superclass = lookUpVariableByName(((Tonk) expr).identifier.identifierToken);
+
+			if (!(superclass instanceof BoxClass)) {
+				throw new RuntimeError(((Tonk) expr).identifier.identifierToken, "Superclass must be a class.");
+			}
+
+		}
+
+		environment.define(((Tonk) expr).identifier.lexeme, null, null);
+
+		if (((Tonk) expr).identifier.identifierToken != null) {
+			environment = new Environment(environment);
+
+		}
+
+		BoxClass boxClass = new BoxClass(((Tonk) expr).identifier.lexeme, (BoxClass) superclass, null, null,
+				TokenType.CUPCONTAINER, false, null);
+
+		if (superclass != null) {
+			environment = environment.enclosing;
+		}
+		environment.assign(((Tonk) expr).identifier, null, boxClass);
+
+	}
+
+	private void buildKnotClass(Expr expr, Object superclass) {
+		if (((Knot) expr).identifier.identifierToken != null) {
+			superclass = lookUpVariableByName(((Knot) expr).identifier.identifierToken);
+
+			if (!(superclass instanceof BoxClass)) {
+				throw new RuntimeError(((Knot) expr).identifier.identifierToken, "Superclass must be a class.");
+			}
+
+		}
+
+		environment.define(((Knot) expr).identifier.lexeme, null, null);
+
+		if (((Knot) expr).identifier.identifierToken != null) {
+			environment = new Environment(environment);
+
+		}
+
+		BoxClass boxClass = new BoxClass(((Knot) expr).identifier.lexeme, (BoxClass) superclass, null, null,
+				TokenType.CUPCONTAINER, false, null);
+
+		if (superclass != null) {
+			environment = environment.enclosing;
+		}
+		environment.assign(((Knot) expr).identifier, null, boxClass);
+
+	}
+
+	private void buildPocketClass(Expr expr, Object superclass) {
+		if (((Expr.Pocket) expr).identifier.identifierToken != null) {
+			superclass = lookUpVariableByName(((Expr.Pocket) expr).identifier.identifierToken);
+
+			if (!(superclass instanceof BoxClass)) {
+				throw new RuntimeError(((Expr.Pocket) expr).identifier.identifierToken, "Superclass must be a class.");
+			}
+
+		}
+
+		environment.define(((Expr.Pocket) expr).identifier.lexeme, null, null);
+
+		if (((Expr.Pocket) expr).identifier.identifierToken != null) {
+			environment = new Environment(environment);
+
+		}
+
+		BoxClass boxClass = new BoxClass(((Pocket) expr).identifier.lexeme, (BoxClass) superclass, null, null,
+				TokenType.POCKETCONTAINER, false, null);
+
+		if (superclass != null) {
+			environment = environment.enclosing;
+		}
+		environment.assign(((Pocket) expr).identifier, null, boxClass);
+
+	}
+
+	private void buildCupClass(Expr expr, Object superclass) {
+		if (((Expr.Cup) expr).identifier.identifierToken != null) {
+			superclass = lookUpVariableByName(((Expr.Cup) expr).identifier.identifierToken);
+
+			if (!(superclass instanceof BoxClass)) {
+				throw new RuntimeError(((Expr.Cup) expr).identifier.identifierToken, "Superclass must be a class.");
+			}
+
+		}
+
+		environment.define(((Expr.Cup) expr).identifier.lexeme, null, null);
+
+		if (((Expr.Cup) expr).identifier.identifierToken != null) {
+			environment = new Environment(environment);
+
+		}
+
+		Map<String, BoxFunction> methods = new HashMap<>();
+		for (Declaration method : ((Expr.Cup) expr).expression) {
+			if (method instanceof Declaration.FunDecl) {
+				if (((Function) ((Declaration.FunDecl) method).function).forwardIdentifier != null) {
+					String fname = ((Function) ((Declaration.FunDecl) method).function).forwardIdentifier.lexeme;
+					Expr body = ((Function) ((Declaration.FunDecl) method).function).sharedCupOrPocketOrKnot;
+					List<Token> fparamtypes = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersType;
+					List<Token> fparamsNames = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersNames;
+					BoxFunction boxFunction1 = new BoxFunction(body, fname, fparamtypes, fparamsNames, environment,
+							false);
+					methods.put(fname, boxFunction1);
+				}
+				if (((Function) ((Declaration.FunDecl) method).function).backwardIdentifier != null) {
+				String bname = ((Function) ((Declaration.FunDecl) method).function).backwardIdentifier.lexeme;
+				Expr body = ((Function) ((Declaration.FunDecl) method).function).sharedCupOrPocketOrKnot;
+				List<Token> bparamtypes = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersType;
+				List<Token> bparamsNames = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersNames;
+
+					BoxFunction boxFunction0 = new BoxFunction(body, bname, bparamtypes, bparamsNames, environment,
+							false);
+					methods.put(bname, boxFunction0);
+
+				}
+			}
+		}
+
+		BoxClass boxClass = new BoxClass(((Expr.Cup) expr).identifier.lexeme, (BoxClass) superclass, null, methods,
+				TokenType.CUPCONTAINER, false, null);
+
+		if (superclass != null) {
+			environment = environment.enclosing;
+		}
+		environment.assign(((Expr.Cup) expr).identifier, null, boxClass);
 	}
 
 }
