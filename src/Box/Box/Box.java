@@ -191,10 +191,9 @@ public class Box extends Thread {
 		ArrayList<Token> toks = grouper.scanTokensSecondPass();
 
 		ParserTest parser = new ParserTest(toks, forward, backward);
-		List<List<Declaration>> statements = parser.parse();
+		List<Declaration> statements = parser.parse();
 
-		interpreter.setForward(forward);
-		interpreter.setBackward(backward);
+		interpreter.setForward(false);
 
 		Resolver resolver = new Resolver(interpreter);
 		resolver.resolve(statements);

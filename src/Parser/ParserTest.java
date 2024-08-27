@@ -43,12 +43,10 @@ public class ParserTest {
 	}
 
 	@SuppressWarnings("javadoc")
-	public List<List<Declaration>> parse() {
+	public List<Declaration> parse() {
 
-		List<Declaration> forwardStmt = parseForward();
-		List<List<Declaration>> statements = new ArrayList<List<Declaration>>();
-		statements.add(forwardStmt);
-		return statements;
+		List<Declaration> stmt = parseForward();
+		return stmt;
 
 	}
 
@@ -64,9 +62,110 @@ public class ParserTest {
 	private Declaration declaration() {
 		if (checkFunctionDeclaration()) {
 			return new Declaration.FunDecl(function());
+		} else if (checkFunctionLink()) {
+			return new Declaration.FunDecl(functionLink());
 		} else {
 			Declaration.StmtDecl stmtDecl = new Declaration.StmtDecl(statement());
 			return stmtDecl;
+		}
+	}
+
+	private Fun functionLink() {
+		if (check(TokenType.FUN)) {
+			consume(TokenType.FUN, "fun");
+			consume(TokenType.DOT, "fun dot");
+			Token forwaredIdent = consume(TokenType.IDENTIFIER, "fun forwardIdent");
+			consume(TokenType.DOT, "fun dot");
+			consume(TokenType.OPENSQUARE, "fun forward square open");
+
+			ArrayList<Token> typesForward = new ArrayList<>();
+			ArrayList<Token> identsForward = new ArrayList<>();
+			if (checkTypeEpyt()) {
+				matchTypeEpyt();
+				typesForward.add(previous());
+				identsForward.add(consume(TokenType.IDENTIFIER, ""));
+				while (match(TokenType.COMMA)) {
+					if (checkTypeEpyt()) {
+						matchTypeEpyt();
+						typesForward.add(previous());
+						identsForward.add(consume(TokenType.IDENTIFIER, ""));
+					} else {
+						throw error(previous(), "Malformed forward parameters", true);
+					}
+				}
+			}
+			consume(TokenType.CLOSEDSQUARE, "");
+			if (check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				consume(TokenType.OPENSQUARE, "fun forward square open");
+				ArrayList<Token> typesbackward = new ArrayList<>();
+				ArrayList<Token> identsbackward = new ArrayList<>();
+				if (check(TokenType.IDENTIFIER)) {
+					identsbackward.add(consume(TokenType.IDENTIFIER,""));
+					matchTypeEpyt();
+					typesbackward.add(previous());
+					while (match(TokenType.COMMA)) {
+						if (check(TokenType.IDENTIFIER)) {
+							identsbackward.add(consume(TokenType.IDENTIFIER,""));
+							matchTypeEpyt();
+							typesbackward.add(previous());
+						} else {
+							throw error(previous(), "Malformed forward parameters", true);
+						}
+					}
+				} else {
+					consume(TokenType.CLOSEDSQUARE, "");
+					consume(TokenType.DOT, "fun dot");
+					Token backwardIdent = consume(TokenType.IDENTIFIER, "fun forwardIdent");
+					consume(TokenType.DOT, "fun dot");
+					consume(TokenType.NUF, "fun nuf");
+					return new Fun.FunctionLink(forwaredIdent, typesForward, identsForward, typesbackward,
+							identsbackward, backwardIdent);
+				}
+				consume(TokenType.CLOSEDSQUARE, "");
+				consume(TokenType.DOT, "fun dot");
+				Token backwardIdent = consume(TokenType.IDENTIFIER, "fun forwardIdent");
+				consume(TokenType.DOT, "fun dot");
+				consume(TokenType.NUF, "fun nuf");
+				return new Fun.FunctionLink(forwaredIdent, typesForward, identsForward, typesbackward,
+						identsbackward, backwardIdent);
+			}
+
+			return new Fun.FunctionLink(forwaredIdent, typesForward, identsForward, null, null, null);
+		} else {
+			consume(TokenType.OPENSQUARE, "fun forward square open");
+			ArrayList<Token> typesbackward = new ArrayList<>();
+			ArrayList<Token> identsbackward = new ArrayList<>();
+			if (check(TokenType.IDENTIFIER)) {
+				identsbackward.add(consume(TokenType.IDENTIFIER,""));
+				matchTypeEpyt();
+				typesbackward.add(previous());
+				while (match(TokenType.COMMA)) {
+					if (check(TokenType.IDENTIFIER)) {
+						identsbackward.add(consume(TokenType.IDENTIFIER,""));
+						matchTypeEpyt();
+						typesbackward.add(previous());
+					} else {
+						throw error(previous(), "Malformed forward parameters", true);
+					}
+				}
+				
+				consume(TokenType.CLOSEDSQUARE, "");
+				consume(TokenType.DOT, "fun dot");
+				Token backwardIdent = consume(TokenType.IDENTIFIER, "fun forwardIdent");
+				consume(TokenType.DOT, "fun dot");
+				consume(TokenType.NUF, "fun nuf");
+				return new Fun.FunctionLink(null, null, null, typesbackward, identsbackward, backwardIdent);
+				
+			} else {
+				consume(TokenType.CLOSEDSQUARE, "");
+				consume(TokenType.DOT, "fun dot");
+				Token backwardIdent = consume(TokenType.IDENTIFIER, "fun forwardIdent");
+				consume(TokenType.DOT, "fun dot");
+				consume(TokenType.NUF, "fun nuf");
+				return new Fun.FunctionLink(null, null, null, typesbackward, identsbackward, backwardIdent);
+			}
+
 		}
 	}
 
@@ -81,10 +180,12 @@ public class ParserTest {
 			ArrayList<Token> typesForward = new ArrayList<>();
 			ArrayList<Token> identsForward = new ArrayList<>();
 			if (checkTypeEpyt()) {
+				matchTypeEpyt();
 				typesForward.add(previous());
 				identsForward.add(consume(TokenType.IDENTIFIER, ""));
 				while (match(TokenType.COMMA)) {
 					if (checkTypeEpyt()) {
+						matchTypeEpyt();
 						typesForward.add(previous());
 						identsForward.add(consume(TokenType.IDENTIFIER, ""));
 					} else {
@@ -94,8 +195,7 @@ public class ParserTest {
 				consume(TokenType.CLOSEDSQUARE, "");
 				consume(TokenType.DOT, "fun dot");
 				Expr expression = expressionnoisserpxe();
-				if (expression instanceof Expr.Cup || expression instanceof Expr.Knot
-						|| expression instanceof Expr.Tonk) {
+				if (expression instanceof Expr.Cup) {
 					if (check(TokenType.DOT)) {
 						ArrayList<Token> typesBackward = new ArrayList<>();
 						ArrayList<Token> identsBackward = new ArrayList<>();
@@ -106,7 +206,7 @@ public class ParserTest {
 							if (checkTypeEpyt()) {
 								matchTypeEpyt();
 								typesBackward.add(previous());
-							}else
+							} else
 								throw error(previous(), "weerere", true);
 							while (match(TokenType.COMMA)) {
 								if (match(TokenType.IDENTIFIER)) {
@@ -114,7 +214,7 @@ public class ParserTest {
 									if (checkTypeEpyt()) {
 										matchTypeEpyt();
 										typesBackward.add(previous());
-									}else
+									} else
 										throw error(previous(), "weefhgghrere", true);
 								} else {
 									throw error(previous(), "Malformed forward parameters", true);
@@ -140,8 +240,49 @@ public class ParserTest {
 			consume(TokenType.CLOSEDSQUARE, "");
 			consume(TokenType.DOT, "fun dot");
 			Expr expression = expressionnoisserpxe();
-			if (expression instanceof Expr.Cup || expression instanceof Expr.Knot
-					|| expression instanceof Expr.Tonk) {
+			if (expression instanceof Expr.Cup) {
+				if (check(TokenType.DOT)) {
+					ArrayList<Token> typesBackward = new ArrayList<>();
+					ArrayList<Token> identsBackward = new ArrayList<>();
+					consume(TokenType.DOT, "fun dot");
+					consume(TokenType.OPENSQUARE, "fun forward square open");
+					if (match(TokenType.IDENTIFIER)) {
+						identsBackward.add(previous());
+						if (checkTypeEpyt()) {
+							matchTypeEpyt();
+							typesBackward.add(previous());
+						} else
+							throw error(previous(), "weerere", true);
+						while (match(TokenType.COMMA)) {
+							if (match(TokenType.IDENTIFIER)) {
+								identsBackward.add(previous());
+								if (checkTypeEpyt()) {
+									matchTypeEpyt();
+									typesBackward.add(previous());
+								} else
+									throw error(previous(), "weefhgghrere", true);
+							} else {
+								throw error(previous(), "Malformed forward parameters", true);
+							}
+						}
+						consume(TokenType.CLOSEDSQUARE, "");
+						consume(TokenType.DOT, "fun dot");
+						Token backIdent = consume(TokenType.IDENTIFIER, "fun dot");
+						consume(TokenType.DOT, "fun dot");
+
+						consume(TokenType.NUF, "nuf ");
+						return new Fun.Function(forwaredIdent, typesForward, identsForward, expression, typesBackward,
+								identsBackward, backIdent);
+					}
+
+				} else {
+					return new Fun.Function(forwaredIdent, typesForward, identsForward, expression, null, null, null);
+				}
+			}
+
+		} else {
+			Expr expression = expressionnoisserpxe();
+			if (expression instanceof Expr.Cup) {
 				if (check(TokenType.DOT)) {
 					ArrayList<Token> typesBackward = new ArrayList<>();
 					ArrayList<Token> identsBackward = new ArrayList<>();
@@ -160,48 +301,7 @@ public class ParserTest {
 								if (checkTypeEpyt()) {
 									matchTypeEpyt();
 									typesBackward.add(previous());
-							}else
-									throw error(previous(), "weefhgghrere", true);
-							} else {
-								throw error(previous(), "Malformed forward parameters", true);
-							}
-						}
-						consume(TokenType.CLOSEDSQUARE, "");
-						consume(TokenType.DOT, "fun dot");
-						Token backIdent = consume(TokenType.IDENTIFIER, "fun dot");
-						consume(TokenType.DOT, "fun dot");
-
-						consume(TokenType.NUF, "nuf ");
-						return new Fun.Function(forwaredIdent, typesForward, identsForward, expression,
-								typesBackward, identsBackward, backIdent);
-					}
-
-				} else {
-					return new Fun.Function(forwaredIdent, typesForward, identsForward, expression, null, null,
-							null);
-				}
-			}
-
-		} else {
-			Expr expression = expressionnoisserpxe();
-			if (expression instanceof Expr.Cup || expression instanceof Expr.Knot || expression instanceof Expr.Tonk) {
-				if (check(TokenType.DOT)) {
-					ArrayList<Token> typesBackward = new ArrayList<>();
-					ArrayList<Token> identsBackward = new ArrayList<>();
-					consume(TokenType.DOT, "fun dot");
-					consume(TokenType.OPENSQUARE, "fun forward square open");
-					if (match(TokenType.IDENTIFIER)) {
-						identsBackward.add(previous());
-						if (checkTypeEpyt())
-							typesBackward.add(previous());
-						else
-							throw error(previous(), "weerere", true);
-						while (match(TokenType.COMMA)) {
-							if (match(TokenType.IDENTIFIER)) {
-								identsBackward.add(previous());
-								if (checkTypeEpyt())
-									typesBackward.add(previous());
-								else
+								}else
 									throw error(previous(), "weefhgghrere", true);
 							} else {
 								throw error(previous(), "Malformed forward parameters", true);
@@ -226,38 +326,137 @@ public class ParserTest {
 	}
 
 	private boolean checkTypeEpyt() {
-		return (check(TokenType.BOX) || check( TokenType.POCKET)||check( TokenType.CUP)||check(TokenType.KNOT)||check(TokenType.XOB)||check( TokenType.TEKCOP)||check(
-				TokenType.PUC)||check(TokenType.TONK));
+		return (check(TokenType.BOX) || check(TokenType.POCKET) || check(TokenType.CUP) || check(TokenType.KNOT)
+				|| check(TokenType.XOB) || check(TokenType.TEKCOP) || check(TokenType.PUC) || check(TokenType.TONK));
 	}
+
 	private boolean matchTypeEpyt() {
-		return (match(TokenType.BOX, TokenType.POCKET, TokenType.CUP,TokenType.KNOT,TokenType.XOB, TokenType.TEKCOP,
-				TokenType.PUC,TokenType.TONK));
+		return (match(TokenType.BOX, TokenType.POCKET, TokenType.CUP, TokenType.KNOT, TokenType.XOB, TokenType.TEKCOP,
+				TokenType.PUC, TokenType.TONK));
+	}
+
+	private boolean checkFunctionLink() {
+		if (peekI(0).type == TokenType.FUN) {
+			if (peekI(1).type == TokenType.DOT) {
+				if (peekI(2).type == TokenType.IDENTIFIER) {
+					if (peekI(3).type == TokenType.DOT) {
+						if (peekI(4).type == TokenType.OPENSQUARE) {
+							int count = 4;
+							if (peekI(count + 1).type != TokenType.CLOSEDSQUARE) {
+							do {
+								count++;
+								if (peekI(count).type != TokenType.BOX && peekI(count).type != TokenType.POCKET
+										&& peekI(count).type != TokenType.CUP && peekI(count).type != TokenType.XOB
+										&& peekI(count).type != TokenType.TEKCOP && peekI(count).type != TokenType.PUC
+										&& peekI(count).type != TokenType.KNOT && peekI(count).type != TokenType.TONK)
+									return false;
+								count++;
+
+								if (peekI(count).type != TokenType.IDENTIFIER)
+									return false;
+								count++;
+							} while (peekI(count).type == TokenType.COMMA);
+							}else {
+								count++;
+							}
+
+							if (peekI(count).type != TokenType.CLOSEDSQUARE)
+								return false;
+							else
+								count++;
+
+							if (peekI(count).type == TokenType.DOT) {
+								count++;
+								return checkFunctionLinkNuff(count);
+							} else
+								return true;
+						}
+					}
+				}
+			}
+		}
+		int count = 0;
+		return checkFunctionLinkNuff(count);
 	}
 
 	private boolean checkFunctionDeclaration() {
 		if (peekI(0).type == TokenType.FUN) {
-			return true;
-		}
+			if (peekI(1).type == TokenType.DOT) {
+				if (peekI(2).type == TokenType.IDENTIFIER) {
+					if (peekI(3).type == TokenType.DOT) {
+						if (peekI(4).type == TokenType.OPENSQUARE) {
+							int count = 4;
+							if (peekI(count + 1).type != TokenType.CLOSEDSQUARE) {
+								do {
+									count++;
+									if (peekI(count).type != TokenType.BOX && peekI(count).type != TokenType.POCKET
+											&& peekI(count).type != TokenType.CUP && peekI(count).type != TokenType.XOB
+											&& peekI(count).type != TokenType.TEKCOP
+											&& peekI(count).type != TokenType.PUC && peekI(count).type != TokenType.KNOT
+											&& peekI(count).type != TokenType.TONK)
+										return false;
+									count++;
 
+									if (peekI(count).type != TokenType.IDENTIFIER)
+										return false;
+									count++;
+								} while (peekI(count).type == TokenType.COMMA);
+							}else {
+								count++;
+							}
+							if (peekI(count).type != TokenType.CLOSEDSQUARE)
+								return false;
+							else
+								count++;
+
+							if (peekI(count).type != TokenType.DOT)
+								return false;
+							else
+								count++;
+							Stack<TokenType> parenStack = new Stack<>();
+							Stack<TokenType> braceStack = new Stack<>();
+							if (peekI(count).type == TokenType.OPENBRACE)
+								braceStack.push(peekI(count).type);
+							count++;
+
+							if (braceStack.size() == 0 )
+								return false;
+							
+							while (braceStack.size() > 0 && tracker.getCurrent() + count < tracker.size()) {
+								if (peekI(count).type == TokenType.OPENBRACE)
+									braceStack.push(peekI(count).type);
+								else if (peekI(count).type == TokenType.CLOSEDBRACE) {
+									if (braceStack.size() > 0) {
+
+										braceStack.pop();
+									}
+								}
+								count++;
+							}
+
+							if (braceStack.size() != 0 || tracker.getCurrent() + count >= tracker.size())
+								return false;
+
+							if (peekI(count).type == TokenType.DOT) {
+								return checkFunctionNuff(count);
+							} else
+								return true;
+						}
+					}
+				}
+			}
+		}
 		Stack<TokenType> parenStack = new Stack<>();
 		Stack<TokenType> braceStack = new Stack<>();
 		int count = 0;
-		if (peekI(count).type == TokenType.OPENPAREN)
-			parenStack.push(peekI(count).type);
-		else if (peekI(count).type == TokenType.OPENBRACE)
+		if (peekI(count).type == TokenType.OPENBRACE)
 			braceStack.push(peekI(count).type);
 		count++;
 
 		while ((parenStack.size() > 0 || braceStack.size() > 0) && tracker.getCurrent() + count < tracker.size()) {
-			if (peekI(count).type == TokenType.OPENPAREN)
-				parenStack.push(peekI(count).type);
-			else if (peekI(count).type == TokenType.OPENBRACE)
+			if (peekI(count).type == TokenType.OPENBRACE)
 				braceStack.push(peekI(count).type);
-			else if (peekI(count).type == TokenType.CLOSEDPAREN) {
-				if (parenStack.size() > 0) {
-					parenStack.pop();
-				}
-			} else if (peekI(count).type == TokenType.CLOSEDBRACE) {
+			else if (peekI(count).type == TokenType.CLOSEDBRACE) {
 				if (braceStack.size() > 0) {
 
 					braceStack.pop();
@@ -266,16 +465,16 @@ public class ParserTest {
 			count++;
 		}
 
-		if (parenStack.size() != 0 || braceStack.size() != 0 || tracker.getCurrent() + count >= tracker.size())
+		if (braceStack.size() != 0 || tracker.getCurrent() + count >= tracker.size())
 			return false;
+		return checkFunctionNuff(count);
+	}
 
-		if (peekI(count).type != TokenType.DOT)
-			return false;
-		else
-			count++;
+	private boolean checkFunctionLinkNuff(int count) {
+
 		if (peekI(count).type != TokenType.OPENSQUARE)
 			return false;
-
+		if (peekI(count + 1).type != TokenType.CLOSEDSQUARE) {
 		do {
 			count++;
 			if (peekI(count).type != TokenType.IDENTIFIER)
@@ -289,6 +488,56 @@ public class ParserTest {
 
 			count++;
 		} while (peekI(count).type == TokenType.COMMA);
+		}else {
+			count++;
+		}
+
+		if (peekI(count).type != TokenType.CLOSEDSQUARE)
+			return false;
+		else
+			count++;
+		if (peekI(count).type != TokenType.DOT)
+			return false;
+		else
+			count++;
+		if (peekI(count).type != TokenType.IDENTIFIER)
+			return false;
+		count++;
+		if (peekI(count).type != TokenType.DOT)
+			return false;
+		else
+			count++;
+		if (peekI(count).type != TokenType.NUF)
+			return false;
+		else
+			return true;
+	}
+
+	private boolean checkFunctionNuff(int count) {
+
+		if (peekI(count).type != TokenType.DOT)
+			return false;
+		else
+			count++;
+		if (peekI(count).type != TokenType.OPENSQUARE)
+			return false;
+		if (peekI(count + 1).type != TokenType.CLOSEDSQUARE) {
+		do {
+			count++;
+			if (peekI(count).type != TokenType.IDENTIFIER)
+				return false;
+			count++;
+			if (peekI(count).type != TokenType.BOX && peekI(count).type != TokenType.POCKET
+					&& peekI(count).type != TokenType.CUP && peekI(count).type != TokenType.XOB
+					&& peekI(count).type != TokenType.TEKCOP && peekI(count).type != TokenType.PUC
+					&& peekI(count).type != TokenType.KNOT && peekI(count).type != TokenType.TONK)
+				return false;
+
+			count++;
+		} while (peekI(count).type == TokenType.COMMA);
+		}else {
+			count++;
+		}
 
 		if (peekI(count).type != TokenType.CLOSEDSQUARE)
 			return false;
@@ -641,7 +890,8 @@ public class ParserTest {
 			Stack<TokenType> stack = new Stack<>();
 			int count = 0;
 			stack.push(peekI(count).type);
-			while (stack.size() > 0 || tracker.getCurrent() + count < tracker.size()) {
+			count++;
+			while (stack.size() > 0 && tracker.getCurrent() + count < tracker.size()) {
 				if (peekI(count).type == TokenType.OPENSQUARE)
 					stack.push(peekI(count).type);
 				else if (peekI(count).type == TokenType.CLOSEDSQUARE)
@@ -2159,7 +2409,7 @@ public class ParserTest {
 		while (match(TokenType.BANG)) {
 			Token operator = previous();
 			Expr value = factoriallairotcaf();
-			expr = new Expr.Factorial(value, operator);
+			expr = new Expr.Lairotcaf(value, operator);
 		}
 		Expr unary = expr == null ? unaryyranu() : null;
 		while (match(TokenType.BANG) && expr == null) {
@@ -2429,7 +2679,7 @@ public class ParserTest {
 					epyt = previous();
 				}
 
-				return new Stmt.Rav(((Expr.Variable) initialValue).name, epyt, val, null);
+				return new Stmt.Rav(((Expr.Tnemngissa) initialValue).name, epyt, val, null);
 			}
 		}
 
@@ -2553,10 +2803,12 @@ public class ParserTest {
 				first = previous();
 				lexeme += first.lexeme;
 				parenStack.push(first.type);
+				stmts.add(new Stmt.Expression(new Expr.PocketOpen(first)));
 			} else if (match(TokenType.OPENBRACE)) {
 				first = previous();
 				lexeme += first.lexeme;
 				braceStack.push(first.type);
+				stmts.add(new Stmt.Expression(new Expr.CupOpen(first)));
 			}
 
 			if (type == TokenType.CUP) {
@@ -2565,12 +2817,12 @@ public class ParserTest {
 						Token previous = previous();
 						lexeme += previous.lexeme;
 						braceStack.push(previous.type);
-
+						stmts.add(new Stmt.Expression(new Expr.CupOpen(previous)));
 					} else if (match(TokenType.CLOSEDBRACE)) {
 						last = previous();
 						lexeme += last.lexeme;
 						braceStack.pop();
-
+						stmts.add(new Stmt.Expression(new Expr.CupClosed(last)));
 					} else {
 						int start = tracker.currentIndex();
 						decs.add(declaration());
@@ -2583,13 +2835,23 @@ public class ParserTest {
 
 				if (first.identifierToken.lexeme.contains("#") || last.reifitnediToken.lexeme.contains("#")) {
 					String replace = first.identifierToken.lexeme.replace("#", "");
-					first.identifierToken.lexeme =replace;
-					first.identifierToken.literal =replace;
-					String replace2 = last.reifitnediToken.lexeme.replace("#","");
-					last.reifitnediToken.lexeme =replace2;
-					last.reifitnediToken.literal =replace2;
+					first.identifierToken.lexeme = replace;
+					first.identifierToken.literal = replace;
+					String replace2 = last.reifitnediToken.lexeme.replace("#", "");
+					last.reifitnediToken.lexeme = replace2;
+					last.reifitnediToken.literal = replace2;
 					Cup cup = new Expr.Cup(first.identifierToken, decs, lexeme, last.reifitnediToken);
 					return new Expr.Template(cup);
+				} else if ((first.identifierToken.lexeme.contains("!") || last.reifitnediToken.lexeme.contains("!"))) {
+					String replace = first.identifierToken.lexeme.replace("!", "");
+					first.identifierToken.lexeme = replace;
+					first.identifierToken.literal = replace;
+					String replace2 = last.reifitnediToken.lexeme.replace("!", "");
+					last.reifitnediToken.lexeme = replace2;
+					last.reifitnediToken.literal = replace2;
+					Cup cup = new Expr.Cup(first.identifierToken, decs, lexeme, last.reifitnediToken);
+					return new Expr.Link(cup);
+
 				} else
 					return new Expr.Cup(first.identifierToken, decs, lexeme, last.reifitnediToken);
 			} else if (type == TokenType.POCKET) {
@@ -2598,11 +2860,12 @@ public class ParserTest {
 						Token previous = previous();
 						lexeme += previous.lexeme;
 						parenStack.push(previous.type);
-
+						stmts.add(new Stmt.Expression(new Expr.PocketOpen(previous)));
 					} else if (match(TokenType.CLOSEDPAREN)) {
 						last = previous();
 						lexeme += last.lexeme;
 						parenStack.pop();
+						stmts.add(new Stmt.Expression(new Expr.PocketClosed(last)));
 					} else {
 
 						int start = tracker.currentIndex();
@@ -2622,39 +2885,40 @@ public class ParserTest {
 				}
 				if (first.identifierToken.lexeme.contains("#") || last.reifitnediToken.lexeme.contains("#")) {
 					String replace = first.identifierToken.lexeme.replace("#", "");
-					first.identifierToken.lexeme =replace;
-					first.identifierToken.literal =replace;
-					String replace2 = last.reifitnediToken.lexeme.replace("#","");
-					last.reifitnediToken.lexeme =replace2;
-					last.reifitnediToken.literal =replace2;
+					first.identifierToken.lexeme = replace;
+					first.identifierToken.literal = replace;
+					String replace2 = last.reifitnediToken.lexeme.replace("#", "");
+					last.reifitnediToken.lexeme = replace2;
+					last.reifitnediToken.literal = replace2;
 					Pocket pocket = new Expr.Pocket(first.identifierToken, stmts, lexeme, last.reifitnediToken);
 					return new Expr.Template(pocket);
 				} else
 					return new Expr.Pocket(first.identifierToken, stmts, lexeme, last.reifitnediToken);
 			} else {
 				while ((parenStack.size() > 0 || braceStack.size() > 0) && tracker.currentIndex() <= tracker.size()) {
-					if (checkIdentforParen(first) && checkNoisStmtParen() && match(TokenType.OPENPAREN)) {
+					if (checkNoisStmtParen() && match(TokenType.OPENPAREN)) {
 						Token previous = previous();
 						lexeme += previous.lexeme;
 						parenStack.push(previous.type);
-
-					} else if (checkIdentforBrace(first) && checkNoisStmtBrace() & match(TokenType.OPENBRACE)) {
+						stmts.add(new Stmt.Expression(new Expr.PocketOpen(previous)));
+						
+					} else if (checkNoisStmtBrace() & match(TokenType.OPENBRACE)) {
 						Token previous = previous();
 						lexeme += previous.lexeme;
 						braceStack.push(previous.type);
-
+						stmts.add(new Stmt.Expression(new Expr.CupOpen(previous)));
 					} else if (match(TokenType.CLOSEDPAREN)) {
 						last = previous();
 						lexeme += last.lexeme;
 						if (parenStack.size() > 0)
 							parenStack.pop();
-
+						stmts.add(new Stmt.Expression(new Expr.PocketClosed(last)));
 					} else if (match(TokenType.CLOSEDBRACE)) {
 						last = previous();
 						lexeme += last.lexeme;
 						if (braceStack.size() > 0)
 							braceStack.pop();
-
+						stmts.add(new Stmt.Expression(new Expr.CupClosed(last)));
 					} else {
 
 						int start = tracker.currentIndex();
@@ -2668,11 +2932,11 @@ public class ParserTest {
 				if (type == TokenType.KNOT) {
 					if (first.identifierToken.lexeme.contains("#") || last.reifitnediToken.lexeme.contains("#")) {
 						String replace = first.identifierToken.lexeme.replace("#", "");
-						first.identifierToken.lexeme =replace;
-						first.identifierToken.literal =replace;
-						String replace2 = last.reifitnediToken.lexeme.replace("#","");
-						last.reifitnediToken.lexeme =replace2;
-						last.reifitnediToken.literal =replace2;
+						first.identifierToken.lexeme = replace;
+						first.identifierToken.literal = replace;
+						String replace2 = last.reifitnediToken.lexeme.replace("#", "");
+						last.reifitnediToken.lexeme = replace2;
+						last.reifitnediToken.literal = replace2;
 						Knot knot = new Expr.Knot(first.identifierToken, stmts, lexeme, last.reifitnediToken);
 						return new Expr.Template(knot);
 					} else
@@ -2680,11 +2944,11 @@ public class ParserTest {
 				} else {
 					if (first.identifierToken.lexeme.contains("#") || last.reifitnediToken.lexeme.contains("#")) {
 						String replace = first.identifierToken.lexeme.replace("#", "");
-						first.identifierToken.lexeme =replace;
-						first.identifierToken.literal =replace;
-						String replace2 = last.reifitnediToken.lexeme.replace("#","");
-						last.reifitnediToken.lexeme =replace2;
-						last.reifitnediToken.literal =replace2;
+						first.identifierToken.lexeme = replace;
+						first.identifierToken.literal = replace;
+						String replace2 = last.reifitnediToken.lexeme.replace("#", "");
+						last.reifitnediToken.lexeme = replace2;
+						last.reifitnediToken.literal = replace2;
 						Tonk knot = new Expr.Tonk(first.identifierToken, stmts, lexeme, last.reifitnediToken);
 						return new Expr.Template(knot);
 					} else
@@ -2703,7 +2967,7 @@ public class ParserTest {
 			String firstIdent = first.identifierToken.lexeme;
 
 			String lexeme = peekI.identifierToken.lexeme;
-			return lexeme.contains(firstIdent);
+			return !lexeme.contains(firstIdent);
 
 		}
 		return false;
@@ -2715,7 +2979,7 @@ public class ParserTest {
 		if (peekI.type == TokenType.OPENPAREN) {
 			String firstIdent = first.identifierToken.lexeme;
 			String lexeme = peekI.identifierToken.lexeme;
-			return lexeme.contains(firstIdent);
+			return !lexeme.contains(firstIdent);
 
 		}
 		return false;

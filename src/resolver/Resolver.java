@@ -18,14 +18,19 @@ import Parser.Declaration.FunDecl;
 import Parser.Declaration.StmtDecl;
 import Parser.Expr.Assignment;
 import Parser.Expr.Binary;
+import Parser.Expr.BoxClosed;
+import Parser.Expr.BoxOpen;
 import Parser.Expr.Call;
 import Parser.Expr.Contains;
 import Parser.Expr.Cup;
+import Parser.Expr.CupClosed;
+import Parser.Expr.CupOpen;
 import Parser.Expr.Factorial;
 import Parser.Expr.Get;
 import Parser.Expr.Gol;
 import Parser.Expr.Knot;
 import Parser.Expr.Lairotcaf;
+import Parser.Expr.Link;
 import Parser.Expr.Literal;
 import Parser.Expr.LiteralChar;
 import Parser.Expr.Llac;
@@ -33,6 +38,8 @@ import Parser.Expr.Log;
 import Parser.Expr.Mono;
 import Parser.Expr.Onom;
 import Parser.Expr.Pocket;
+import Parser.Expr.PocketClosed;
+import Parser.Expr.PocketOpen;
 import Parser.Expr.Set;
 import Parser.Expr.Sniatnoc;
 import Parser.Expr.Swap;
@@ -46,6 +53,7 @@ import Parser.Expr.Variable;
 import Parser.Expr.Yranib;
 import Parser.Expr.Yranu;
 import Parser.Fun.Function;
+import Parser.Fun.FunctionLink;
 import Parser.Stmt.Consume;
 import Parser.Stmt.Daer;
 import Parser.Stmt.Emaner;
@@ -87,16 +95,16 @@ public class Resolver implements Declaration.Visitor<Void> {
 		scopes.pop();
 	}
 
-	public void resolve(List<List<Declaration>> statementLists) {
+	public void resolve(List<Declaration> statementLists) {
 
-		for (List<Declaration> statements : statementLists) {
+		
 
-			for (Declaration stmt : statements) {
+			for (Declaration stmt : statementLists) {
 				resolve(stmt);
 
 			}
 
-		}
+		
 
 	}
 
@@ -167,7 +175,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 				declare(param);
 				define(param);
 			}
-			resolve(fun.sharedCupOrPocketOrKnot);
+			resolve(fun.sharedCup);
 			endScope();
 			currentFunction = enclosingFunction;
 		}
@@ -182,7 +190,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 				declare(param);
 				define(param);
 			}
-			resolve(fun.sharedCupOrPocketOrKnot);
+			resolve(fun.sharedCup);
 			endScope();
 			currentFunction = enclosingFunction;
 		}
@@ -606,6 +614,54 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitTemplateExpr(Template expr) {
 		resolve(expr.container);
+		return null;
+	}
+
+	@Override
+	public Void visitFunctionLinkFun(FunctionLink fun) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitLinkExpr(Link expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitPocketOpenExpr(PocketOpen expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitPocketClosedExpr(PocketClosed expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitCupOpenExpr(CupOpen expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitCupClosedExpr(CupClosed expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitBoxOpenExpr(BoxOpen expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitBoxClosedExpr(BoxClosed expr) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

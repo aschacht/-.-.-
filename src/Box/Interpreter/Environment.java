@@ -183,7 +183,7 @@ public class Environment {
 
 	public void assignAt(Integer distance, Token name, Object exprValue, Object value, Interpreter interpreter) {
 		TypesOfObject typesOfObject = ancestor(distance).types.get(name.lexeme);
-		if (RunTimeTypes.getObjectType(exprValue, value, interpreter) == typesOfObject.getRunTimeTypeForObject())
+		if (RunTimeTypes.getObjectType(exprValue, value, interpreter) == typesOfObject.getRunTimeTypeForObject() || typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Any)
 			ancestor(distance).values.put(name.lexeme, value);
 	}
 

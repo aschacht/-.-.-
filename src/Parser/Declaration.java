@@ -12,6 +12,7 @@ public abstract class Declaration {
 	R visitFunDeclDeclaration(FunDecl declaration);
 	R visitStmtDeclDeclaration(StmtDecl declaration);
 	R visitFunctionFun(Function fun);
+	R visitFunctionLinkFun(FunctionLink fun);
 	R visitExpressionStmt(Expression stmt);
 	R visitIfStmt(If stmt);
 	R visitPrintStmt(Print stmt);
@@ -46,12 +47,19 @@ public abstract class Declaration {
 	R visitKnotExpr(Knot expr);
 	R visitCupExpr(Cup expr);
 	R visitTemplateExpr(Template expr);
+	R visitLinkExpr(Link expr);
 	R visitPocketExpr(Pocket expr);
 	R visitBoxExpr(Box expr);
 	R visitSwapExpr(Swap expr);
 	R visitVariableExpr(Variable expr);
 	R visitLiteralCharExpr(LiteralChar expr);
 	R visitLiteralExpr(Literal expr);
+	R visitPocketOpenExpr(PocketOpen expr);
+	R visitPocketClosedExpr(PocketClosed expr);
+	R visitCupOpenExpr(CupOpen expr);
+	R visitCupClosedExpr(CupClosed expr);
+	R visitBoxOpenExpr(BoxOpen expr);
+	R visitBoxClosedExpr(BoxClosed expr);
 	R visitTonkExpr(Tonk expr);
 	R visitTesExpr(Tes expr);
 	R visitTegExpr(Teg expr);

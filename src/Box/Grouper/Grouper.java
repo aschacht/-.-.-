@@ -78,7 +78,8 @@ public class Grouper {
 
 	public ArrayList<Token> scanTokensSecondPass() {
 
-		addHashTagsToStrings(tokens);
+		addHashTagsToIdents(tokens);
+		addBangTagsToIdents(tokens);
 		matchIdentifiersToOpenClosedParenBraceSquare(tokens);
 		removeSpaces(tokens);
 
@@ -94,71 +95,97 @@ public class Grouper {
 		return tokens;
 	}
 
-	private void addHashTagsToStrings(ArrayList<Token> tokens2) {
+	private void addBangTagsToIdents(ArrayList<Token> tokens2) {
 
 		for (int i = 0; i < tokens2.size(); i++) {
-			if(i>=0&& i+3 < tokens2.size() - 1) {
-				if (tokens2.get(i).type==TokenType.IDENTIFIER &&  tokens2.get(i+1).type==TokenType.HASH &&tokens2.get(i+2).type == TokenType.AT && tokens2.get(i +3).type == TokenType.IDENTIFIER) {
-					String hash  = (String)tokens2.get(i+1).lexeme;
-					String at  = (String)tokens2.get(i+2).lexeme;
-					String str = tokens2.get(i).lexeme + hash;
-					tokens2.get(i ).lexeme = str;
-					tokens2.get(i).reifitnediToken = tokens2.get(i+3);
-					tokens2.get(i ).literal = str;
-					tokens2.remove(i+1);
-					tokens2.remove(i+1);
-					tokens2.remove(i+1);
-					
-					
-				}else if (tokens2.get(i).type==TokenType.IDENTIFIER &&  tokens2.get(i+1).type==TokenType.AT &&tokens2.get(i+2).type == TokenType.HASH && tokens2.get(i +3).type == TokenType.IDENTIFIER) {
-					String at  = (String)tokens2.get(i+1).lexeme;
-					String hash  = (String)tokens2.get(i+2).lexeme;
-					String str = hash +tokens2.get(i+3).lexeme;
-					tokens2.get(i+3 ).lexeme = str;
-					tokens2.get(i+3 ).identifierToken = tokens2.get(i);
-					tokens2.get(i+3 ).literal = str;
-					tokens2.remove(i);
-					tokens2.remove(i);
-					tokens2.remove(i);
-					
-					
-				}else if ( tokens2.get(i).type == TokenType.HASH && tokens2.get(i + 1).type == TokenType.IDENTIFIER ) {
-					String str = (String) tokens2.get(i +1).lexeme;
-					str = "#" + str;
+			if (i >= 0 && i + 2 < tokens2.size() - 1) {
+				if (tokens2.get(i).type == TokenType.CLOSEDBRACE && tokens2.get(i + 1).type == TokenType.IDENTIFIER
+						&& tokens2.get(i + 2).type == TokenType.BANG) {
+					String bang = (String) tokens2.get(i + 2).lexeme;
+					String str = tokens2.get(i + 1).lexeme + bang;
+					tokens2.get(i + 1).lexeme = str;
+					tokens2.get(i + 1).reifitnediToken = tokens2.get(i + 2);
+					tokens2.get(i + 1).literal = str;
+					tokens2.remove(i + 2);
+
+				} else if (tokens2.get(i).type == TokenType.BANG && tokens2.get(i + 1).type == TokenType.IDENTIFIER
+						&& tokens2.get(i + 2).type == TokenType.OPENBRACE) {
+					String bang = (String) tokens2.get(i).lexeme;
+					String str = bang + tokens2.get(i + 1).lexeme;
 					tokens2.get(i + 1).lexeme = str;
 					tokens2.get(i + 1).literal = str;
+					tokens2.get(i + 1).identifierToken = tokens2.get(i);
 					tokens2.remove(i);
-					
-				}else if ( tokens2.get(i).type == TokenType.IDENTIFIER && tokens2.get(i + 1).type == TokenType.HASH ) {
-					String str = (String) tokens2.get(i).lexeme;
-					str =  str+"#";
-					tokens2.get(i).lexeme = str;
-					tokens2.get(i).literal = str;
-					tokens2.remove(i+1);
-					
-				}
-			}else if(i>=0&&i+1<tokens2.size()-1) {
-				if ( tokens2.get(i).type == TokenType.HASH && tokens2.get(i + 1).type == TokenType.IDENTIFIER ) {
-					String str = (String) tokens2.get(i +1).lexeme;
-					str = "#" + str;
-					tokens2.get(i + 1).lexeme = str;
-					tokens2.get(i + 1).literal = str;
-					tokens2.remove(i);
-					
-				}else if ( tokens2.get(i).type == TokenType.IDENTIFIER && tokens2.get(i + 1).type == TokenType.HASH ) {
-					String str = (String) tokens2.get(i +1).lexeme;
-					str =  str+"#";
-					tokens2.get(i).lexeme = str;
-					tokens2.get(i).literal = str;
-					tokens2.remove(i+1);
-					
+
 				}
 			}
 		}
 
+	}
 
+	private void addHashTagsToIdents(ArrayList<Token> tokens2) {
 
-		
+		for (int i = 0; i < tokens2.size(); i++) {
+			if (i >= 0 && i + 3 < tokens2.size() - 1) {
+				if (tokens2.get(i).type == TokenType.IDENTIFIER && tokens2.get(i + 1).type == TokenType.HASH
+						&& tokens2.get(i + 2).type == TokenType.AT && tokens2.get(i + 3).type == TokenType.IDENTIFIER) {
+					String hash = (String) tokens2.get(i + 1).lexeme;
+					String at = (String) tokens2.get(i + 2).lexeme;
+					String str = tokens2.get(i).lexeme + hash;
+					tokens2.get(i).lexeme = str;
+					tokens2.get(i).reifitnediToken = tokens2.get(i + 3);
+					tokens2.get(i).literal = str;
+					tokens2.remove(i + 1);
+					tokens2.remove(i + 1);
+					tokens2.remove(i + 1);
+
+				} else if (tokens2.get(i).type == TokenType.IDENTIFIER && tokens2.get(i + 1).type == TokenType.AT
+						&& tokens2.get(i + 2).type == TokenType.HASH
+						&& tokens2.get(i + 3).type == TokenType.IDENTIFIER) {
+					String at = (String) tokens2.get(i + 1).lexeme;
+					String hash = (String) tokens2.get(i + 2).lexeme;
+					String str = hash + tokens2.get(i + 3).lexeme;
+					tokens2.get(i + 3).lexeme = str;
+					tokens2.get(i + 3).identifierToken = tokens2.get(i);
+					tokens2.get(i + 3).literal = str;
+					tokens2.remove(i);
+					tokens2.remove(i);
+					tokens2.remove(i);
+
+				} else if (tokens2.get(i).type == TokenType.HASH && tokens2.get(i + 1).type == TokenType.IDENTIFIER) {
+					String str = (String) tokens2.get(i + 1).lexeme;
+					str = "#" + str;
+					tokens2.get(i + 1).lexeme = str;
+					tokens2.get(i + 1).literal = str;
+					tokens2.remove(i);
+
+				} else if (tokens2.get(i).type == TokenType.IDENTIFIER && tokens2.get(i + 1).type == TokenType.HASH) {
+					String str = (String) tokens2.get(i).lexeme;
+					str = str + "#";
+					tokens2.get(i).lexeme = str;
+					tokens2.get(i).literal = str;
+					tokens2.remove(i + 1);
+
+				}
+			} else if (i >= 0 && i + 1 < tokens2.size() - 1) {
+				if (tokens2.get(i).type == TokenType.HASH && tokens2.get(i + 1).type == TokenType.IDENTIFIER) {
+					String str = (String) tokens2.get(i + 1).lexeme;
+					str = "#" + str;
+					tokens2.get(i + 1).lexeme = str;
+					tokens2.get(i + 1).literal = str;
+					tokens2.remove(i);
+
+				} else if (tokens2.get(i).type == TokenType.IDENTIFIER && tokens2.get(i + 1).type == TokenType.HASH) {
+					String str = (String) tokens2.get(i + 1).lexeme;
+					str = str + "#";
+					tokens2.get(i).lexeme = str;
+					tokens2.get(i).literal = str;
+					tokens2.remove(i + 1);
+
+				}
+			}
+		}
+
 	}
 
 	private void renameBoxes(ArrayList<Token> tok) {
@@ -251,12 +278,26 @@ public class Grouper {
 				} else {
 					String reverseReif = reverseTokenLexeme(tok.get(containerIndexes2.getStart()).identifierToken);
 					Token reif = tok.get(containerIndexes2.getStart()).identifierToken;
-					reif.lexeme = reverseReif;
-					reif.column = tok.get(containerIndexes2.getEnd()).column;
-					reif.line = tok.get(containerIndexes2.getEnd()).line;
-					reif.start = tok.get(containerIndexes2.getEnd()).start;
-					reif.finish = tok.get(containerIndexes2.getEnd()).start;
-					tok.get(containerIndexes2.getEnd()).reifitnediToken = reif;
+					Token token = new Token(reif.type, reif.lexeme, reif.literal, reif.literalUnGrouped,
+							reif.literalGroupedBackwards, reif.column, reif.line, reif.start, reif.finish);
+					Token superclass = reif.identifierToken;
+					if (superclass != null) {
+						String reverse = reverse(superclass.lexeme);
+						Token tokenSC = new Token(superclass.type, reverse, reverse, superclass.literalUnGrouped,
+								superclass.literalGroupedBackwards, superclass.column, superclass.line,
+								superclass.start, superclass.finish);
+
+						token.reifitnediToken = tokenSC;
+					}
+					String str = "";
+					str = getTypeForLexeme(open, str);
+					token.lexeme = str+reverseReif;
+					token.literal = str+reverseReif;
+					token.column = tok.get(containerIndexes2.getEnd()).column;
+					token.line = tok.get(containerIndexes2.getEnd()).line;
+					token.start = tok.get(containerIndexes2.getEnd()).start;
+					token.finish = tok.get(containerIndexes2.getEnd()).start;
+					tok.get(containerIndexes2.getEnd()).reifitnediToken = token;
 					tok.get(containerIndexes2.getEnd()).lexeme = tok.get(containerIndexes2.getEnd()).lexeme
 							+ reverseReif;
 				}
@@ -264,12 +305,27 @@ public class Grouper {
 				if (tok.get(containerIndexes2.getEnd()).reifitnediToken != null) {
 					String reverseReif = reverseTokenLexeme(tok.get(containerIndexes2.getEnd()).reifitnediToken);
 					Token ident = tok.get(containerIndexes2.getEnd()).reifitnediToken;
-					ident.lexeme = reverseReif;
-					ident.column = tok.get(containerIndexes2.getStart()).column;
-					ident.line = tok.get(containerIndexes2.getStart()).line;
-					ident.start = tok.get(containerIndexes2.getStart()).start;
-					ident.finish = tok.get(containerIndexes2.getStart()).start;
-					tok.get(containerIndexes2.getStart()).identifierToken = ident;
+					Token token = new Token(ident.type, ident.lexeme, ident.literal, ident.literalUnGrouped,
+							ident.literalGroupedBackwards, ident.column, ident.line, ident.start, ident.finish);
+					Token superclass = ident.identifierToken;
+					if (superclass != null) {
+						String reverse = reverse(superclass.lexeme);
+						Token tokenSC = new Token(superclass.type, reverse, reverse, superclass.literalUnGrouped,
+								superclass.literalGroupedBackwards, superclass.column, superclass.line,
+								superclass.start, superclass.finish);
+
+						token.identifierToken = tokenSC;
+					}
+					String str = "";
+					str = getTypeForLexeme(open, str);
+					
+					token.lexeme = reverseReif+str;
+					token.literal = reverseReif+str;
+					token.column = tok.get(containerIndexes2.getStart()).column;
+					token.line = tok.get(containerIndexes2.getStart()).line;
+					token.start = tok.get(containerIndexes2.getStart()).start;
+					token.finish = tok.get(containerIndexes2.getStart()).start;
+					tok.get(containerIndexes2.getStart()).identifierToken = token;
 					tok.get(containerIndexes2.getStart()).lexeme = reverseReif
 							+ tok.get(containerIndexes2.getStart()).lexeme;
 				} else {
@@ -284,12 +340,26 @@ public class Grouper {
 				} else {
 					String reverseReif = reverseTokenLexeme(tok.get(containerIndexes2.getStart()).identifierToken);
 					Token reif = tok.get(containerIndexes2.getStart()).identifierToken;
-					reif.lexeme = reverseReif;
-					reif.column = tok.get(containerIndexes2.getEnd()).column;
-					reif.line = tok.get(containerIndexes2.getEnd()).line;
-					reif.start = tok.get(containerIndexes2.getEnd()).start;
-					reif.finish = tok.get(containerIndexes2.getEnd()).start;
-					tok.get(containerIndexes2.getEnd()).reifitnediToken = reif;
+					Token token = new Token(reif.type, reif.lexeme, reif.literal, reif.literalUnGrouped,
+							reif.literalGroupedBackwards, reif.column, reif.line, reif.start, reif.finish);
+					Token superclass = reif.identifierToken;
+					if (superclass != null) {
+						String reverse = reverse(superclass.lexeme);
+						Token tokenSC = new Token(superclass.type, reverse, reverse, superclass.literalUnGrouped,
+								superclass.literalGroupedBackwards, superclass.column, superclass.line,
+								superclass.start, superclass.finish);
+
+						token.reifitnediToken = tokenSC;
+					}
+					String str = "";
+					str = getTypeForLexeme(open, str);
+					token.lexeme = str+reverseReif;
+					token.literal = str+reverseReif;
+					token.column = tok.get(containerIndexes2.getEnd()).column;
+					token.line = tok.get(containerIndexes2.getEnd()).line;
+					token.start = tok.get(containerIndexes2.getEnd()).start;
+					token.finish = tok.get(containerIndexes2.getEnd()).start;
+					tok.get(containerIndexes2.getEnd()).reifitnediToken = token;
 					tok.get(containerIndexes2.getEnd()).lexeme = tok.get(containerIndexes2.getEnd()).lexeme
 							+ reverseReif;
 					renameBetweenStartAndEnd(containerIndexes2.getStart(), containerIndexes2.getEnd(), reif.lexeme,
@@ -299,12 +369,26 @@ public class Grouper {
 				if (tok.get(containerIndexes2.getEnd()).reifitnediToken != null) {
 					String reverseReif = reverseTokenLexeme(tok.get(containerIndexes2.getEnd()).reifitnediToken);
 					Token ident = tok.get(containerIndexes2.getEnd()).reifitnediToken;
-					ident.lexeme = reverseReif;
-					ident.column = tok.get(containerIndexes2.getStart()).column;
-					ident.line = tok.get(containerIndexes2.getStart()).line;
-					ident.start = tok.get(containerIndexes2.getStart()).start;
-					ident.finish = tok.get(containerIndexes2.getStart()).start;
-					tok.get(containerIndexes2.getStart()).identifierToken = ident;
+					Token token = new Token(ident.type, ident.lexeme, ident.literal, ident.literalUnGrouped,
+							ident.literalGroupedBackwards, ident.column, ident.line, ident.start, ident.finish);
+					Token superclass = ident.identifierToken;
+					if (superclass != null) {
+						String reverse = reverse(superclass.lexeme);
+						Token tokenSC = new Token(superclass.type, reverse, reverse, superclass.literalUnGrouped,
+								superclass.literalGroupedBackwards, superclass.column, superclass.line,
+								superclass.start, superclass.finish);
+
+						token.identifierToken = tokenSC;
+					}
+					String str = "";
+					str = getTypeForLexeme(open, str);
+					token.lexeme = reverseReif+str;
+					token.literal = reverseReif+str;
+					token.column = tok.get(containerIndexes2.getStart()).column;
+					token.line = tok.get(containerIndexes2.getStart()).line;
+					token.start = tok.get(containerIndexes2.getStart()).start;
+					token.finish = tok.get(containerIndexes2.getStart()).start;
+					tok.get(containerIndexes2.getStart()).identifierToken = token;
 					tok.get(containerIndexes2.getStart()).lexeme = reverseReif
 							+ tok.get(containerIndexes2.getStart()).lexeme;
 					renameBetweenStartAndEnd(containerIndexes2.getStart(), containerIndexes2.getEnd(), ident.lexeme,
@@ -326,12 +410,24 @@ public class Grouper {
 		}
 	}
 
+	private String getTypeForLexeme(TokenType open, String str) {
+		if(open == TokenType.OPENPAREN)
+			str = "(";
+		else if(open == TokenType.OPENBRACE)
+			str ="{";
+		else if(open == TokenType.CLOSEDPAREN)
+			str = ")";
+		else if(open == TokenType.CLOSEDBRACE)
+			str = "}";
+		return str;
+	}
+
 	private void renameBetweenStartAndEnd(int start, int end, String lexeme, ArrayList<Token> tok) {
 		int count = 1;
 		for (int i = start + 1; i < end; i++) {
 			if (tok.get(i).type == TokenType.OPENPAREN) {
 				if (tok.get(i).identifierToken == null) {
-					String lexeme2 = lexeme + "_" + count;
+					String lexeme2 = lexeme + "_" + count+"(";
 					Token ident = new Token(TokenType.IDENTIFIER, lexeme2, null, null, null, -1, -1, -1, -1);
 					ident.column = tok.get(i).column;
 					ident.finish = tok.get(i).start;
@@ -339,11 +435,12 @@ public class Grouper {
 					ident.line = tok.get(i).line;
 					tok.get(i).identifierToken = ident;
 					tok.get(i).lexeme = lexeme2;
+					tok.get(i).literal = lexeme2;
 					count++;
 				}
 			} else if (tok.get(i).type == TokenType.OPENBRACE) {
 				if (tok.get(i).identifierToken == null) {
-					String lexeme2 = lexeme + "_" + count;
+					String lexeme2 = lexeme + "_" + count+"{";
 					Token ident = new Token(TokenType.IDENTIFIER, lexeme2, null, null, null, -1, -1, -1, -1);
 					ident.column = tok.get(i).column;
 					ident.finish = tok.get(i).start;
@@ -351,13 +448,14 @@ public class Grouper {
 					ident.line = tok.get(i).line;
 					tok.get(i).identifierToken = ident;
 					tok.get(i).lexeme = lexeme2;
+					tok.get(i).literal = lexeme2;
 					count++;
 				}
 
 			} else if (tok.get(i).type == TokenType.CLOSEDPAREN) {
 				if (tok.get(i).reifitnediToken == null) {
 					String reverse = reverse(lexeme);
-					String lexeme2 = count + "_" + reverse;
+					String lexeme2 = ")"+count + "_" + reverse;
 					Token ident = new Token(TokenType.IDENTIFIER, lexeme2, null, null, null, -1, -1, -1, -1);
 					ident.column = tok.get(i).column;
 					ident.finish = tok.get(i).start;
@@ -365,13 +463,14 @@ public class Grouper {
 					ident.line = tok.get(i).line;
 					tok.get(i).reifitnediToken = ident;
 					tok.get(i).lexeme = lexeme2;
+					tok.get(i).literal = lexeme2;
 					count++;
 				}
 
 			} else if (tok.get(i).type == TokenType.CLOSEDBRACE) {
 				if (tok.get(i).reifitnediToken == null) {
 					String reverse = reverse(lexeme);
-					String lexeme2 = count + "_" + reverse;
+					String lexeme2 = "}"+count + "_" + reverse;
 					Token ident = new Token(TokenType.IDENTIFIER, lexeme2, null, null, null, -1, -1, -1, -1);
 					ident.column = tok.get(i).column;
 					ident.finish = tok.get(i).start;
@@ -379,6 +478,7 @@ public class Grouper {
 					ident.line = tok.get(i).line;
 					tok.get(i).reifitnediToken = ident;
 					tok.get(i).lexeme = lexeme2;
+					tok.get(i).literal = lexeme2;
 					count++;
 				}
 

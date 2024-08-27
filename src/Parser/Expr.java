@@ -203,6 +203,18 @@ public static class Template extends Expr {
 
 	public  Expr container;
 	}
+public static class Link extends Expr {
+	 public Link(Expr container) {
+	this.container = container;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitLinkExpr(this);
+	}
+
+	public  Expr container;
+	}
 public static class Pocket extends Expr {
 	 public Pocket(Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi) {
 	this.identifier = identifier;
@@ -288,6 +300,78 @@ public static class Literal extends Expr {
 	}
 
 	public  Object value;
+	}
+public static class PocketOpen extends Expr {
+	 public PocketOpen(Token ctrl) {
+	this.ctrl = ctrl;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPocketOpenExpr(this);
+	}
+
+	public  Token ctrl;
+	}
+public static class PocketClosed extends Expr {
+	 public PocketClosed(Token ctrl) {
+	this.ctrl = ctrl;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPocketClosedExpr(this);
+	}
+
+	public  Token ctrl;
+	}
+public static class CupOpen extends Expr {
+	 public CupOpen(Token ctrl) {
+	this.ctrl = ctrl;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitCupOpenExpr(this);
+	}
+
+	public  Token ctrl;
+	}
+public static class CupClosed extends Expr {
+	 public CupClosed(Token ctrl) {
+	this.ctrl = ctrl;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitCupClosedExpr(this);
+	}
+
+	public  Token ctrl;
+	}
+public static class BoxOpen extends Expr {
+	 public BoxOpen(Token ctrl) {
+	this.ctrl = ctrl;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitBoxOpenExpr(this);
+	}
+
+	public  Token ctrl;
+	}
+public static class BoxClosed extends Expr {
+	 public BoxClosed(Token ctrl) {
+	this.ctrl = ctrl;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitBoxClosedExpr(this);
+	}
+
+	public  Token ctrl;
 	}
 public static class Tonk extends Expr {
 	 public Tonk(Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi) {

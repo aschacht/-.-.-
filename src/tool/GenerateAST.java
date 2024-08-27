@@ -29,13 +29,21 @@ public class GenerateAST {
 
 				"Cup 			: Token identifier , List<Declaration> expression , String lexeme, Token reifitnedi",
 				"Template 		: Expr container",
+				"Link			: Expr container",
 				"Pocket 		: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
 				"Box 			: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
-
+				
+				
 				"Swap			: Expr swap1 , Expr Swap2",
 				"Variable 		: Token name",
 				"LiteralChar	: char value",
 				"Literal		: Object value",
+				"PocketOpen		: Token ctrl",
+				"PocketClosed	: Token ctrl",
+				"CupOpen		: Token ctrl",
+				"CupClosed		: Token ctrl",
+				"BoxOpen		: Token ctrl",
+				"BoxClosed		: Token ctrl",
 
 				"Tonk 			: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
 				"Tes 			: Expr object, Token name, Expr value",
@@ -53,32 +61,33 @@ public class GenerateAST {
 		List<String> stmtDefintion = Arrays.asList(
 				"Expression : Expr expression ",
 
-				"If			: Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup",
-				"Print		: Token keyword , Expr expression", 
-				"Save		: Token keyword , Expr filePathFileName , Expr objecttosave",
-				"Read		: Token keyword , Expr filePath , Expr objectToReadInto",
-				"Rename		: Token keyword , Expr filePathAndName , Expr filenewname",
-				"Move		: Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
-				"Return 	: Token keyword , Expr expression",
-				"Var 		: Token name , Token type, int num , Stmt initilizer",
+				"If				: Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup",
+				"Print			: Token keyword , Expr expression", 
+				"Save			: Token keyword , Expr filePathFileName , Expr objecttosave",
+				"Read			: Token keyword , Expr filePath , Expr objectToReadInto",
+				"Rename			: Token keyword , Expr filePathAndName , Expr filenewname",
+				"Move			: Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
+				"Return 		: Token keyword , Expr expression",
+				"Var 			: Token name , Token type, int num , Stmt initilizer",
 
-				"TemplatVar	: Token name, Token superclass",
-				"Expel		: Token keyword , Expr toExpell , Expr filePath",
-				"Ifi		: Expr ifPocket , Stmt elseIf",
-				"Consume	: Token keyword , Expr boxToFill , Expr filePath",
+				"TemplatVar		: Token name, Token superclass",
+				"Expel			: Token keyword , Expr toExpell , Expr filePath",
+				"Ifi			: Expr ifPocket , Stmt elseIf",
+				"Consume		: Token keyword , Expr boxToFill , Expr filePath",
 				
 				
-				"Rav 		: Token name , Token type, int num , Stmt initilizer",
-				"Nruter 	: Token keyword , Expr expression",
-				"Evom		: Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
-				"Emaner		: Token keyword , Expr filePathAndName , Expr filenewname",
-				"Daer		: Token keyword , Expr filePath , Expr objectToReadInto",
-				"Evas		: Token keyword , Expr filePathFileName , Expr objecttosave",
-				"Tnirp		: Token keyword , Expr expression",
-				"Fi			: Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup"
+				"Rav 			: Token name , Token type, int num , Stmt initilizer",
+				"Nruter 		: Token keyword , Expr expression",
+				"Evom			: Token keyword , Expr OringialfilePathAndFile , Expr newfilePath",
+				"Emaner			: Token keyword , Expr filePathAndName , Expr filenewname",
+				"Daer			: Token keyword , Expr filePath , Expr objectToReadInto",
+				"Evas			: Token keyword , Expr filePathFileName , Expr objecttosave",
+				"Tnirp			: Token keyword , Expr expression",
+				"Fi				: Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup"
 				);
 		List<String> funDefintion = Arrays.asList(
-				"Function : Token forwardIdentifier , ArrayList<Token> forwardPrametersType , ArrayList<Token> forwardPrametersNames , Expr sharedCupOrPocketOrKnot , ArrayList<Token> backwardPrametersType , ArrayList<Token> backwardPrametersNames , Token backwardIdentifier");
+				"Function 		: Token forwardIdentifier , ArrayList<Token> forwardPrametersType , ArrayList<Token> forwardPrametersNames , Expr sharedCup , ArrayList<Token> backwardPrametersType , ArrayList<Token> backwardPrametersNames , Token backwardIdentifier",
+				"FunctionLink 	: Token forwardIdentifier , ArrayList<Token> forwardPrametersType , ArrayList<Token> forwardPrametersNames , ArrayList<Token> backwardPrametersType , ArrayList<Token> backwardPrametersNames , Token backwardIdentifier ");
 		List<String> seclarationDefintion = Arrays.asList("FunDecl : Fun function", "StmtDecl : Stmt statement");
 		defineCombinedAST(
 				outputDir + "/",

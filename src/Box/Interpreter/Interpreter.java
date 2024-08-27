@@ -21,14 +21,19 @@ import Parser.Declaration.FunDecl;
 import Parser.Declaration.StmtDecl;
 import Parser.Expr.Assignment;
 import Parser.Expr.Binary;
+import Parser.Expr.BoxClosed;
+import Parser.Expr.BoxOpen;
 import Parser.Expr.Call;
 import Parser.Expr.Contains;
 import Parser.Expr.Cup;
+import Parser.Expr.CupClosed;
+import Parser.Expr.CupOpen;
 import Parser.Expr.Factorial;
 import Parser.Expr.Get;
 import Parser.Expr.Gol;
 import Parser.Expr.Knot;
 import Parser.Expr.Lairotcaf;
+import Parser.Expr.Link;
 import Parser.Expr.Literal;
 import Parser.Expr.LiteralChar;
 import Parser.Expr.Llac;
@@ -36,6 +41,8 @@ import Parser.Expr.Log;
 import Parser.Expr.Mono;
 import Parser.Expr.Onom;
 import Parser.Expr.Pocket;
+import Parser.Expr.PocketClosed;
+import Parser.Expr.PocketOpen;
 import Parser.Expr.Set;
 import Parser.Expr.Sniatnoc;
 import Parser.Expr.Swap;
@@ -49,6 +56,7 @@ import Parser.Expr.Variable;
 import Parser.Expr.Yranib;
 import Parser.Expr.Yranu;
 import Parser.Fun.Function;
+import Parser.Fun.FunctionLink;
 import Parser.Stmt.Consume;
 import Parser.Stmt.Daer;
 import Parser.Stmt.Emaner;
@@ -97,7 +105,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Map<Expr, Integer> locals = new HashMap<>();
 	private boolean fromCall = false;
 	private boolean forward;
-	private boolean backward;
 	HashMap<String, String> nameMap = new HashMap<>();
 	HashMap<String, String> classMapToSuperClass = new HashMap<>();
 
@@ -126,32 +133,46 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
-	public void interpret(List<List<Declaration>> statements2) {
+	public boolean isForward() {
+		return forward;
+	}
+
+	public void interpret(List<Declaration> statements2) {
 		try {
-			for (List<Declaration> statements : statements2) {
 
-				for (Declaration stmt : statements) {
-					execute(stmt);
-				}
-
+			for (int i = forward ? 0 : statements2.size() - 1; i >= 0 && i < statements2.size();) {
+				execute(statements2.get(i));
+				if (forward)
+					i++;
+				else
+					i--;
 			}
+
 		} catch (RuntimeError e) {
 			Box.runtimeError(e);
 		}
 
 	}
 
-	private void execute(Stmt stmt) {
+	void execute(Stmt stmt) {
 		stmt.accept(this);
 	}
 
-	private void execute(Declaration stmt) {
+	void execute(Declaration stmt) {
 		stmt.accept(this);
 
 	}
 
-	private Object evaluate(Expr expression) {
+	Object evaluate(Expr expression) {
 		return expression.accept(this);
+	}
+
+	public Object evaluate(Stmt stmt) {
+		if (stmt instanceof Stmt.Expression) {
+			return ((Stmt.Expression) stmt).expression.accept(this);
+		}
+		return null;
+
 	}
 
 	private String stringify(Object object) {
@@ -269,15 +290,16 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Void visitPrintStmt(Print stmt) {
-
-		Object value = evaluate(stmt.expression);
-		System.out.println(stringify(value));
-
+		if (forward) {
+			Object value = evaluate(stmt.expression);
+			System.out.println(stringify(value));
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitBinaryExpr(Binary expr) {
+
 		Object left = evaluate(expr.left);
 		Object right = evaluate(expr.right);
 
@@ -343,24 +365,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Boolean && theRight instanceof Boolean) {
 			return (boolean) theLeft || (boolean) theRight;
 		} else if (binExpr != null)
@@ -378,24 +396,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Boolean && theRight instanceof Boolean) {
 			return (boolean) theLeft && (boolean) theRight;
 		} else if (binExpr != null)
@@ -413,24 +427,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			Double remainder = (Double) theLeft;
@@ -586,24 +596,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			double power = 1;
@@ -677,24 +683,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft * (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -727,24 +729,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft / (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -779,24 +777,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft - (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -830,24 +824,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft + (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -908,24 +898,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft > (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -959,24 +945,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft >= (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -1010,24 +992,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft < (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -1061,24 +1039,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft <= (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -1112,24 +1086,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft - (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -1163,24 +1133,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr instanceof Expr.Yranib)
 			yraExpr = (Expr.Yranib) expr;
 
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		}
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
 		Object theLeft = left;
 		Object theRight = right;
-		if (left instanceof ArrayList) {
-			if (((ArrayList<?>) left).size() > 0) {
-				if (((ArrayList<?>) left).get(0) instanceof ArrayList) {
-					theLeft = findRoot(((ArrayList<?>) left).get(0));
-				}
-
-			}
-		}
-		if (right instanceof ArrayList) {
-			if (((ArrayList<?>) right).size() > 0) {
-				if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-					theRight = findRoot(((ArrayList<?>) right).get(0));
-				}
-
-			}
-		}
 		if (theLeft instanceof Double && theRight instanceof Double) {
 			return (double) theLeft + (double) theRight;
 		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
@@ -1307,141 +1273,149 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitUnaryExpr(Unary expr) {
-		Object right = evaluate(expr.right);
+		if (forward) {
+			Object right = evaluate(expr.right);
 
-		switch (expr.operator.type) {
-		case QMARK:
-			return !isTruthy(right);
-		case MINUS:
-			if (right instanceof Double)
-				return -(double) right;
-			if (right instanceof Integer)
-				return -(int) right;
-
-			if (right instanceof Bin)
-				return ((Bin) right).negate();
-			if (right instanceof ArrayList) {
-
-				return findRootForMinus(right);
-
-			}
-			throw new RuntimeError(expr.operator, "Operand must be a number.");
-
-		case PLUSPLUS:
-			if (right instanceof Double) {
-				Integer distance = locals.get(expr.right);
-				double value = (double) right + 1.0;
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null) {
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
-								value, this);
-					} else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+			if (right instanceof Stmt.Expression) {
+				Expr expression = ((Stmt.Expression) right).expression;
+				if (expression instanceof Expr.Literal) {
+					right = ((Expr.Literal) expression).value;
 				}
-
-				return (double) right + 1.0;
 			}
-			if (right instanceof Integer) {
-				Integer distance = locals.get(expr.right);
-				int value = (int) right + 1;
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
-								value, this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+			switch (expr.operator.type) {
+			case QMARK:
+				return !isTruthy(right);
+			case MINUS:
+				if (right instanceof Double)
+					return -(double) right;
+				if (right instanceof Integer)
+					return -(int) right;
+
+				if (right instanceof Bin)
+					return ((Bin) right).negate();
+				if (right instanceof ArrayList) {
+
+					return findRootForMinus(right);
+
 				}
+				throw new RuntimeError(expr.operator, "Operand must be a number.");
 
-				return value;
-			}
-			if (right instanceof Bin) {
-				Integer distance = locals.get(expr.right);
-				Bin value = Bin.add((Bin) right, new Bin("1"));
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-								this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+			case PLUSPLUS:
+				if (right instanceof Double) {
+					Integer distance = locals.get(expr.right);
+					double value = (double) right + 1.0;
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null) {
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
+									value, this);
+						} else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
+
+					return (double) right + 1.0;
 				}
+				if (right instanceof Integer) {
+					Integer distance = locals.get(expr.right);
+					int value = (int) right + 1;
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
+									value, this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return value;
-			}
-			if (right instanceof ArrayList) {
-				Object findRootForPlusPlus = findRootForPlusPlus(right);
-				Integer distance = locals.get(expr.right);
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
-								new Expr.Literal(findRootForPlusPlus), findRootForPlusPlus, this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
-								findRootForPlusPlus, this);
+					return value;
 				}
+				if (right instanceof Bin) {
+					Integer distance = locals.get(expr.right);
+					Bin value = Bin.add((Bin) right, new Bin("1"));
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+									this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return findRootForPlusPlus;
-
-			}
-			throw new RuntimeError(expr.operator, "Operand must be a number.");
-		case MINUSMINUS:
-			if (right instanceof Double) {
-				Integer distance = locals.get(expr.right);
-				double value = (double) right - 1.0;
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-								this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					return value;
 				}
+				if (right instanceof ArrayList) {
+					Object findRootForPlusPlus = findRootForPlusPlus(right);
+					Integer distance = locals.get(expr.right);
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name,
+									new Expr.Literal(findRootForPlusPlus), findRootForPlusPlus, this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
+									findRootForPlusPlus, this);
+					}
 
-				return value;
-			}
-			if (right instanceof Integer) {
-				Integer distance = locals.get(expr.right);
-				int value = (int) right - 1;
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-								this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					return findRootForPlusPlus;
+
 				}
+				throw new RuntimeError(expr.operator, "Operand must be a number.");
+			case MINUSMINUS:
+				if (right instanceof Double) {
+					Integer distance = locals.get(expr.right);
+					double value = (double) right - 1.0;
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+									this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return value;
-			}
-			if (right instanceof Bin) {
-				Integer distance = locals.get(expr.right);
-				Bin value = Bin.subtract((Bin) right, new Bin("1"));
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-								this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					return value;
 				}
+				if (right instanceof Integer) {
+					Integer distance = locals.get(expr.right);
+					int value = (int) right - 1;
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+									this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return value;
-			}
-			if (right instanceof ArrayList) {
-				Object findRootForMinusMinus = findRootForMinusMinus(right);
-				Integer distance = locals.get(expr.right);
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
-								new Literal(findRootForMinusMinus), findRootForMinusMinus, this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(findRootForMinusMinus),
-								findRootForMinusMinus, this);
+					return value;
 				}
+				if (right instanceof Bin) {
+					Integer distance = locals.get(expr.right);
+					Bin value = Bin.subtract((Bin) right, new Bin("1"));
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+									this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return findRootForMinusMinus;
+					return value;
+				}
+				if (right instanceof ArrayList) {
+					Object findRootForMinusMinus = findRootForMinusMinus(right);
+					Integer distance = locals.get(expr.right);
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name,
+									new Literal(findRootForMinusMinus), findRootForMinusMinus, this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(findRootForMinusMinus),
+									findRootForMinusMinus, this);
+					}
+
+					return findRootForMinusMinus;
+				}
+				throw new RuntimeError(expr.operator, "Operand must be a number.");
+			default:
+				return null;
 			}
-			throw new RuntimeError(expr.operator, "Operand must be a number.");
-		default:
-			return null;
 		}
-
+		return null;
 	}
 
 	private Object findRootForMinus(Object right) {
@@ -1510,220 +1484,214 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitYranuExpr(Yranu expr) {
-		Object right = evaluate(expr.right);
+		if (!forward) {
+			Object right = evaluate(expr.right);
 
-		switch (expr.operator.type) {
-		case QMARK:
-			return !isTruthy(right);
-		case MINUS:
-			if (right instanceof Double)
-				return -(double) right;
-			if (right instanceof Integer)
-				return -(int) right;
+			switch (expr.operator.type) {
+			case QMARK:
+				return !isTruthy(right);
+			case MINUS:
+				if (right instanceof Double)
+					return -(double) right;
+				if (right instanceof Integer)
+					return -(int) right;
 
-			if (right instanceof Bin)
-				return ((Bin) right).negate();
-			if (right instanceof ArrayList) {
+				if (right instanceof Bin)
+					return ((Bin) right).negate();
+				if (right instanceof ArrayList) {
 
-				return findRootForMinus(right);
-			}
-
-			throw new RuntimeError(expr.operator, "Operand must be a number.");
-
-		case PLUSPLUS:
-			if (right instanceof Double) {
-				Integer distance = locals.get(expr.right);
-				double value = (double) right + 1.0;
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null) {
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
-								value, this);
-					} else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					return findRootForMinus(right);
 				}
 
-				return (double) right + 1.0;
-			}
-			if (right instanceof Integer) {
-				Integer distance = locals.get(expr.right);
-				int value = (int) right + 1;
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
-								value, this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+				throw new RuntimeError(expr.operator, "Operand must be a number.");
+
+			case PLUSPLUS:
+				if (right instanceof Double) {
+					Integer distance = locals.get(expr.right);
+					double value = (double) right + 1.0;
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null) {
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
+									value, this);
+						} else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
+
+					return (double) right + 1.0;
 				}
+				if (right instanceof Integer) {
+					Integer distance = locals.get(expr.right);
+					int value = (int) right + 1;
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
+									value, this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return value;
-			}
-			if (right instanceof Bin) {
-				Integer distance = locals.get(expr.right);
-				Bin value = Bin.add((Bin) right, new Bin("1"));
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-								this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					return value;
 				}
+				if (right instanceof Bin) {
+					Integer distance = locals.get(expr.right);
+					Bin value = Bin.add((Bin) right, new Bin("1"));
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+									this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return value;
-			}
-			if (right instanceof ArrayList) {
-				Object findRootForPlusPlus = findRootForPlusPlus(right);
-				Integer distance = locals.get(expr.right);
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
-								new Expr.Literal(findRootForPlusPlus), findRootForPlusPlus, this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
-								findRootForPlusPlus, this);
+					return value;
 				}
+				if (right instanceof ArrayList) {
+					Object findRootForPlusPlus = findRootForPlusPlus(right);
+					Integer distance = locals.get(expr.right);
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name,
+									new Expr.Literal(findRootForPlusPlus), findRootForPlusPlus, this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
+									findRootForPlusPlus, this);
+					}
 
-				return findRootForPlusPlus;
+					return findRootForPlusPlus;
 
-			}
-			throw new RuntimeError(expr.operator, "Operand must be a number.");
-		case MINUSMINUS:
-			if (right instanceof Double) {
-				Integer distance = locals.get(expr.right);
-				double value = (double) right - 1.0;
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-								this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
+				throw new RuntimeError(expr.operator, "Operand must be a number.");
+			case MINUSMINUS:
+				if (right instanceof Double) {
+					Integer distance = locals.get(expr.right);
+					double value = (double) right - 1.0;
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+									this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return value;
-			}
-			if (right instanceof Integer) {
-				Integer distance = locals.get(expr.right);
-				int value = (int) right - 1;
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-								this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					return value;
 				}
+				if (right instanceof Integer) {
+					Integer distance = locals.get(expr.right);
+					int value = (int) right - 1;
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+									this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return value;
-			}
-			if (right instanceof Bin) {
-				Integer distance = locals.get(expr.right);
-				Bin value = Bin.subtract((Bin) right, new Bin("1"));
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-								this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					return value;
 				}
+				if (right instanceof Bin) {
+					Integer distance = locals.get(expr.right);
+					Bin value = Bin.subtract((Bin) right, new Bin("1"));
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+									this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
+					}
 
-				return value;
-			}
-			if (right instanceof ArrayList) {
-				Object findRootForMinusMinus = findRootForMinusMinus(right);
-				Integer distance = locals.get(expr.right);
-				if (expr.right instanceof Expr.Variable) {
-					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
-								new Literal(findRootForMinusMinus), findRootForMinusMinus, this);
-					else
-						globals.assign(((Expr.Variable) expr.right).name, new Literal(findRootForMinusMinus),
-								findRootForMinusMinus, this);
+					return value;
 				}
+				if (right instanceof ArrayList) {
+					Object findRootForMinusMinus = findRootForMinusMinus(right);
+					Integer distance = locals.get(expr.right);
+					if (expr.right instanceof Expr.Variable) {
+						if (distance != null)
+							environment.assignAt(distance, ((Expr.Variable) expr.right).name,
+									new Literal(findRootForMinusMinus), findRootForMinusMinus, this);
+						else
+							globals.assign(((Expr.Variable) expr.right).name, new Literal(findRootForMinusMinus),
+									findRootForMinusMinus, this);
+					}
 
-				return findRootForMinusMinus;
+					return findRootForMinusMinus;
+				}
+				throw new RuntimeError(expr.operator, "Operand must be a number.");
+			default:
+				return null;
 			}
-			throw new RuntimeError(expr.operator, "Operand must be a number.");
-		default:
-			return null;
 		}
+		return null;
 
-	}
-
-	public void executeBlock(List<Stmt> statements, Environment env) {
-		Environment previous = this.environment;
-		try {
-			this.environment = env;
-
-			for (Stmt stmt : statements) {
-				execute(stmt);
-			}
-		} finally {
-			this.environment = previous;
-		}
 	}
 
 	@Override
 	public Void visitReturnStmt(Stmt.Return stmt) {
-		Object value = null;
-		if (stmt.expression != null)
-			value = evaluate(stmt.expression);
-		throw new Returns(value);
+		if (forward) {
+			Object value = null;
+			if (stmt.expression != null)
+				value = evaluate(stmt.expression);
+			throw new Returns(value);
+		}
+		return null;
 	}
 
 	@Override
 	public Object visitContainsExpr(Contains expr) {
+		if (forward) {
+			if (expr.container instanceof Expr.Variable) {
+				Object lookUpVariable = lookUpVariable(((Expr.Variable) expr.container).name, expr.container);
+				BoxInstance lookUpContainer = (BoxInstance) lookUpVariable;
+				System.out.println("hey");
+				if (expr.contents instanceof Expr.Variable) {
+					BoxInstance lookUpContents = (BoxInstance) lookUpVariable(((Expr.Variable) expr.contents).name,
+							expr.contents);
+					System.out.println("hi");
+					boolean contains = lookUpContainer.contains(lookUpContents);
+					if (contains) {
+						System.out.println("hey");
+					}
+				} else if (expr.contents instanceof Expr.Literal) {
 
-		if (expr.container instanceof Expr.Variable) {
-			Object lookUpVariable = lookUpVariable(((Expr.Variable) expr.container).name, expr.container);
-			BoxInstance lookUpContainer = (BoxInstance) lookUpVariable;
-			System.out.println("hey");
-			if (expr.contents instanceof Expr.Variable) {
-				BoxInstance lookUpContents = (BoxInstance) lookUpVariable(((Expr.Variable) expr.contents).name,
-						expr.contents);
-				System.out.println("hi");
-				boolean contains = lookUpContainer.contains(lookUpContents);
-				if (contains) {
-					System.out.println("hey");
-				}
-			} else if (expr.contents instanceof Expr.Literal) {
+					boolean contains = lookUpContainer.contains((Expr.Literal) expr.contents);
+					if (contains) {
+						System.out.println("hey");
+					}
+				} else if (expr.contents instanceof Expr.LiteralChar) {
 
-				boolean contains = lookUpContainer.contains((Expr.Literal) expr.contents);
-				if (contains) {
-					System.out.println("hey");
-				}
-			} else if (expr.contents instanceof Expr.LiteralChar) {
+					boolean contains = lookUpContainer.contains((Expr.LiteralChar) expr.contents);
+					if (contains) {
+						System.out.println("hey");
+					}
+				} else if (expr.contents instanceof Expr.Box) {
 
-				boolean contains = lookUpContainer.contains((Expr.LiteralChar) expr.contents);
-				if (contains) {
-					System.out.println("hey");
-				}
-			} else if (expr.contents instanceof Expr.Box) {
+					boolean contains = lookUpContainer.contains((Expr.Box) expr.contents);
+					if (contains) {
+						System.out.println("hey");
+					}
+				} else if (expr.contents instanceof Expr.Pocket) {
 
-				boolean contains = lookUpContainer.contains((Expr.Box) expr.contents);
-				if (contains) {
-					System.out.println("hey");
-				}
-			} else if (expr.contents instanceof Expr.Pocket) {
+					boolean contains = lookUpContainer.contains((Expr.Pocket) expr.contents);
+					if (contains) {
+						System.out.println("hey");
+					}
+				} else if (expr.contents instanceof Expr.Cup) {
 
-				boolean contains = lookUpContainer.contains((Expr.Pocket) expr.contents);
-				if (contains) {
-					System.out.println("hey");
-				}
-			} else if (expr.contents instanceof Expr.Cup) {
+					boolean contains = lookUpContainer.contains((Expr.Cup) expr.contents);
+					if (contains) {
+						System.out.println("hey");
+					}
+				} else if (expr.contents instanceof Expr.Knot) {
 
-				boolean contains = lookUpContainer.contains((Expr.Cup) expr.contents);
-				if (contains) {
-					System.out.println("hey");
-				}
-			} else if (expr.contents instanceof Expr.Knot) {
+					boolean contains = lookUpContainer.contains((Expr.Knot) expr.contents);
+					if (contains) {
+						System.out.println("hey");
+					}
+				} else if (expr.contents instanceof Expr.Tonk) {
 
-				boolean contains = lookUpContainer.contains((Expr.Knot) expr.contents);
-				if (contains) {
-					System.out.println("hey");
-				}
-			} else if (expr.contents instanceof Expr.Tonk) {
-
-				boolean contains = lookUpContainer.contains((Expr.Tonk) expr.contents);
-				if (contains) {
-					System.out.println("hey");
+					boolean contains = lookUpContainer.contains((Expr.Tonk) expr.contents);
+					if (contains) {
+						System.out.println("hey");
+					}
 				}
 			}
 		}
@@ -1741,54 +1709,60 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitMonoExpr(Mono expr) {
-		Double result = 0.0;
-		Object evaluate = evaluate(expr.value);
-		Double evaluateDouble = 0.0;
-		if (evaluate instanceof Integer) {
-			evaluateDouble = Double.valueOf(Integer.toString((Integer) evaluate));
-		} else if (evaluate instanceof Double) {
-			evaluateDouble = (Double) evaluate;
-		} else if (evaluate instanceof Bin) {
-			evaluateDouble = ((Bin) evaluate).toDouble();
+		if (forward) {
+			Double result = 0.0;
+			Object evaluate = evaluate(expr.value);
+			Double evaluateDouble = 0.0;
+			if (evaluate instanceof Integer) {
+				evaluateDouble = Double.valueOf(Integer.toString((Integer) evaluate));
+			} else if (evaluate instanceof Double) {
+				evaluateDouble = (Double) evaluate;
+			} else if (evaluate instanceof Bin) {
+				evaluateDouble = ((Bin) evaluate).toDouble();
 
+			}
+
+			switch (expr.operator.type) {
+			case SIN:
+				result = Math.sin(evaluateDouble);
+				break;
+			case COS:
+				result = Math.cos(evaluateDouble);
+				break;
+			case TAN:
+				result = Math.tan(evaluateDouble);
+				break;
+
+			case SINH:
+				result = Math.sinh(evaluateDouble);
+				break;
+
+			case COSH:
+				result = Math.cosh(evaluateDouble);
+				break;
+
+			case TANH:
+				result = Math.tanh(evaluateDouble);
+				break;
+
+			default:
+				break;
+			}
+
+			return result;
 		}
-
-		switch (expr.operator.type) {
-		case SIN:
-			result = Math.sin(evaluateDouble);
-			break;
-		case COS:
-			result = Math.cos(evaluateDouble);
-			break;
-		case TAN:
-			result = Math.tan(evaluateDouble);
-			break;
-
-		case SINH:
-			result = Math.sinh(evaluateDouble);
-			break;
-
-		case COSH:
-			result = Math.cosh(evaluateDouble);
-			break;
-
-		case TANH:
-			result = Math.tanh(evaluateDouble);
-			break;
-
-		default:
-			break;
-		}
-
-		return result;
+		return null;
 	}
 
 	@Override
 	public Object visitLogExpr(Log expr) {
-		Double evaluateDoubleValue = findDoubleValue(expr.value) - 1;
-		Double evaluateDoubleValueBase = findDoubleValue(expr.valueBase) - 1;
+		if (forward) {
+			Double evaluateDoubleValue = findDoubleValue(expr.value) - 1;
+			Double evaluateDoubleValueBase = findDoubleValue(expr.valueBase) - 1;
 
-		return Math.log1p(evaluateDoubleValue) / Math.log1p(evaluateDoubleValueBase);
+			return Math.log1p(evaluateDoubleValue) / Math.log1p(evaluateDoubleValueBase);
+		}
+		return null;
 	}
 
 	private Double findDoubleValue(Expr value) {
@@ -1807,33 +1781,36 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitFactorialExpr(Factorial expr) {
-		Object evaluate = evaluate(expr.value);
-		Double evaluateDouble = 0.0;
-		Integer evaluateInteger = 0;
-		if (evaluate instanceof Integer) {
-			evaluateInteger = (Integer) evaluate;
+		if (forward) {
+			Object evaluate = evaluate(expr.value);
+			Double evaluateDouble = 0.0;
+			Integer evaluateInteger = 0;
+			if (evaluate instanceof Integer) {
+				evaluateInteger = (Integer) evaluate;
 
-			int i, fact = 1;
-			for (i = 1; i <= evaluateInteger; i++) {
-				fact = fact * i;
-			}
-			return fact;
-		} else if (evaluate instanceof Double) {
-			evaluateDouble = (Double) evaluate;
-			Double nfactorial = factorial(evaluateDouble);
+				int i, fact = 1;
+				for (i = 1; i <= evaluateInteger; i++) {
+					fact = fact * i;
+				}
+				return fact;
+			} else if (evaluate instanceof Double) {
+				evaluateDouble = (Double) evaluate;
+				Double nfactorial = factorial(evaluateDouble);
 
-			return nfactorial;
-		} else if (evaluate instanceof Bin) {
-			evaluateInteger = ((Bin) evaluate).toInteger();
-			int i;
-			int fact = 1;
-			for (i = 1; i <= evaluateInteger; i++) {
-				fact = fact * i;
+				return nfactorial;
+			} else if (evaluate instanceof Bin) {
+				evaluateInteger = ((Bin) evaluate).toInteger();
+				int i;
+				int fact = 1;
+				for (i = 1; i <= evaluateInteger; i++) {
+					fact = fact * i;
+				}
+				return fact;
 			}
-			return fact;
+
+			return -1;
 		}
-
-		return -1;
+		return null;
 	}
 
 	private double factorial(Double evaluateDouble) {
@@ -1861,370 +1838,404 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Void visitRenameStmt(Rename stmt) {
-		File file = new File((String) evaluate(stmt.filePathAndName));
+		if (forward) {
+			File file = new File((String) evaluate(stmt.filePathAndName));
 
-		if (file.renameTo(new File((String) evaluate(stmt.filenewname)))) {
-			System.out.println("File Renamed successfully");
-		} else {
-			System.out.println("Failed to Rename the file");
+			if (file.renameTo(new File((String) evaluate(stmt.filenewname)))) {
+				System.out.println("File Renamed successfully");
+			} else {
+				System.out.println("Failed to Rename the file");
+			}
 		}
 		return null;
 	}
 
 	@Override
 	public Void visitMoveStmt(Move stmt) {
+		if (forward) {
+			File file = new File((String) evaluate(stmt.OringialfilePathAndFile));
 
-		File file = new File((String) evaluate(stmt.OringialfilePathAndFile));
-
-		if (file.renameTo(new File((String) evaluate(stmt.newfilePath)))) {
-			file.delete();
-			System.out.println("File moved successfully");
-		} else {
-			System.out.println("Failed to move the file");
+			if (file.renameTo(new File((String) evaluate(stmt.newfilePath)))) {
+				file.delete();
+				System.out.println("File moved successfully");
+			} else {
+				System.out.println("Failed to move the file");
+			}
 		}
 		return null;
 	}
 
 	@Override
 	public Void visitTnirpStmt(Tnirp stmt) {
-		Object value = evaluate(stmt.expression);
-		System.out.println(stringify(value));
+		if (!forward) {
+			Object value = evaluate(stmt.expression);
+			System.out.println(stringify(value));
+		}
 		return null;
 	}
 
 	@Override
 	public Void visitNruterStmt(Nruter stmt) {
-		Object value = null;
-		if (stmt.expression != null)
-			value = evaluate(stmt.expression);
-		throw new Snruter(value);
+		if (!forward) {
+			Object value = null;
+			if (stmt.expression != null)
+				value = evaluate(stmt.expression);
+			throw new Snruter(value);
+		}
+		return null;
 	}
 
 	@Override
 	public Void visitEvasStmt(Evas stmt) {
-		try {
-			String filePathAndName = (String) evaluate(stmt.filePathFileName);
-			String[] split = filePathAndName.split("/");
-			String folderPath = "";
-			if (split[split.length - 1].contains(".")) {
-				for (int i = 0; i < split.length - 1; i++) {
-					folderPath += split[i] + "/";
+		if (!forward) {
+			try {
+				String filePathAndName = (String) evaluate(stmt.filePathFileName);
+				String[] split = filePathAndName.split("/");
+				String folderPath = "";
+				if (split[split.length - 1].contains(".")) {
+					for (int i = 0; i < split.length - 1; i++) {
+						folderPath += split[i] + "/";
+					}
+				} else {
+					for (int i = 0; i < split.length; i++) {
+						folderPath += split[i] + "/";
+					}
 				}
-			} else {
-				for (int i = 0; i < split.length; i++) {
-					folderPath += split[i] + "/";
+				folderPath = folderPath.substring(0, folderPath.length() - 1);
+				File myObj = new File(filePathAndName);
+				File myObjFolderPath = new File(folderPath);
+				myObjFolderPath.mkdir();
+
+				if (myObj.createNewFile()) {
+					evaluate(stmt.objecttosave);
+					String str = "";
+					if (stmt.objecttosave instanceof Expr.Box) {
+						Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
+								((Expr.Box) stmt.objecttosave));
+						str = boxInstance.toString();
+
+					} else if (stmt.objecttosave instanceof Expr.Cup) {
+						Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
+								((Expr.Cup) stmt.objecttosave));
+						str = cupInstance.toString();
+					} else if (stmt.objecttosave instanceof Expr.Pocket) {
+						Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
+								((Expr.Pocket) stmt.objecttosave));
+						str = pocketInstance.toString();
+					} else if (stmt.objecttosave instanceof Expr.Knot) {
+						Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
+								((Expr.Knot) stmt.objecttosave));
+						str = knotInstance.toString();
+					} else if (stmt.objecttosave instanceof Expr.Variable) {
+						Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
+								((Expr.Variable) stmt.objecttosave));
+						str = knotInstance.toString();
+					}
+
+					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
+					writer.write(str);
+
+					writer.close();
+
+				} else {
+					evaluate(stmt.objecttosave);
+					String str = "";
+					if (stmt.objecttosave instanceof Expr.Box) {
+						Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
+								((Expr.Box) stmt.objecttosave));
+						str = boxInstance.toString();
+
+					} else if (stmt.objecttosave instanceof Expr.Cup) {
+						Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
+								((Expr.Cup) stmt.objecttosave));
+						str = cupInstance.toString();
+					} else if (stmt.objecttosave instanceof Expr.Pocket) {
+						Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
+								((Expr.Pocket) stmt.objecttosave));
+						str = pocketInstance.toString();
+					} else if (stmt.objecttosave instanceof Expr.Knot) {
+						Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
+								((Expr.Knot) stmt.objecttosave));
+						str = knotInstance.toString();
+					} else if (stmt.objecttosave instanceof Expr.Variable) {
+						Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
+								((Expr.Variable) stmt.objecttosave));
+						str = knotInstance.toString();
+					}
+
+					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
+					writer.write(str);
+
+					writer.close();
 				}
+			} catch (IOException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
 			}
-			folderPath = folderPath.substring(0, folderPath.length() - 1);
-			File myObj = new File(filePathAndName);
-			File myObjFolderPath = new File(folderPath);
-			myObjFolderPath.mkdir();
-
-			if (myObj.createNewFile()) {
-				evaluate(stmt.objecttosave);
-				String str = "";
-				if (stmt.objecttosave instanceof Expr.Box) {
-					Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
-							((Expr.Box) stmt.objecttosave));
-					str = boxInstance.toString();
-
-				} else if (stmt.objecttosave instanceof Expr.Cup) {
-					Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
-							((Expr.Cup) stmt.objecttosave));
-					str = cupInstance.toString();
-				} else if (stmt.objecttosave instanceof Expr.Pocket) {
-					Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
-							((Expr.Pocket) stmt.objecttosave));
-					str = pocketInstance.toString();
-				} else if (stmt.objecttosave instanceof Expr.Knot) {
-					Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
-							((Expr.Knot) stmt.objecttosave));
-					str = knotInstance.toString();
-				} else if (stmt.objecttosave instanceof Expr.Variable) {
-					Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
-							((Expr.Variable) stmt.objecttosave));
-					str = knotInstance.toString();
-				}
-
-				BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
-				writer.write(str);
-
-				writer.close();
-
-			} else {
-				evaluate(stmt.objecttosave);
-				String str = "";
-				if (stmt.objecttosave instanceof Expr.Box) {
-					Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
-							((Expr.Box) stmt.objecttosave));
-					str = boxInstance.toString();
-
-				} else if (stmt.objecttosave instanceof Expr.Cup) {
-					Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
-							((Expr.Cup) stmt.objecttosave));
-					str = cupInstance.toString();
-				} else if (stmt.objecttosave instanceof Expr.Pocket) {
-					Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
-							((Expr.Pocket) stmt.objecttosave));
-					str = pocketInstance.toString();
-				} else if (stmt.objecttosave instanceof Expr.Knot) {
-					Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
-							((Expr.Knot) stmt.objecttosave));
-					str = knotInstance.toString();
-				} else if (stmt.objecttosave instanceof Expr.Variable) {
-					Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
-							((Expr.Variable) stmt.objecttosave));
-					str = knotInstance.toString();
-				}
-
-				BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
-				writer.write(str);
-
-				writer.close();
-			}
-		} catch (IOException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
 		}
 		return null;
 	}
 
 	@Override
 	public Void visitDaerStmt(Daer stmt) {
-		try {
-			File myObj = new File((String) evaluate(stmt.filePath));
-			Scanner myReader = new Scanner(myObj);
-			String data = "";
-			while (myReader.hasNextLine()) {
-				data += myReader.nextLine();
+		if (!forward) {
+			try {
+				File myObj = new File((String) evaluate(stmt.filePath));
+				Scanner myReader = new Scanner(myObj);
+				String data = "";
+				while (myReader.hasNextLine()) {
+					data += myReader.nextLine();
 
-			}
-			evaluate(stmt.objectToReadInto);
-			if (stmt.objectToReadInto instanceof Expr.Box) {
-				Object boxInstance = lookUpVariable(((Expr.Box) stmt.objectToReadInto).identifier,
-						((Expr.Box) stmt.objectToReadInto));
-				if (boxInstance instanceof BoxInstance) {
-					((BoxInstance) boxInstance).setAt(data, 0);
 				}
+				evaluate(stmt.objectToReadInto);
+				if (stmt.objectToReadInto instanceof Expr.Box) {
+					Object boxInstance = lookUpVariable(((Expr.Box) stmt.objectToReadInto).identifier,
+							((Expr.Box) stmt.objectToReadInto));
+					if (boxInstance instanceof BoxInstance) {
+						((BoxInstance) boxInstance).setAt(data, 0);
+					}
 
-			} else if (stmt.objectToReadInto instanceof Expr.Cup) {
-				Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objectToReadInto).identifier,
-						((Expr.Cup) stmt.objectToReadInto));
-				if (cupInstance instanceof BoxInstance) {
-					((BoxInstance) cupInstance).setAt(data, 0);
+				} else if (stmt.objectToReadInto instanceof Expr.Cup) {
+					Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objectToReadInto).identifier,
+							((Expr.Cup) stmt.objectToReadInto));
+					if (cupInstance instanceof BoxInstance) {
+						((BoxInstance) cupInstance).setAt(data, 0);
+					}
+				} else if (stmt.objectToReadInto instanceof Expr.Pocket) {
+					Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objectToReadInto).identifier,
+							((Expr.Pocket) stmt.objectToReadInto));
+					if (pocketInstance instanceof BoxInstance) {
+						((BoxInstance) pocketInstance).setAt(data, 0);
+					}
+				} else if (stmt.objectToReadInto instanceof Expr.Knot) {
+					Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objectToReadInto).identifier,
+							((Expr.Knot) stmt.objectToReadInto));
+					if (knotInstance instanceof BoxInstance) {
+						((BoxInstance) knotInstance).setAt(data, 0);
+					}
 				}
-			} else if (stmt.objectToReadInto instanceof Expr.Pocket) {
-				Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objectToReadInto).identifier,
-						((Expr.Pocket) stmt.objectToReadInto));
-				if (pocketInstance instanceof BoxInstance) {
-					((BoxInstance) pocketInstance).setAt(data, 0);
-				}
-			} else if (stmt.objectToReadInto instanceof Expr.Knot) {
-				Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objectToReadInto).identifier,
-						((Expr.Knot) stmt.objectToReadInto));
-				if (knotInstance instanceof BoxInstance) {
-					((BoxInstance) knotInstance).setAt(data, 0);
-				}
+				myReader.close();
+			} catch (FileNotFoundException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
 			}
-			myReader.close();
-		} catch (FileNotFoundException e) {
-			System.out.println("An error occurred.");
-			e.printStackTrace();
 		}
 		return null;
 	}
 
 	@Override
 	public Void visitEmanerStmt(Emaner stmt) {
-		File file = new File((String) evaluate(stmt.filePathAndName));
+		if (!forward) {
+			File file = new File((String) evaluate(stmt.filePathAndName));
 
-		if (file.renameTo(new File((String) evaluate(stmt.filenewname)))) {
-			System.out.println("File Renamed successfully");
-		} else {
-			System.out.println("Failed to Rename the file");
+			if (file.renameTo(new File((String) evaluate(stmt.filenewname)))) {
+				System.out.println("File Renamed successfully");
+			} else {
+				System.out.println("Failed to Rename the file");
+			}
 		}
 		return null;
 	}
 
 	@Override
 	public Void visitEvomStmt(Evom stmt) {
-		File file = new File((String) evaluate(stmt.OringialfilePathAndFile));
+		if (!forward) {
+			File file = new File((String) evaluate(stmt.OringialfilePathAndFile));
 
-		if (file.renameTo(new File((String) evaluate(stmt.newfilePath)))) {
-			file.delete();
-			System.out.println("File moved successfully");
-		} else {
-			System.out.println("Failed to move the file");
+			if (file.renameTo(new File((String) evaluate(stmt.newfilePath)))) {
+				file.delete();
+				System.out.println("File moved successfully");
+			} else {
+				System.out.println("Failed to move the file");
+			}
 		}
 		return null;
 	}
 
 	@Override
 	public Object visitTnemngissaExpr(Tnemngissa expr) {
-		Object value = evaluate(expr.value);
-		Integer distance = locals.get(expr);
-		if (distance != null)
-			environment.assignAt(distance, expr.name, expr.value, value, this);
-		else
-			globals.assign(expr.name, expr.value, value, this);
-		return value;
+		if (!forward) {
+			Object value = evaluate(expr.value);
+			Integer distance = locals.get(expr);
+			if (distance != null)
+				environment.assignAt(distance, expr.name, expr.value, value, this);
+			else
+				globals.assign(expr.name, expr.value, value, this);
+			return value;
+		}
+		return null;
 	}
 
 	@Override
 	public Object visitYranibExpr(Yranib expr) {
-		Object left = evaluate(expr.left);
-		Object right = evaluate(expr.right);
+		if (!forward) {
+			Object left = evaluate(expr.left);
+			Object right = evaluate(expr.right);
 
-		switch (expr.operator.type) {
-		case NOTEQUALS:
-			return !isEqual(right, left);
-		case EQUALSNOT:
-			return !isEqual(right, left);
-		case EQUALSEQUALS:
-			return isEqual(right, left);
-		case MINUSEQUALS:
-			return findRootForLeftAndRightAndMinusEquals(right, left, expr);
-		case PLUSEQUALS:
-			return findRootForLeftAndRightAndPlusEquals(right, left, expr);
-		case GREATERTHEN:
-			return findRootForLeftAndRightAndGreaterThen(right, left, expr);
-		case GREATERTHENEQUAL:
-			return findRootForLeftAndRightAndGreaterThenEquals(right, left, expr);
-		case LESSTHEN:
-			return findRootForLeftAndRightAndLessThen(right, left, expr);
-		case LESSTHENEQUAL:
-			return findRootForLeftAndRightAndLessThenEquals(right, left, expr);
-		case MINUS:
+			switch (expr.operator.type) {
+			case NOTEQUALS:
+				return !isEqual(right, left);
+			case EQUALSNOT:
+				return !isEqual(right, left);
+			case EQUALSEQUALS:
+				return isEqual(right, left);
+			case MINUSEQUALS:
+				return findRootForLeftAndRightAndMinusEquals(right, left, expr);
+			case PLUSEQUALS:
+				return findRootForLeftAndRightAndPlusEquals(right, left, expr);
+			case GREATERTHEN:
+				return findRootForLeftAndRightAndGreaterThen(right, left, expr);
+			case GREATERTHENEQUAL:
+				return findRootForLeftAndRightAndGreaterThenEquals(right, left, expr);
+			case LESSTHEN:
+				return findRootForLeftAndRightAndLessThen(right, left, expr);
+			case LESSTHENEQUAL:
+				return findRootForLeftAndRightAndLessThenEquals(right, left, expr);
+			case MINUS:
 
-			return findRootForLeftAndRightAndSubtract(right, left, expr);
+				return findRootForLeftAndRightAndSubtract(right, left, expr);
 
-		case PLUS:
+			case PLUS:
 
-			return findRootForLeftAndRightAndAdd(right, left, expr);
+				return findRootForLeftAndRightAndAdd(right, left, expr);
 
-		case FORWARDSLASH:
-			return findRootForLeftAndRightAndDivide(right, left, expr);
-		case BACKSLASH:
-			return findRootForLeftAndRightAndDivide(right, left, expr);
-		case TIMES:
-			return findRootForLeftAndRightAndTimes(right, left, expr);
+			case FORWARDSLASH:
+				return findRootForLeftAndRightAndDivide(right, left, expr);
+			case BACKSLASH:
+				return findRootForLeftAndRightAndDivide(right, left, expr);
+			case TIMES:
+				return findRootForLeftAndRightAndTimes(right, left, expr);
 
-		case POWER:
-			return findRootForLeftAndRightAndPower(right, left, expr);
-		case TOORY:
-			return findRootForLeftAndRightAndYroot(right, left, expr);
-		default:
-			return null;
+			case POWER:
+				return findRootForLeftAndRightAndPower(right, left, expr);
+			case TOORY:
+				return findRootForLeftAndRightAndYroot(right, left, expr);
+			default:
+				return null;
 
+			}
 		}
+		return null;
 
 	}
 
 	@Override
 	public Object visitOnomExpr(Onom expr) {
-		Double result = 0.0;
-		Object evaluate = evaluate(expr.value);
-		Double evaluateDouble = 0.0;
-		if (evaluate instanceof Integer) {
-			evaluateDouble = Double.valueOf(Integer.toString((Integer) evaluate));
-		} else if (evaluate instanceof Double) {
-			evaluateDouble = (Double) evaluate;
-		} else if (evaluate instanceof Bin) {
-			evaluateDouble = ((Bin) evaluate).toDouble();
+		if (!forward) {
+			Double result = 0.0;
+			Object evaluate = evaluate(expr.value);
+			Double evaluateDouble = 0.0;
+			if (evaluate instanceof Integer) {
+				evaluateDouble = Double.valueOf(Integer.toString((Integer) evaluate));
+			} else if (evaluate instanceof Double) {
+				evaluateDouble = (Double) evaluate;
+			} else if (evaluate instanceof Bin) {
+				evaluateDouble = ((Bin) evaluate).toDouble();
 
+			}
+
+			switch (expr.operator.type) {
+			case NIS:
+				result = Math.sin(evaluateDouble);
+				break;
+			case SOC:
+				result = Math.cos(evaluateDouble);
+				break;
+			case NAT:
+				result = Math.tan(evaluateDouble);
+				break;
+
+			case HNIS:
+				result = Math.sinh(evaluateDouble);
+				break;
+
+			case HSOC:
+				result = Math.cosh(evaluateDouble);
+				break;
+
+			case HNAT:
+				result = Math.tanh(evaluateDouble);
+				break;
+
+			default:
+				break;
+			}
+
+			return result;
 		}
-
-		switch (expr.operator.type) {
-		case NIS:
-			result = Math.sin(evaluateDouble);
-			break;
-		case SOC:
-			result = Math.cos(evaluateDouble);
-			break;
-		case NAT:
-			result = Math.tan(evaluateDouble);
-			break;
-
-		case HNIS:
-			result = Math.sinh(evaluateDouble);
-			break;
-
-		case HSOC:
-			result = Math.cosh(evaluateDouble);
-			break;
-
-		case HNAT:
-			result = Math.tanh(evaluateDouble);
-			break;
-
-		default:
-			break;
-		}
-
-		return result;
+		return null;
 	}
 
 	@Override
 	public Object visitGolExpr(Gol expr) {
-		Double evaluateDoubleValue = findDoubleValue(expr.value) - 1;
-		Double evaluateDoubleValueBase = findDoubleValue(expr.valueBase) - 1;
+		if (!forward) {
+			Double evaluateDoubleValue = findDoubleValue(expr.value) - 1;
+			Double evaluateDoubleValueBase = findDoubleValue(expr.valueBase) - 1;
 
-		return Math.log1p(evaluateDoubleValue) / Math.log1p(evaluateDoubleValueBase);
+			return Math.log1p(evaluateDoubleValue) / Math.log1p(evaluateDoubleValueBase);
+		}
+		return null;
 	}
 
 	@Override
 	public Object visitLairotcafExpr(Lairotcaf expr) {
-		Object evaluate = evaluate(expr.value);
-		Double evaluateDouble = 0.0;
-		Integer evaluateInteger = 0;
-		if (evaluate instanceof Integer) {
-			evaluateInteger = (Integer) evaluate;
+		if (!forward) {
+			Object evaluate = evaluate(expr.value);
+			Double evaluateDouble = 0.0;
+			Integer evaluateInteger = 0;
+			if (evaluate instanceof Integer) {
+				evaluateInteger = (Integer) evaluate;
 
-			int i, fact = 1;
-			for (i = 1; i <= evaluateInteger; i++) {
-				fact = fact * i;
+				int i, fact = 1;
+				for (i = 1; i <= evaluateInteger; i++) {
+					fact = fact * i;
+				}
+				return fact;
+			} else if (evaluate instanceof Double) {
+				evaluateDouble = (Double) evaluate;
+				int i;
+				double fact = 1.0;
+				for (i = 1; i <= evaluateDouble; i++) {
+					fact = fact * i;
+				}
+				return fact;
+			} else if (evaluate instanceof Bin) {
+				evaluateInteger = ((Bin) evaluate).toInteger();
+				int i;
+				int fact = 1;
+				for (i = 1; i <= evaluateInteger; i++) {
+					fact = fact * i;
+				}
+				return fact;
 			}
-			return fact;
-		} else if (evaluate instanceof Double) {
-			evaluateDouble = (Double) evaluate;
-			int i;
-			double fact = 1.0;
-			for (i = 1; i <= evaluateDouble; i++) {
-				fact = fact * i;
-			}
-			return fact;
-		} else if (evaluate instanceof Bin) {
-			evaluateInteger = ((Bin) evaluate).toInteger();
-			int i;
-			int fact = 1;
-			for (i = 1; i <= evaluateInteger; i++) {
-				fact = fact * i;
-			}
-			return fact;
+
+			return -1;
 		}
-
-		return -1;
+		return null;
 	}
 
 	@Override
 	public Object visitLlacExpr(Llac expr) {
-		Object callee = evaluate(expr.callee);
-		List<Object> arguments = new ArrayList<>();
-		for (Expr argument : expr.arguments) {
-			arguments.add(evaluate(argument));
-		}
+		if (!forward) {
+			Object callee = evaluate(expr.callee);
+			List<Object> arguments = new ArrayList<>();
+			for (Expr argument : expr.arguments) {
+				arguments.add(evaluate(argument));
+			}
 
-		if (!(callee instanceof BoxCallable)) {
-			throw new RuntimeError(expr.calleeToken, "Can only call functions and classes.");
-		}
+			if (!(callee instanceof BoxCallable)) {
+				throw new RuntimeError(expr.calleeToken, "Can only call functions and classes.");
+			}
 
-		BoxCallable function = (BoxCallable) callee;
-		if (arguments.size() != function.arity()) {
-			throw new RuntimeError(expr.calleeToken,
-					"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
-		}
+			BoxCallable function = (BoxCallable) callee;
+			if (arguments.size() != function.arity()) {
+				throw new RuntimeError(expr.calleeToken,
+						"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
+			}
 
-		return function.call(this, arguments);
+			return function.call(this, arguments);
+		}
+		return null;
 	}
 
 	public void resolve(Expr expr, int i) {
@@ -2233,10 +2244,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	public void setForward(boolean forward) {
 		this.forward = forward;
-	}
-
-	public void setBackward(boolean backward) {
-		this.backward = backward;
 	}
 
 	@Override
@@ -2259,36 +2266,44 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitIfStmt(If stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitSaveStmt(Save stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitExpelStmt(Expel stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		} else {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitReadStmt(Read stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitConsumeStmt(Consume stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		} else {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitVarStmt(Var stmt) {
+
 		environment.define(stmt.name.lexeme, stmt.type, stmt.num, stmt.initilizer, this);
 		if (stmt.initilizer instanceof Stmt.Expression)
 			if (((Stmt.Expression) stmt.initilizer).expression != null) {
@@ -2296,6 +2311,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				evaluate(((Stmt.Expression) stmt.initilizer).expression);
 
 			}
+
 		return null;
 	}
 
@@ -2316,37 +2332,43 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitRavStmt(Rav stmt) {
-		// TODO Auto-generated method stub
+		if (!forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitGetExpr(Get expr) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitSetExpr(Set expr) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitSniatnocExpr(Sniatnoc expr) {
-		// TODO Auto-generated method stub
+		if (!forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitTegExpr(Teg expr) {
-		// TODO Auto-generated method stub
+		if (!forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitTesExpr(Tes expr) {
-		// TODO Auto-generated method stub
+		if (!forward) {
+		}
 		return null;
 	}
 
@@ -2421,13 +2443,16 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitKnotExpr(Knot expr) {
-		// TODO Auto-generated method stub
+		buildClass(expr);
+		KnotRunner knotRunner = new KnotRunner(expr.expression, this);
 		return null;
 	}
 
 	@Override
 	public Object visitTonkExpr(Tonk expr) {
-		// TODO Auto-generated method stub
+		buildClass(expr);
+		KnotRunner knotRunner = new KnotRunner(expr.expression, this);
+
 		return null;
 	}
 
@@ -2439,13 +2464,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitFiStmt(Fi stmt) {
-		// TODO Auto-generated method stubevaluate(stmt.expression);
+		if (!forward) {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitCallExpr(Call expr) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		}
 		return null;
 	}
 
@@ -2457,13 +2484,17 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitTemplatVarStmt(TemplatVar stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		} else {
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitIfiStmt(Ifi stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+		} else {
+		}
 		return null;
 	}
 
@@ -2619,7 +2650,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			if (method instanceof Declaration.FunDecl) {
 				if (((Function) ((Declaration.FunDecl) method).function).forwardIdentifier != null) {
 					String fname = ((Function) ((Declaration.FunDecl) method).function).forwardIdentifier.lexeme;
-					Expr body = ((Function) ((Declaration.FunDecl) method).function).sharedCupOrPocketOrKnot;
+					Expr body = ((Function) ((Declaration.FunDecl) method).function).sharedCup;
 					List<Token> fparamtypes = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersType;
 					List<Token> fparamsNames = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersNames;
 					BoxFunction boxFunction1 = new BoxFunction(body, fname, fparamtypes, fparamsNames, environment,
@@ -2627,10 +2658,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					methods.put(fname, boxFunction1);
 				}
 				if (((Function) ((Declaration.FunDecl) method).function).backwardIdentifier != null) {
-				String bname = ((Function) ((Declaration.FunDecl) method).function).backwardIdentifier.lexeme;
-				Expr body = ((Function) ((Declaration.FunDecl) method).function).sharedCupOrPocketOrKnot;
-				List<Token> bparamtypes = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersType;
-				List<Token> bparamsNames = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersNames;
+					String bname = ((Function) ((Declaration.FunDecl) method).function).backwardIdentifier.lexeme;
+					Expr body = ((Function) ((Declaration.FunDecl) method).function).sharedCup;
+					List<Token> bparamtypes = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersType;
+					List<Token> bparamsNames = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersNames;
 
 					BoxFunction boxFunction0 = new BoxFunction(body, bname, bparamtypes, bparamsNames, environment,
 							false);
@@ -2647,6 +2678,54 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			environment = environment.enclosing;
 		}
 		environment.assign(((Expr.Cup) expr).identifier, null, boxClass);
+	}
+
+	@Override
+	public Object visitFunctionLinkFun(FunctionLink fun) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitLinkExpr(Link expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitPocketOpenExpr(PocketOpen expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitPocketClosedExpr(PocketClosed expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitCupOpenExpr(CupOpen expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitCupClosedExpr(CupClosed expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitBoxOpenExpr(BoxOpen expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitBoxClosedExpr(BoxClosed expr) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
