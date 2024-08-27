@@ -2332,8 +2332,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitRavStmt(Rav stmt) {
-		if (!forward) {
-		}
+		environment.define(stmt.name.lexeme, stmt.type, stmt.num, stmt.initilizer, this);
+		if (stmt.initilizer instanceof Stmt.Expression)
+			if (((Stmt.Expression) stmt.initilizer).expression != null) {
+				mapVarNameToInitilizer(stmt.name, ((Stmt.Expression) stmt.initilizer).expression);
+				evaluate(((Stmt.Expression) stmt.initilizer).expression);
+
+			}
 		return null;
 	}
 
