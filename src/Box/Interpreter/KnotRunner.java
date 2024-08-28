@@ -98,6 +98,15 @@ public class KnotRunner {
 			return -1;
 		}
 
+		public boolean checkIfIncludedInCondition(int i) {
+			for (Condition condition : conds) {
+				if (condition.start <= i && condition.end >= i)
+					return true;
+			}
+
+			return false;
+		}
+
 	}
 
 	public class Condition {
@@ -121,12 +130,15 @@ public class KnotRunner {
 	private List<Stmt> expression;
 	Conditions condForward = new Conditions();
 	Conditions condBackward = new Conditions();
+	Conditions pockets = new Conditions();
 	private Interpreter interp;
 
 	public KnotRunner(List<Stmt> expression, Interpreter interp) {
 		this.expression = expression;
 		this.interp = interp;
 		findConditions();
+		System.out.println();
+		System.out.println(pockets.toString());
 		System.out.println();
 		System.out.println(condForward.toString());
 		System.out.println();
@@ -139,6 +151,8 @@ public class KnotRunner {
 
 		boolean firstForward = false;
 		boolean firstBack = true;
+		int firstForwardCount = condForward.size();
+		int firstBackCount = condBackward.size();
 		if (interp.isForward()) {
 			firstForward = false;
 			firstBack = true;
@@ -162,7 +176,9 @@ public class KnotRunner {
 							interp.setForward(!interp.isForward());
 						}
 					} else {
-						firstBack = true;
+						firstBackCount--;
+						if (firstBackCount <= 0)
+							firstBack = true;
 					}
 				} else if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupOpen) {
 					String lexeme = ((Expr.CupOpen) ((Stmt.Expression) expression
@@ -176,8 +192,9 @@ public class KnotRunner {
 							interp.setForward(!interp.isForward());
 						}
 					} else {
-
-						firstForward = true;
+						firstForwardCount--;
+						if (firstForwardCount <= 0)
+							firstForward = true;
 					}
 				} else {
 					interp.execute(expression.get(count));
@@ -202,25 +219,24 @@ public class KnotRunner {
 		Conditions setup = new Conditions();
 		findSetupForward(setup);
 		findSetupBackward(setup);
-		
+
 		for (int i = 0; i < setup.size(); i++) {
-			for (int j = setup.get(i).start; j < setup.get(i).end; j++) {
+			for (int j = setup.get(i).start + 1; j < setup.get(i).end; j++) {
 				interp.execute(expression.get(j));
 			}
 		}
-		
 
 	}
 
 	private void findSetupBackward(Conditions setup) {
-		for (int i = expression.size()-1; i >=0; i--) {
+		for (int i = expression.size() - 1; i >= 0; i--) {
 			if (expression.get(i) instanceof Stmt.Expression) {
 				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.PocketClosed) {
 					int count = i - 1;
-					while (count>=0) {
+					while (count >= 0) {
 						if (expression.get(count) instanceof Stmt.Expression) {
 							if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupClosed) {
-								setup.add(new Condition("",count,i));
+								setup.add(new Condition("", count, i));
 								break;
 							}
 						}
@@ -230,7 +246,7 @@ public class KnotRunner {
 				}
 			}
 		}
-		
+
 	}
 
 	private void findSetupForward(Conditions setup) {
@@ -239,10 +255,10 @@ public class KnotRunner {
 			if (expression.get(i) instanceof Stmt.Expression) {
 				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.PocketOpen) {
 					int count = i + 1;
-					while (count<expression.size()) {
+					while (count < expression.size()) {
 						if (expression.get(count) instanceof Stmt.Expression) {
 							if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupOpen) {
-								setup.add(new Condition("",i,count));
+								setup.add(new Condition("", i, count));
 								break;
 							}
 						}
@@ -272,7 +288,8 @@ public class KnotRunner {
 		int start = condBackward.getStartForMatchingIdent(lexeme);
 		int end = condBackward.getEndForMatchingIdent(lexeme);
 		if (start != -1 && end != -1) {
-			evaluate = end - start > 1 ? (Boolean) interp.evaluate(expression.get(end - 1)) : true;
+			Boolean evaluate2 = (Boolean) interp.evaluate(expression.get(end - 1));
+			evaluate = end - start > 1 ? evaluate2 : true;
 		}
 		return evaluate;
 	}
@@ -286,9 +303,48 @@ public class KnotRunner {
 
 	private void findConditions() {
 
+		findPockets();
+
 		findSectionsForward();
 		findSectionsBackward();
 
+	}
+
+	private void findPockets() {
+		for (int i = 0; i < expression.size(); i++) {
+			if (expression.get(i) instanceof Stmt.Expression) {
+				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.PocketOpen) {
+					String lexeme = ((Expr.PocketOpen) ((Stmt.Expression) expression
+							.get(i)).expression).ctrl.identifierToken.lexeme;
+					lexeme = lexeme.replace("{", "");
+					String[] split = lexeme.split("_");
+					lexeme = split[0];
+					int count = i + 1;
+					while (count < expression.size()) {
+						if (expression.get(count) instanceof Stmt.Expression) {
+							if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.PocketClosed) {
+								String lexeme2 = ((Expr.PocketClosed) ((Stmt.Expression) expression
+										.get(count)).expression).ctrl.reifitnediToken.lexeme;
+								lexeme2 = lexeme2.replace("}", "");
+								String[] split2 = lexeme.split("_");
+								if (split2.length > 1)
+									lexeme2 = split2[1];
+								else
+									lexeme2 = split2[0];
+//								lexeme2 = reverse(lexeme2);
+								if (lexeme.equals(lexeme2)) {
+									pockets.add(new Condition(lexeme, i, count));
+									break;
+								}
+
+							}
+						}
+						count++;
+					}
+
+				}
+			}
+		}
 	}
 
 	private String reverse(String str) {
@@ -305,36 +361,32 @@ public class KnotRunner {
 
 		for (int i = 0; i < expression.size(); i++) {
 			if (expression.get(i) instanceof Stmt.Expression) {
-				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.CupOpen) {
-
+				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.CupOpen
+						&& pockets.checkIfIncludedInCondition(i)) {
 					int count = i + 1;
-
-					count = findNextPocketOpen(count);
+					count = findNextCupOpen(count);
 					String lexeme = ((Expr.CupOpen) ((Stmt.Expression) expression
 							.get(i)).expression).ctrl.identifierToken.lexeme;
 					lexeme = lexeme.replace("{", "");
 					String[] split = lexeme.split("_");
-
 					lexeme = split[0];
 
-					if (count <= expression.size() - 1) {
+					if (count >= 0 && count < expression.size()) {
 						if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupOpen) {
 							condForward.add(new Condition(lexeme, i, count));
 
 						} else {
-							count = backTrackToLastClosedPocket(i, count - 1);
+
 							if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.PocketClosed) {
 								condForward.add(new Condition(lexeme, i, count));
 
 							}
 						}
-					} else {
-						count = backTrackToLastClosedPocket(i, count - 1);
+					} else if (count >= 0 && count < expression.size()) {
 						if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.PocketClosed) {
 							condForward.add(new Condition(lexeme, i, count));
 
 						}
-
 					}
 				}
 			}
@@ -345,28 +397,31 @@ public class KnotRunner {
 
 		for (int i = expression.size() - 1; i >= 0; i--) {
 			if (expression.get(i) instanceof Stmt.Expression) {
-				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.CupClosed) {
+				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.CupClosed
+						&& pockets.checkIfIncludedInCondition(i)) {
 					int count = i - 1;
 					count = findNextPocketOpen(count);
 					String lexeme = ((Expr.CupClosed) ((Stmt.Expression) expression
 							.get(i)).expression).ctrl.reifitnediToken.lexeme;
 					lexeme = lexeme.replace("}", "");
 					String[] split = lexeme.split("_");
+					if (split.length > 1)
+						lexeme = split[1];
+					else
+						lexeme = split[0];
 
-					lexeme = split[1];
 					if (count >= 0 && count < expression.size()) {
 						if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupClosed) {
 							condBackward.add(new Condition(lexeme, count, i));
 
 						} else {
-							count = goTofirstOpenPocket(count - 1);
+
 							if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.PocketOpen) {
 								condBackward.add(new Condition(lexeme, count, i));
 
 							}
 						}
-					} else {
-						count = goTofirstOpenPocket(count - 1 );
+					} else if (count >= 0 && count < expression.size()) {
 						if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.PocketOpen) {
 							condBackward.add(new Condition(lexeme, count, i));
 
@@ -388,7 +443,7 @@ public class KnotRunner {
 	}
 
 	private int goTofirstOpenPocket(int count) {
-		for (int i = count; i >=0; i--) {
+		for (int i = count; i >= 0; i--) {
 			if (expression.get(i) instanceof Stmt.Expression) {
 				if (((Stmt.Expression) expression.get(i)).expression instanceof Expr.PocketOpen)
 					return i;
@@ -398,23 +453,23 @@ public class KnotRunner {
 	}
 
 	private int findNextPocketOpen(int count) {
-		while (count <= expression.size() - 1 && !pocketOpen(count)) {
-			count++;
+		while (count >= 0 && !pocketOpen(count)) {
+			count--;
 		}
 		return count;
 	}
 
-	private int findNextPocketClosed(int count) {
-		while (count > 0 && !pocketClosed(count)) {
-			count--;
+	private int findNextCupOpen(int count) {
+		while (count < expression.size() && !pocketClosed(count)) {
+			count++;
 		}
 		return count;
 	}
 
 	private boolean pocketClosed(int count) {
 		if (expression.get(count) instanceof Stmt.Expression) {
-			return ((Stmt.Expression) expression.get(count)).expression instanceof Expr.PocketClosed
-					|| ((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupClosed;
+			return ((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupOpen
+					|| ((Stmt.Expression) expression.get(count)).expression instanceof Expr.PocketClosed;
 		}
 		return false;
 	}
@@ -422,7 +477,7 @@ public class KnotRunner {
 	private boolean pocketOpen(int count) {
 		if (expression.get(count) instanceof Stmt.Expression) {
 			return ((Stmt.Expression) expression.get(count)).expression instanceof Expr.PocketOpen
-					|| ((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupOpen;
+					|| ((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupClosed;
 		}
 		return false;
 	}

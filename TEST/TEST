@@ -1,8 +1,8 @@
 ("running backward").tnirp
-( box b = 0 
-	{ b<10 ) 
-			c++ print.("forward") 
-			("drawkcab").tnirp b++ 
-	( c<1 } 
-0 = c xob)
-
+( box f = 0 
+	a{ f<4) ++c b{ --d
+			 print.("forward") 
+			("drawkcab").tnirp f++ 
+	( d==3 }a c<5 }b
+0 = c xob 6 = d xob)
+print.("running forward")

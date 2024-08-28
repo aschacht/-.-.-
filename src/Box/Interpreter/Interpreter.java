@@ -311,9 +311,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		case EQUALSEQUALS:
 			return isEqual(left, right);
 		case MINUSEQUALS:
-			return findRootForLeftAndRightAndMinusEquals(left, right, expr);
+			if (forward)
+				return findRootForLeftAndRightAndMinusEquals(left, right, expr);
+			else
+				return null;
 		case PLUSEQUALS:
-			return findRootForLeftAndRightAndPlusEquals(left, right, expr);
+			if (forward)
+				return findRootForLeftAndRightAndPlusEquals(left, right, expr);
+			else
+				return null;
 		case GREATERTHEN:
 			return findRootForLeftAndRightAndGreaterThen(left, right, expr);
 		case GREATERTHENEQUAL:
@@ -341,8 +347,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			return findRootForLeftAndRightAndPower(left, right, expr);
 		case YROOT:
 			return findRootForLeftAndRightAndYroot(left, right, expr);
-		case TOORY:
-			return findRootForLeftAndRightAndYroot(right, left, expr);
+
 		case DNA:
 			return findRootForLeftAndRightAndAnd(left, right, expr);
 		case AND:
@@ -1273,90 +1278,94 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitUnaryExpr(Unary expr) {
-		if (forward) {
-			Object right = evaluate(expr.right);
 
-			if (right instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) right).expression;
-				if (expression instanceof Expr.Literal) {
-					right = ((Expr.Literal) expression).value;
-				}
+		Object right = evaluate(expr.right);
+
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
 			}
-			switch (expr.operator.type) {
-			case QMARK:
-				return !isTruthy(right);
-			case MINUS:
-				if (right instanceof Double)
-					return -(double) right;
-				if (right instanceof Integer)
-					return -(int) right;
+		}
+		switch (expr.operator.type) {
+		case QMARK:
+			return !isTruthy(right);
+		case MINUS:
+			if (right instanceof Double)
+				return -(double) right;
+			if (right instanceof Integer)
+				return -(int) right;
 
-				if (right instanceof Bin)
-					return ((Bin) right).negate();
-				if (right instanceof ArrayList) {
+			if (right instanceof Bin)
+				return ((Bin) right).negate();
+			if (right instanceof ArrayList) {
 
-					return findRootForMinus(right);
+				return findRootForMinus(right);
 
+			}
+			throw new RuntimeError(expr.operator, "Operand must be a number.");
+
+		case PLUSPLUS:
+			 if (forward) {
+			if (right instanceof Double) {
+				Integer distance = locals.get(expr.right);
+				double value = (double) right + 1.0;
+				if (expr.right instanceof Expr.Variable) {
+					if (distance != null) {
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
+								value, this);
+					} else
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				throw new RuntimeError(expr.operator, "Operand must be a number.");
 
-			case PLUSPLUS:
-				if (right instanceof Double) {
-					Integer distance = locals.get(expr.right);
-					double value = (double) right + 1.0;
-					if (expr.right instanceof Expr.Variable) {
-						if (distance != null) {
-							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
-									value, this);
-						} else
-							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
-					}
-
-					return (double) right + 1.0;
+				return (double) right + 1.0;
+			}
+			if (right instanceof Integer) {
+				Integer distance = locals.get(expr.right);
+				int value = (int) right + 1;
+				if (expr.right instanceof Expr.Variable) {
+					if (distance != null)
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
+								value, this);
+					else
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (right instanceof Integer) {
-					Integer distance = locals.get(expr.right);
-					int value = (int) right + 1;
-					if (expr.right instanceof Expr.Variable) {
-						if (distance != null)
-							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Expr.Literal(value),
-									value, this);
-						else
-							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
-					}
 
-					return value;
+				return value;
+			}
+			if (right instanceof Bin) {
+				Integer distance = locals.get(expr.right);
+				Bin value = Bin.add((Bin) right, new Bin("1"));
+				if (expr.right instanceof Expr.Variable) {
+					if (distance != null)
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
+								this);
+					else
+						globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
 				}
-				if (right instanceof Bin) {
-					Integer distance = locals.get(expr.right);
-					Bin value = Bin.add((Bin) right, new Bin("1"));
-					if (expr.right instanceof Expr.Variable) {
-						if (distance != null)
-							environment.assignAt(distance, ((Expr.Variable) expr.right).name, new Literal(value), value,
-									this);
-						else
-							globals.assign(((Expr.Variable) expr.right).name, new Literal(value), value, this);
-					}
 
-					return value;
+				return value;
+			}
+			if (right instanceof ArrayList) {
+				Object findRootForPlusPlus = findRootForPlusPlus(right);
+				Integer distance = locals.get(expr.right);
+				if (expr.right instanceof Expr.Variable) {
+					if (distance != null)
+						environment.assignAt(distance, ((Expr.Variable) expr.right).name,
+								new Expr.Literal(findRootForPlusPlus), findRootForPlusPlus, this);
+					else
+						globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
+								findRootForPlusPlus, this);
 				}
-				if (right instanceof ArrayList) {
-					Object findRootForPlusPlus = findRootForPlusPlus(right);
-					Integer distance = locals.get(expr.right);
-					if (expr.right instanceof Expr.Variable) {
-						if (distance != null)
-							environment.assignAt(distance, ((Expr.Variable) expr.right).name,
-									new Expr.Literal(findRootForPlusPlus), findRootForPlusPlus, this);
-						else
-							globals.assign(((Expr.Variable) expr.right).name, new Expr.Literal(findRootForPlusPlus),
-									findRootForPlusPlus, this);
-					}
 
-					return findRootForPlusPlus;
+				return findRootForPlusPlus;
 
-				}
-				throw new RuntimeError(expr.operator, "Operand must be a number.");
-			case MINUSMINUS:
+			}
+			throw new RuntimeError(expr.operator, "Operand must be a number.");
+		 }
+		 return null;
+		case MINUSMINUS:
+			if (forward) {
 				if (right instanceof Double) {
 					Integer distance = locals.get(expr.right);
 					double value = (double) right - 1.0;
@@ -1411,11 +1420,12 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return findRootForMinusMinus;
 				}
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
-			default:
-				return null;
 			}
+			return null;
+		default:
+			return null;
 		}
-		return null;
+
 	}
 
 	private Object findRootForMinus(Object right) {
@@ -1484,28 +1494,34 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitYranuExpr(Yranu expr) {
-		if (!forward) {
-			Object right = evaluate(expr.right);
 
-			switch (expr.operator.type) {
-			case QMARK:
-				return !isTruthy(right);
-			case MINUS:
-				if (right instanceof Double)
-					return -(double) right;
-				if (right instanceof Integer)
-					return -(int) right;
+		Object right = evaluate(expr.right);
+		if (right instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) right).expression;
+			if (expression instanceof Expr.Literal) {
+				right = ((Expr.Literal) expression).value;
+			}
+		}
+		switch (expr.operator.type) {
+		case QMARK:
+			return !isTruthy(right);
+		case MINUS:
+			if (right instanceof Double)
+				return -(double) right;
+			if (right instanceof Integer)
+				return -(int) right;
 
-				if (right instanceof Bin)
-					return ((Bin) right).negate();
-				if (right instanceof ArrayList) {
+			if (right instanceof Bin)
+				return ((Bin) right).negate();
+			if (right instanceof ArrayList) {
 
-					return findRootForMinus(right);
-				}
+				return findRootForMinus(right);
+			}
 
-				throw new RuntimeError(expr.operator, "Operand must be a number.");
+			throw new RuntimeError(expr.operator, "Operand must be a number.");
 
-			case PLUSPLUS:
+		case PLUSPLUS:
+			if (!forward) {
 				if (right instanceof Double) {
 					Integer distance = locals.get(expr.right);
 					double value = (double) right + 1.0;
@@ -1561,7 +1577,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 				}
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
-			case MINUSMINUS:
+			}
+			return null;
+		case MINUSMINUS:
+			if (!forward) {
 				if (right instanceof Double) {
 					Integer distance = locals.get(expr.right);
 					double value = (double) right - 1.0;
@@ -1616,11 +1635,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return findRootForMinusMinus;
 				}
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
-			default:
-				return null;
 			}
+			return null;
+		default:
+			return null;
 		}
-		return null;
 
 	}
 
@@ -2068,54 +2087,58 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitYranibExpr(Yranib expr) {
-		if (!forward) {
-			Object left = evaluate(expr.left);
-			Object right = evaluate(expr.right);
 
-			switch (expr.operator.type) {
-			case NOTEQUALS:
-				return !isEqual(right, left);
-			case EQUALSNOT:
-				return !isEqual(right, left);
-			case EQUALSEQUALS:
-				return isEqual(right, left);
-			case MINUSEQUALS:
+		Object left = evaluate(expr.left);
+		Object right = evaluate(expr.right);
+
+		switch (expr.operator.type) {
+		case NOTEQUALS:
+			return !isEqual(right, left);
+		case EQUALSNOT:
+			return !isEqual(right, left);
+		case EQUALSEQUALS:
+			return isEqual(right, left);
+		case EQUALSMINUS:
+			if (!forward)
 				return findRootForLeftAndRightAndMinusEquals(right, left, expr);
-			case PLUSEQUALS:
-				return findRootForLeftAndRightAndPlusEquals(right, left, expr);
-			case GREATERTHEN:
-				return findRootForLeftAndRightAndGreaterThen(right, left, expr);
-			case GREATERTHENEQUAL:
-				return findRootForLeftAndRightAndGreaterThenEquals(right, left, expr);
-			case LESSTHEN:
-				return findRootForLeftAndRightAndLessThen(right, left, expr);
-			case LESSTHENEQUAL:
-				return findRootForLeftAndRightAndLessThenEquals(right, left, expr);
-			case MINUS:
-
-				return findRootForLeftAndRightAndSubtract(right, left, expr);
-
-			case PLUS:
-
-				return findRootForLeftAndRightAndAdd(right, left, expr);
-
-			case FORWARDSLASH:
-				return findRootForLeftAndRightAndDivide(right, left, expr);
-			case BACKSLASH:
-				return findRootForLeftAndRightAndDivide(right, left, expr);
-			case TIMES:
-				return findRootForLeftAndRightAndTimes(right, left, expr);
-
-			case POWER:
-				return findRootForLeftAndRightAndPower(right, left, expr);
-			case TOORY:
-				return findRootForLeftAndRightAndYroot(right, left, expr);
-			default:
+			else
 				return null;
+		case EQUALSPLUS:
+			if (!forward)
+				return findRootForLeftAndRightAndPlusEquals(right, left, expr);
+			else
+				return null;
+		case GREATERTHEN:
+			return findRootForLeftAndRightAndGreaterThen(right, left, expr);
+		case GREATERTHENEQUAL:
+			return findRootForLeftAndRightAndGreaterThenEquals(right, left, expr);
+		case LESSTHEN:
+			return findRootForLeftAndRightAndLessThen(right, left, expr);
+		case LESSTHENEQUAL:
+			return findRootForLeftAndRightAndLessThenEquals(right, left, expr);
+		case MINUS:
 
-			}
+			return findRootForLeftAndRightAndSubtract(right, left, expr);
+
+		case PLUS:
+
+			return findRootForLeftAndRightAndAdd(right, left, expr);
+
+		case FORWARDSLASH:
+			return findRootForLeftAndRightAndDivide(right, left, expr);
+		case BACKSLASH:
+			return findRootForLeftAndRightAndDivide(right, left, expr);
+		case TIMES:
+			return findRootForLeftAndRightAndTimes(right, left, expr);
+
+		case POWER:
+			return findRootForLeftAndRightAndPower(right, left, expr);
+		case TOORY:
+			return findRootForLeftAndRightAndYroot(right, left, expr);
+		default:
+			return null;
+
 		}
-		return null;
 
 	}
 

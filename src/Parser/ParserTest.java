@@ -950,7 +950,15 @@ public class ParserTest {
 		} else {
 
 			int count = 0;
-			while (peekI(count).type != TokenType.ASIGNMENTEQUALS) {
+			while (peekI(count).type == TokenType.MINUS || peekI(count).type == TokenType.BANG
+					|| peekI(count).type == TokenType.BINNUM || peekI(count).type == TokenType.INTNUM
+					||peekI(count).type == TokenType.DOUBLENUM||peekI(count).type == TokenType.STRING
+					||peekI(count).type == TokenType.CHAR||peekI(count).type == TokenType.COS
+					||peekI(count).type == TokenType.SIN||peekI(count).type == TokenType.TAN
+					||peekI(count).type == TokenType.TANH||peekI(count).type == TokenType.COSH
+					||peekI(count).type == TokenType.SINH||peekI(count).type == TokenType.LOG
+					||peekI(count).type == TokenType.DOT
+					||peekI(count).type == TokenType.POCKET) {
 				count++;
 			}
 			if (peekI(count).type == TokenType.ASIGNMENTEQUALS) {
@@ -2448,7 +2456,7 @@ public class ParserTest {
 		if (match(TokenType.QMARK, TokenType.MINUS, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
 			Token operator = previous();
 			Expr expr = unaryyranu();
-			uni = new Expr.Unary(operator, expr);
+			uni = new Expr.Yranu(operator, expr);
 		}
 		Expr expr = uni == null ? call() : null;
 		if (match(TokenType.QMARK, TokenType.PLUSPLUS, TokenType.MINUSMINUS) && uni == null) {
@@ -2714,7 +2722,7 @@ public class ParserTest {
 			epyt = previous();
 		}
 
-		return new Stmt.Rav(((Expr.Variable)initialValue).name, epyt, val, null);
+		return new Stmt.Rav(((Expr.Variable)((Expr.Unary)initialValue).right).name, epyt, val, null);
 
 	}
 
