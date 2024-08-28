@@ -18,9 +18,11 @@ import Parser.Declaration.FunDecl;
 import Parser.Declaration.StmtDecl;
 import Parser.Expr.Assignment;
 import Parser.Expr.Binary;
+import Parser.Expr.Binaryyranib;
 import Parser.Expr.BoxClosed;
 import Parser.Expr.BoxOpen;
 import Parser.Expr.Call;
+import Parser.Expr.Callllac;
 import Parser.Expr.Contains;
 import Parser.Expr.Cup;
 import Parser.Expr.CupClosed;
@@ -35,7 +37,9 @@ import Parser.Expr.Literal;
 import Parser.Expr.LiteralChar;
 import Parser.Expr.Llac;
 import Parser.Expr.Log;
+import Parser.Expr.Loggol;
 import Parser.Expr.Mono;
+import Parser.Expr.Monoonom;
 import Parser.Expr.Onom;
 import Parser.Expr.Pocket;
 import Parser.Expr.PocketClosed;
@@ -719,6 +723,33 @@ public class Resolver implements Declaration.Visitor<Void> {
 			}
 			resolve(stmt.expression);
 		}
+		return null;
+	}
+
+	@Override
+	public Void visitMonoonomExpr(Monoonom expr) {
+		resolve(expr.value);
+		return null;
+	}
+
+	@Override
+	public Void visitBinaryyranibExpr(Binaryyranib expr) {
+		resolve(expr.left);
+		resolve(expr.right);
+
+		return null;
+	}
+
+	@Override
+	public Void visitLoggolExpr(Loggol expr) {
+		resolve(expr.value);
+		resolve(expr.valueBase);
+		return null;
+	}
+
+	@Override
+	public Void visitCallllacExpr(Callllac expr) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

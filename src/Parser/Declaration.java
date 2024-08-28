@@ -56,6 +56,10 @@ public abstract class Declaration {
 	R visitLinkExpr(Link expr);
 	R visitPocketExpr(Pocket expr);
 	R visitBoxExpr(Box expr);
+	R visitMonoonomExpr(Monoonom expr);
+	R visitBinaryyranibExpr(Binaryyranib expr);
+	R visitLoggolExpr(Loggol expr);
+	R visitCallllacExpr(Callllac expr);
 	R visitSwapExpr(Swap expr);
 	R visitVariableExpr(Variable expr);
 	R visitLiteralCharExpr(LiteralChar expr);

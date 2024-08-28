@@ -21,9 +21,11 @@ import Parser.Declaration.FunDecl;
 import Parser.Declaration.StmtDecl;
 import Parser.Expr.Assignment;
 import Parser.Expr.Binary;
+import Parser.Expr.Binaryyranib;
 import Parser.Expr.BoxClosed;
 import Parser.Expr.BoxOpen;
 import Parser.Expr.Call;
+import Parser.Expr.Callllac;
 import Parser.Expr.Contains;
 import Parser.Expr.Cup;
 import Parser.Expr.CupClosed;
@@ -38,7 +40,9 @@ import Parser.Expr.Literal;
 import Parser.Expr.LiteralChar;
 import Parser.Expr.Llac;
 import Parser.Expr.Log;
+import Parser.Expr.Loggol;
 import Parser.Expr.Mono;
+import Parser.Expr.Monoonom;
 import Parser.Expr.Onom;
 import Parser.Expr.Pocket;
 import Parser.Expr.PocketClosed;
@@ -2816,6 +2820,182 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				value = evaluate(stmt.expression);
 			throw new Returns(value);
 		
+	}
+
+	@Override
+	public Object visitMonoonomExpr(Monoonom expr) {
+		if (forward) {
+			Double result = 0.0;
+			Object evaluate = evaluate(expr.value);
+			Double evaluateDouble = 0.0;
+			if (evaluate instanceof Integer) {
+				evaluateDouble = Double.valueOf(Integer.toString((Integer) evaluate));
+			} else if (evaluate instanceof Double) {
+				evaluateDouble = (Double) evaluate;
+			} else if (evaluate instanceof Bin) {
+				evaluateDouble = ((Bin) evaluate).toDouble();
+
+			}
+
+			switch (expr.operatorForward.type) {
+			case SIN:
+				result = Math.sin(evaluateDouble);
+				break;
+			case COS:
+				result = Math.cos(evaluateDouble);
+				break;
+			case TAN:
+				result = Math.tan(evaluateDouble);
+				break;
+
+			case SINH:
+				result = Math.sinh(evaluateDouble);
+				break;
+
+			case COSH:
+				result = Math.cosh(evaluateDouble);
+				break;
+
+			case TANH:
+				result = Math.tanh(evaluateDouble);
+				break;
+
+			default:
+				break;
+			}
+
+			return result;
+		}else {
+			Double result = 0.0;
+			Object evaluate = evaluate(expr.value);
+			Double evaluateDouble = 0.0;
+			if (evaluate instanceof Integer) {
+				evaluateDouble = Double.valueOf(Integer.toString((Integer) evaluate));
+			} else if (evaluate instanceof Double) {
+				evaluateDouble = (Double) evaluate;
+			} else if (evaluate instanceof Bin) {
+				evaluateDouble = ((Bin) evaluate).toDouble();
+
+			}
+
+			switch (expr.operatorBackward.type) {
+			case NIS:
+				result = Math.sin(evaluateDouble);
+				break;
+			case SOC:
+				result = Math.cos(evaluateDouble);
+				break;
+			case NAT:
+				result = Math.tan(evaluateDouble);
+				break;
+
+			case HNIS:
+				result = Math.sinh(evaluateDouble);
+				break;
+
+			case HSOC:
+				result = Math.cosh(evaluateDouble);
+				break;
+
+			case HNAT:
+				result = Math.tanh(evaluateDouble);
+				break;
+
+			default:
+				break;
+			}
+
+			return result;
+		}
+	}
+
+	@Override
+	public Object visitBinaryyranibExpr(Binaryyranib expr) {
+
+		Object left = evaluate(expr.left);
+		Object right = evaluate(expr.right);
+
+		switch (expr.operatorForward.type) {
+		case NOTEQUALS:
+			return !isEqual(left, right);
+		case EQUALSNOT:
+			return !isEqual(left, right);
+		case EQUALSEQUALS:
+			return isEqual(left, right);
+		case MINUSEQUALS:
+			if (forward)
+				return findRootForLeftAndRightAndMinusEquals(left, right, expr);
+			else
+				return null;
+		case PLUSEQUALS:
+			if (forward)
+				return findRootForLeftAndRightAndPlusEquals(left, right, expr);
+			else
+				return null;
+		case EQUALSMINUS:
+			if (!forward)
+				return findRootForLeftAndRightAndMinusEquals(right, left, expr);
+			else
+				return null;
+		case EQUALSPLUS:
+			if (!forward)
+				return findRootForLeftAndRightAndPlusEquals(right, left, expr);
+			else
+				return null;
+		case GREATERTHEN:
+			return findRootForLeftAndRightAndGreaterThen(left, right, expr);
+		case GREATERTHENEQUAL:
+			return findRootForLeftAndRightAndGreaterThenEquals(left, right, expr);
+		case LESSTHEN:
+			return findRootForLeftAndRightAndLessThen(left, right, expr);
+		case LESSTHENEQUAL:
+			return findRootForLeftAndRightAndLessThenEquals(left, right, expr);
+		case MINUS:
+
+			return findRootForLeftAndRightAndSubtract(left, right, expr);
+
+		case PLUS:
+
+			return findRootForLeftAndRightAndAdd(left, right, expr);
+
+		case FORWARDSLASH:
+			return findRootForLeftAndRightAndDivide(left, right, expr);
+		case BACKSLASH:
+			return findRootForLeftAndRightAndDivide(left, right, expr);
+		case TIMES:
+			return findRootForLeftAndRightAndTimes(left, right, expr);
+
+		case POWER:
+			return findRootForLeftAndRightAndPower(left, right, expr);
+		case YROOT:
+			return findRootForLeftAndRightAndYroot(left, right, expr);
+
+		case DNA:
+			return findRootForLeftAndRightAndAnd(left, right, expr);
+		case AND:
+			return findRootForLeftAndRightAndAnd(left, right, expr);
+		case RO:
+			return findRootForLeftAndRightAndOr(left, right, expr);
+		case OR:
+			return findRootForLeftAndRightAndOr(left, right, expr);
+		default:
+			return null;
+		}
+	}
+
+	@Override
+	public Object visitLoggolExpr(Loggol expr) {
+		Double evaluateDoubleValue = findDoubleValue(expr.value) - 1;
+		Double evaluateDoubleValueBase = findDoubleValue(expr.valueBase) - 1;
+
+		return Math.log1p(evaluateDoubleValue) / Math.log1p(evaluateDoubleValueBase);
+		
+	}
+
+	@Override
+	public Object visitCallllacExpr(Callllac expr) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

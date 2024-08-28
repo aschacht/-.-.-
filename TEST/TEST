@@ -8,7 +8,7 @@
 		++z++
 		("mauve").tnirp
 		--i--
-		print.("random").tnirp
+		print.(sinh.(25).nat).tnirp
 		--j--
 		("hicory").tnirp
 		--k-- 

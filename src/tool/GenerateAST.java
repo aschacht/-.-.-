@@ -20,7 +20,7 @@ public class GenerateAST {
 				"Binary			: Expr left , Token operator , Expr right", // logical - yroot
 				"Mono			: Expr value , Token operator", // sin -tanh
 				"Log			: Token operator , Expr valueBase , Expr value", 
-				"Factorial	:Expr value , Token operator",
+				"Factorial		: Expr value , Token operator",
 				"Unary			: Token operator , Expr right ",
 				"Call 			: Expr callee , Token calleeToken , List<Expr> arguments",
 				"Get 			: Expr object , Token name",
@@ -33,6 +33,10 @@ public class GenerateAST {
 				"Pocket 		: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
 				"Box 			: Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi ",
 				
+				"Monoonom		:Expr value , Token operatorForward , Token operatorBackward",
+				"Binaryyranib	: Expr left , Token operatorForward , Token operatorBackward , Expr right",
+				"Loggol			: Token operatorForward , Expr valueBase , Expr value , Token operatorBackward", 
+				"Callllac 		: Expr calleeForward , Token calleeTokenForward , Expr calleeBackward , Token calleeTokenBackward , List<Expr> arguments ",
 				
 				"Swap			: Expr swap1 , Expr Swap2",
 				"Variable 		: Token name",
@@ -206,19 +210,6 @@ public class GenerateAST {
 	}
 
 
-
-	private static void defineVisitor(PrintWriter writer, String baseName, List<String> types) {
-
-		writer.println("	public interface Visitor<R> {");
-
-		for (String type : types) {
-			String typeName = type.split(":")[0].trim();
-			writer.println("	R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
-		}
-
-		writer.println("	}");
-
-	}
 
 	private static void defineType(PrintWriter writer, String baseName, String className, String fields) {
 

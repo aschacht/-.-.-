@@ -137,12 +137,12 @@ public class KnotRunner {
 		this.expression = expression;
 		this.interp = interp;
 		findConditions();
-		System.out.println();
-		System.out.println(pockets.toString());
-		System.out.println();
-		System.out.println(condForward.toString());
-		System.out.println();
-		System.out.println(condBackward.toString());
+//		System.out.println();
+//		System.out.println(pockets.toString());
+//		System.out.println();
+//		System.out.println(condForward.toString());
+//		System.out.println();
+//		System.out.println(condBackward.toString());
 		int count = 0;
 		if (!interp.isForward())
 			count = expression.size() - 1;
@@ -173,15 +173,11 @@ public class KnotRunner {
 						lexeme = split[1];
 					}
 					lexeme = reverse(lexeme);
-//					if (firstBack) {
+
 						if (checkConditionsForward(count, lexeme)) {
 							interp.setForward(!interp.isForward());
 						}
-//					} else {
-//						firstBackCount--;
-//						if (firstBackCount <= 0)
-//							firstBack = true;
-//					}
+
 				} else if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupOpen&& !interp.isForward()) {
 					String lexeme = ((Expr.CupOpen) ((Stmt.Expression) expression
 							.get(count)).expression).ctrl.identifierToken.lexeme;
@@ -189,15 +185,11 @@ public class KnotRunner {
 					String[] split = lexeme.split("_");
 					lexeme = split[0];
 					lexeme = reverse(lexeme);
-//					if (firstForward) {
+
 						if (checkConditionsBackward(count, lexeme)) {
 							interp.setForward(!interp.isForward());
 						}
-//					} else {
-//						firstForwardCount--;
-//						if (firstForwardCount <= 0)
-//							firstForward = true;
-//					}
+
 				} else {
 					interp.execute(expression.get(count));
 				}

@@ -251,6 +251,78 @@ public static class Box extends Expr {
 	public  String lexeme;
 	public  Token reifitnedi;
 	}
+public static class Monoonom extends Expr {
+	 public Monoonom(Expr value , Token operatorForward , Token operatorBackward) {
+	this.value = value;
+	this.operatorForward = operatorForward;
+	this.operatorBackward = operatorBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitMonoonomExpr(this);
+	}
+
+	public  Expr value;
+	public  Token operatorForward;
+	public  Token operatorBackward;
+	}
+public static class Binaryyranib extends Expr {
+	 public Binaryyranib(Expr left , Token operatorForward , Token operatorBackward , Expr right) {
+	this.left = left;
+	this.operatorForward = operatorForward;
+	this.operatorBackward = operatorBackward;
+	this.right = right;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitBinaryyranibExpr(this);
+	}
+
+	public  Expr left;
+	public  Token operatorForward;
+	public  Token operatorBackward;
+	public  Expr right;
+	}
+public static class Loggol extends Expr {
+	 public Loggol(Token operatorForward , Expr valueBase , Expr value , Token operatorBackward) {
+	this.operatorForward = operatorForward;
+	this.valueBase = valueBase;
+	this.value = value;
+	this.operatorBackward = operatorBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitLoggolExpr(this);
+	}
+
+	public  Token operatorForward;
+	public  Expr valueBase;
+	public  Expr value;
+	public  Token operatorBackward;
+	}
+public static class Callllac extends Expr {
+	 public Callllac(Expr calleeForward , Token calleeTokenForward , Expr calleeBackward , Token calleeTokenBackward , List<Expr> arguments) {
+	this.calleeForward = calleeForward;
+	this.calleeTokenForward = calleeTokenForward;
+	this.calleeBackward = calleeBackward;
+	this.calleeTokenBackward = calleeTokenBackward;
+	this.arguments = arguments;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitCallllacExpr(this);
+	}
+
+	public  Expr calleeForward;
+	public  Token calleeTokenForward;
+	public  Expr calleeBackward;
+	public  Token calleeTokenBackward;
+	public  List<Expr> arguments;
+	}
 public static class Swap extends Expr {
 	 public Swap(Expr swap1 , Expr Swap2) {
 	this.swap1 = swap1;

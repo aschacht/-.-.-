@@ -2199,6 +2199,12 @@ public class ParserTest {
 			consume(TokenType.COMMA, "");
 			Expr right = sinnis();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				
+				Token nekot = consume(TokenType.TOORY, "");
+				return new Expr.Binaryyranib(left, token, nekot, right);
+			}
 			return new Expr.Binary(left, token, right);
 		}
 
@@ -2238,6 +2244,14 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr value = cossoc();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				if(match(TokenType.NIS,TokenType.SOC,TokenType.NAT,TokenType.HNIS,TokenType.HSOC,TokenType.HNAT)) {
+				Token rotarepo = previous();
+			 return new Expr.Monoonom(value, operator, rotarepo);
+				}
+				throw error(previous(), "invalid function ",true);
+			}
 			return new Expr.Mono(value, operator);
 		}
 		Expr pocket = cossoc();
@@ -2271,6 +2285,14 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr value = tannat();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				if(match(TokenType.NIS,TokenType.SOC,TokenType.NAT,TokenType.HNIS,TokenType.HSOC,TokenType.HNAT)) {
+				Token rotarepo = previous();
+			 return new Expr.Monoonom(value, operator, rotarepo);
+				}
+				throw error(previous(), "invalid function ",true);
+			}
 			return new Expr.Mono(value, operator);
 		}
 		Expr pocket = tannat();
@@ -2305,6 +2327,14 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr value = sinhhnis();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				if(match(TokenType.NIS,TokenType.SOC,TokenType.NAT,TokenType.HNIS,TokenType.HSOC,TokenType.HNAT)) {
+				Token rotarepo = previous();
+			 return new Expr.Monoonom(value, operator, rotarepo);
+				}
+				throw error(previous(), "invalid function ",true);
+			}
 			return new Expr.Mono(value, operator);
 		}
 		Expr pocket = sinhhnis();
@@ -2339,6 +2369,14 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr value = coshhsoc();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				if(match(TokenType.NIS,TokenType.SOC,TokenType.NAT,TokenType.HNIS,TokenType.HSOC,TokenType.HNAT)) {
+				Token rotarepo = previous();
+			 return new Expr.Monoonom(value, operator, rotarepo);
+				}
+				throw error(previous(), "invalid function ",true);
+			}
 			return new Expr.Mono(value, operator);
 		}
 		Expr pocket = coshhsoc();
@@ -2372,6 +2410,14 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr value = tanhhnat();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				if(match(TokenType.NIS,TokenType.SOC,TokenType.NAT,TokenType.HNIS,TokenType.HSOC,TokenType.HNAT)) {
+				Token rotarepo = previous();
+			 return new Expr.Monoonom(value, operator, rotarepo);
+				}
+				throw error(previous(), "invalid function ",true);
+			}
 			return new Expr.Mono(value, operator);
 		}
 		Expr pocket = tanhhnat();
@@ -2405,6 +2451,14 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr value = loggol();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				if(match(TokenType.NIS,TokenType.SOC,TokenType.NAT,TokenType.HNIS,TokenType.HSOC,TokenType.HNAT)) {
+				Token rotarepo = previous();
+			 return new Expr.Monoonom(value, operator, rotarepo);
+				}
+				throw error(previous(), "invalid function ",true);
+			}
 			return new Expr.Mono(value, operator);
 		}
 		Expr pocket = loggol();
@@ -2439,6 +2493,11 @@ public class ParserTest {
 			consume(TokenType.COMMA, "");
 			Expr value = factoriallairotcaf();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				Token rot = consume(TokenType.GOL, "");
+				return new Expr.Loggol(operator, base, value, rot);
+			}
 			return new Expr.Log(operator, base, value);
 		}
 		Expr pocket = factoriallairotcaf();
