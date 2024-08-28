@@ -65,13 +65,19 @@ import Parser.Stmt.Fi;
 import Parser.Stmt.If;
 import Parser.Stmt.Ifi;
 import Parser.Stmt.Move;
+import Parser.Stmt.Moveevom;
 import Parser.Stmt.Nruter;
 import Parser.Stmt.Print;
+import Parser.Stmt.Printtnirp;
 import Parser.Stmt.Rav;
 import Parser.Stmt.Read;
+import Parser.Stmt.Readdaer;
 import Parser.Stmt.Rename;
+import Parser.Stmt.Renameemaner;
 import Parser.Stmt.Return;
+import Parser.Stmt.Returnruter;
 import Parser.Stmt.Save;
+import Parser.Stmt.Saveevas;
 import Parser.Stmt.TemplatVar;
 import Parser.Stmt.Tnirp;
 import Parser.Stmt.Var;
@@ -662,6 +668,57 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitBoxClosedExpr(BoxClosed expr) {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitPrinttnirpStmt(Printtnirp stmt) {
+		resolve(stmt.expression);
+		return null;
+	}
+
+	@Override
+	public Void visitSaveevasStmt(Saveevas stmt) {
+		resolve(stmt.filePathFileName);
+		if (stmt.objecttosave != null)
+			resolve(stmt.objecttosave);
+		return null;
+	}
+
+	@Override
+	public Void visitReaddaerStmt(Readdaer stmt) {
+		resolve(stmt.filePath);
+		resolve(stmt.objectToReadInto);
+		return null;
+	}
+
+	@Override
+	public Void visitRenameemanerStmt(Renameemaner stmt) {
+		resolve(stmt.filenewname);
+		resolve(stmt.filePathAndName);
+		return null;
+	}
+
+	@Override
+	public Void visitMoveevomStmt(Moveevom stmt) {
+		resolve(stmt.newfilePath);
+		resolve(stmt.OringialfilePathAndFile);
+		return null;
+	}
+
+	@Override
+	public Void visitReturnruterStmt(Returnruter stmt) {
+		if (currentFunction == FunctionType.NONE) {
+			Box.error(stmt.keywordForward, "Can't return from top-level code.",true);
+			Box.error(stmt.keywordBackward, "Can't return from top-level code.",true);
+		}
+		if (stmt.expression != null) {
+			if (currentFunction == FunctionType.INITILIZER) {
+				Box.error(stmt.keywordForward, "Can't return a value from an initilizer.",true);
+				Box.error(stmt.keywordBackward, "Can't return a value from an initilizer.",true);
+			}
+			resolve(stmt.expression);
+		}
 		return null;
 	}
 

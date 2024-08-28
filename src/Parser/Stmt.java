@@ -175,20 +175,6 @@ public static class Expel extends Stmt {
 	public  Expr toExpell;
 	public  Expr filePath;
 	}
-public static class Ifi extends Stmt {
-	 public Ifi(Expr ifPocket , Stmt elseIf) {
-	this.ifPocket = ifPocket;
-	this.elseIf = elseIf;
-	}
-
-	@Override
-	public <R> R accept(Visitor<R> visitor) {
-	 	return visitor.visitIfiStmt(this);
-	}
-
-	public  Expr ifPocket;
-	public  Stmt elseIf;
-	}
 public static class Consume extends Stmt {
 	 public Consume(Token keyword , Expr boxToFill , Expr filePath) {
 	this.keyword = keyword;
@@ -204,6 +190,124 @@ public static class Consume extends Stmt {
 	public  Token keyword;
 	public  Expr boxToFill;
 	public  Expr filePath;
+	}
+public static class Ifi extends Stmt {
+	 public Ifi(Expr ifPocket , Stmt elseIf) {
+	this.ifPocket = ifPocket;
+	this.elseIf = elseIf;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitIfiStmt(this);
+	}
+
+	public  Expr ifPocket;
+	public  Stmt elseIf;
+	}
+public static class Printtnirp extends Stmt {
+	 public Printtnirp(Token keywordForward , Expr expression , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.expression = expression;
+	this.keywordBackward = keywordBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPrinttnirpStmt(this);
+	}
+
+	public  Token keywordForward;
+	public  Expr expression;
+	public  Token keywordBackward;
+	}
+public static class Saveevas extends Stmt {
+	 public Saveevas(Token keywordForward , Expr filePathFileName , Expr objecttosave , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.filePathFileName = filePathFileName;
+	this.objecttosave = objecttosave;
+	this.keywordBackward = keywordBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitSaveevasStmt(this);
+	}
+
+	public  Token keywordForward;
+	public  Expr filePathFileName;
+	public  Expr objecttosave;
+	public  Token keywordBackward;
+	}
+public static class Readdaer extends Stmt {
+	 public Readdaer(Token keywordForward , Expr filePath , Expr objectToReadInto , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.filePath = filePath;
+	this.objectToReadInto = objectToReadInto;
+	this.keywordBackward = keywordBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitReaddaerStmt(this);
+	}
+
+	public  Token keywordForward;
+	public  Expr filePath;
+	public  Expr objectToReadInto;
+	public  Token keywordBackward;
+	}
+public static class Renameemaner extends Stmt {
+	 public Renameemaner(Token keywordForward , Expr filePathAndName , Expr filenewname , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.filePathAndName = filePathAndName;
+	this.filenewname = filenewname;
+	this.keywordBackward = keywordBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitRenameemanerStmt(this);
+	}
+
+	public  Token keywordForward;
+	public  Expr filePathAndName;
+	public  Expr filenewname;
+	public  Token keywordBackward;
+	}
+public static class Moveevom extends Stmt {
+	 public Moveevom(Token keywordForward , Expr OringialfilePathAndFile , Expr newfilePath , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.OringialfilePathAndFile = OringialfilePathAndFile;
+	this.newfilePath = newfilePath;
+	this.keywordBackward = keywordBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitMoveevomStmt(this);
+	}
+
+	public  Token keywordForward;
+	public  Expr OringialfilePathAndFile;
+	public  Expr newfilePath;
+	public  Token keywordBackward;
+	}
+public static class Returnruter extends Stmt {
+	 public Returnruter(Token keywordForward , Expr expression , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.expression = expression;
+	this.keywordBackward = keywordBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitReturnruterStmt(this);
+	}
+
+	public  Token keywordForward;
+	public  Expr expression;
+	public  Token keywordBackward;
 	}
 public static class Rav extends Stmt {
 	 public Rav(Token name , Token type, int num , Stmt initilizer) {

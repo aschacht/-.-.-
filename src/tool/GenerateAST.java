@@ -72,8 +72,15 @@ public class GenerateAST {
 
 				"TemplatVar		: Token name, Token superclass",
 				"Expel			: Token keyword , Expr toExpell , Expr filePath",
-				"Ifi			: Expr ifPocket , Stmt elseIf",
 				"Consume		: Token keyword , Expr boxToFill , Expr filePath",
+
+				"Ifi			: Expr ifPocket , Stmt elseIf",
+				"Printtnirp		: Token keywordForward , Expr expression , Token keywordBackward",
+				"Saveevas		: Token keywordForward , Expr filePathFileName , Expr objecttosave , Token keywordBackward",
+				"Readdaer		: Token keywordForward , Expr filePath , Expr objectToReadInto , Token keywordBackward",
+				"Renameemaner	: Token keywordForward , Expr filePathAndName , Expr filenewname , Token keywordBackward",
+				"Moveevom		: Token keywordForward , Expr OringialfilePathAndFile , Expr newfilePath , Token keywordBackward",
+				"Returnruter	: Token keywordForward , Expr expression , Token keywordBackward",
 				
 				
 				"Rav 			: Token name , Token type, int num , Stmt initilizer",

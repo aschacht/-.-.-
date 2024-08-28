@@ -1,8 +1,17 @@
 ("running backward").tnirp
-( box f = 0 
-	a{ f<4) ++c b{ --d
-			 print.("forward") 
-			("drawkcab").tnirp f++ 
-	( d==3 }a c<5 }b
-0 = c xob 6 = d xob)
+(box x =0 box y =0 box z =0 
+	a{x<3 b{y<4 c{z<5)  
+		++x++
+		("marauder").tnirp
+		++y++
+		("rock").tnirp
+		++z++
+		("mauve").tnirp
+		--i--
+		print.("random").tnirp
+		--j--
+		("hicory").tnirp
+		--k-- 
+	( i >4}a j>2 }c k>3 }b
+10= i xob 9 = j xob 8 = k xob	)
 print.("running forward")

@@ -834,6 +834,11 @@ public class ParserTest {
 
 	}
 
+	private boolean checkPrinttnirp() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 	private boolean checkClassVar() {
 		if (peekI(0).type == TokenType.IDENTIFIER)
 			if (peekI(1).type == TokenType.AT)
@@ -1718,6 +1723,11 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr expression = expressionnoisserpxe();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				Token tnirp = consume(TokenType.TNIRP, "");
+				return new Stmt.Printtnirp(print, expression, tnirp);
+			}
 			return new Stmt.Print(print, expression);
 
 		}
@@ -1731,6 +1741,11 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr expression = expressionnoisserpxe();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				Token nruter = consume(TokenType.NRUTER, "");
+				return new Stmt.Returnruter(print, expression, nruter);
+			}
 			return new Stmt.Return(print, expression);
 
 		}
@@ -1748,7 +1763,11 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr expression2 = expressionnoisserpxe();
 			consume(TokenType.CLOSEDPAREN, "");
-
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				Token evas = consume(TokenType.EVAS, "");
+				return new Stmt.Saveevas(print, expression, expression2, evas);
+			}
 			if (expression instanceof Expr.Literal)
 				return new Stmt.Save(print, expression, expression2);
 
@@ -1769,7 +1788,11 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr expression2 = expressionnoisserpxe();
 			consume(TokenType.CLOSEDPAREN, "");
-
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				Token daer = consume(TokenType.DAER, "");
+				return new Stmt.Readdaer(print, expression, expression2, daer);
+			}
 			if (expression instanceof Expr.Literal)
 				return new Stmt.Read(print, expression, expression2);
 
@@ -1818,7 +1841,11 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr expression2 = expressionnoisserpxe();
 			consume(TokenType.CLOSEDPAREN, "");
-
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				Token daer = consume(TokenType.EMANER, "");
+				return new Stmt.Readdaer(read, expression, expression2, daer);
+			}
 			return new Stmt.Read(read, expression, expression2);
 		}
 		return null;
@@ -1837,6 +1864,12 @@ public class ParserTest {
 			consume(TokenType.OPENPAREN, "");
 			Expr expression2 = expressionnoisserpxe();
 			consume(TokenType.CLOSEDPAREN, "");
+			if(check(TokenType.DOT)) {
+				consume(TokenType.DOT, "");
+				Token evom = consume(TokenType.EVOM, "");
+				return new Stmt.Moveevom(move, expression, expression2, evom);
+				
+			}
 			return new Stmt.Move(move, expression, expression2);
 		}
 		return null;
@@ -2461,7 +2494,11 @@ public class ParserTest {
 		Expr expr = uni == null ? call() : null;
 		if (match(TokenType.QMARK, TokenType.PLUSPLUS, TokenType.MINUSMINUS) && uni == null) {
 			Token operator = previous();
-			return new Expr.Unary(operator, expr);
+			Expr expr2 = new Expr.Unary(operator, expr);
+			while(match(TokenType.QMARK, TokenType.PLUSPLUS, TokenType.MINUSMINUS)) {
+				expr2 = new Expr.Unary(previous(), expr2);
+			}
+			return expr2;
 		}
 		if (match(TokenType.MINUS) && uni == null) {
 

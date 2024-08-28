@@ -193,7 +193,7 @@ public class Box extends Thread {
 		ParserTest parser = new ParserTest(toks, forward, backward);
 		List<Declaration> statements = parser.parse();
 
-		interpreter.setForward(true);
+		interpreter.setForward(false);
 
 		Resolver resolver = new Resolver(interpreter);
 		resolver.resolve(statements);

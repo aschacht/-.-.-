@@ -24,8 +24,14 @@ public abstract class Declaration {
 	R visitVarStmt(Var stmt);
 	R visitTemplatVarStmt(TemplatVar stmt);
 	R visitExpelStmt(Expel stmt);
-	R visitIfiStmt(Ifi stmt);
 	R visitConsumeStmt(Consume stmt);
+	R visitIfiStmt(Ifi stmt);
+	R visitPrinttnirpStmt(Printtnirp stmt);
+	R visitSaveevasStmt(Saveevas stmt);
+	R visitReaddaerStmt(Readdaer stmt);
+	R visitRenameemanerStmt(Renameemaner stmt);
+	R visitMoveevomStmt(Moveevom stmt);
+	R visitReturnruterStmt(Returnruter stmt);
 	R visitRavStmt(Rav stmt);
 	R visitNruterStmt(Nruter stmt);
 	R visitEvomStmt(Evom stmt);

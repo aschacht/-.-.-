@@ -67,12 +67,18 @@ import Parser.Stmt.Fi;
 import Parser.Stmt.If;
 import Parser.Stmt.Ifi;
 import Parser.Stmt.Move;
+import Parser.Stmt.Moveevom;
 import Parser.Stmt.Nruter;
 import Parser.Stmt.Print;
+import Parser.Stmt.Printtnirp;
 import Parser.Stmt.Rav;
 import Parser.Stmt.Read;
+import Parser.Stmt.Readdaer;
 import Parser.Stmt.Rename;
+import Parser.Stmt.Renameemaner;
+import Parser.Stmt.Returnruter;
 import Parser.Stmt.Save;
+import Parser.Stmt.Saveevas;
 import Parser.Stmt.TemplatVar;
 import Parser.Stmt.Tnirp;
 import Parser.Stmt.Var;
@@ -1363,7 +1369,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 			throw new RuntimeError(expr.operator, "Operand must be a number.");
 		 }
-		 return null;
+		 return right;
 		case MINUSMINUS:
 			if (forward) {
 				if (right instanceof Double) {
@@ -1421,7 +1427,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
-			return null;
+			return right;
 		default:
 			return null;
 		}
@@ -1578,7 +1584,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
-			return null;
+			return right;
 		case MINUSMINUS:
 			if (!forward) {
 				if (right instanceof Double) {
@@ -1636,7 +1642,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
-			return null;
+			return right;
 		default:
 			return null;
 		}
@@ -2754,6 +2760,62 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitBoxClosedExpr(BoxClosed expr) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Object visitPrinttnirpStmt(Printtnirp stmt) {
+		Object value = evaluate(stmt.expression);
+		System.out.println(stringify(value));
+		return null;
+	}
+
+	@Override
+	public Object visitSaveevasStmt(Saveevas stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitReaddaerStmt(Readdaer stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitRenameemanerStmt(Renameemaner stmt) {
+		File file = new File((String) evaluate(stmt.filePathAndName));
+
+		if (file.renameTo(new File((String) evaluate(stmt.filenewname)))) {
+			System.out.println("File Renamed successfully");
+		} else {
+			System.out.println("Failed to Rename the file");
+		}
+		return null;
+	}
+
+	@Override
+	public Object visitMoveevomStmt(Moveevom stmt) {
+		
+			File file = new File((String) evaluate(stmt.OringialfilePathAndFile));
+
+			if (file.renameTo(new File((String) evaluate(stmt.newfilePath)))) {
+				file.delete();
+				System.out.println("File moved successfully");
+			} else {
+				System.out.println("Failed to move the file");
+			}
+		
+		return null;
+	}
+
+	@Override
+	public Object visitReturnruterStmt(Returnruter stmt) {
+		
+			Object value = null;
+			if (stmt.expression != null)
+				value = evaluate(stmt.expression);
+			throw new Returns(value);
+		
 	}
 
 }
