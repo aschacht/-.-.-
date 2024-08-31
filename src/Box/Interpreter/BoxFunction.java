@@ -52,7 +52,7 @@ public class BoxFunction extends BoxCallable {
 
 
 	@Override
-	public Object call(Interpreter interpreter, List<Object> arguments) {
+	public Object call(Interpreter interpreter) {
 		
 		Environment environment1 = new Environment(closure);
 		if (params != null) {
@@ -63,11 +63,16 @@ public class BoxFunction extends BoxCallable {
 			}
 		}
 		try {
-//			if (body instanceof Expr.Knot)
-//				interpreter.executeBlock(((Expr.Knot) body).expression, environment1);
-//			else if (body instanceof Expr.Cup)
-//				interpreter.executeBlock(((Expr.Cup) body).expression, environment1);
-//			
+			if (body instanceof Expr.Knot)
+				interpreter.executePocket(((Expr.Knot) body).expression, environment1);
+			else if (body instanceof Expr.Cup)
+				interpreter.executeCup(((Expr.Cup) body).expression, environment1);
+			else if (body instanceof Expr.Pocket)
+				interpreter.executePocket(((Expr.Pocket) body).expression, environment1);
+			else if(body instanceof Expr.Tonk)
+				interpreter.executePocket(((Expr.Tonk) body).expression, environment1);
+//			else if(body instanceof Expr.Box)
+//				interpreter.executeExprBlock(((Expr.Box) body).expression, environment1);
 
 		} catch (Returns returnValue) {
 			if (isInitilizer)
@@ -99,7 +104,7 @@ public class BoxFunction extends BoxCallable {
 		return name;
 	}
 
-	public BoxFunction bind(BoxInstance boxInstance) {
+	public BoxFunction bind(Instance boxInstance) {
 		Environment environment = new Environment(closure);
 
 		environment.define(name, getType(),boxInstance);

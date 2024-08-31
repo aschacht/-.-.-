@@ -323,6 +323,38 @@ public static class Callllac extends Expr {
 	public  Token calleeTokenBackward;
 	public  List<Expr> arguments;
 	}
+public static class Expressiontmts extends Expr {
+	 public Expressiontmts(Token expressionToken , Expr expression , Token tnemetatsToken) {
+	this.expressionToken = expressionToken;
+	this.expression = expression;
+	this.tnemetatsToken = tnemetatsToken;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitExpressiontmtsExpr(this);
+	}
+
+	public  Token expressionToken;
+	public  Expr expression;
+	public  Token tnemetatsToken;
+	}
+public static class Assignmenttnemgissa extends Expr {
+	 public Assignmenttnemgissa(Token nameForward , Expr value , Token nameBackward) {
+	this.nameForward = nameForward;
+	this.value = value;
+	this.nameBackward = nameBackward;
+	}
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitAssignmenttnemgissaExpr(this);
+	}
+
+	public  Token nameForward;
+	public  Expr value;
+	public  Token nameBackward;
+	}
 public static class Swap extends Expr {
 	 public Swap(Expr swap1 , Expr Swap2) {
 	this.swap1 = swap1;

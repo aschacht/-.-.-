@@ -11,7 +11,7 @@ import Parser.Expr;
 import Parser.Stmt;
 
 public class Environment {
-	public final Environment enclosing;
+	public Environment enclosing;
 	private final Map<String, Object> values = new HashMap<>();
 	private final Map<String, TypesOfObject> types = new HashMap<>();
 
@@ -71,8 +71,8 @@ public class Environment {
 					
 				} else {
 					Object objetToset = values.get(name.lexeme);
-					if (objetToset instanceof BoxInstance) {
-						if (((BoxInstance) objetToset).boxClass instanceof BoxClass) {
+					if (objetToset instanceof Instance) {
+						if (((Instance) objetToset).boxClass instanceof BoxClass) {
 
 							Object lookUpVariable = null;
 							if (exprValue instanceof Expr.Variable) {
@@ -88,16 +88,16 @@ public class Environment {
 								lookUpVariable = interpreter.lookUpVariable(((Expr.Box) exprValue).identifier,
 										((Expr.Box) exprValue));
 							}
-							if (lookUpVariable instanceof BoxInstance) {
+							if (lookUpVariable instanceof Instance) {
 								ArrayList<Object> newContents = new ArrayList<>();
 								newContents.add(lookUpVariable);
-								((BoxClass) ((BoxInstance) objetToset).boxClass).contents = newContents;
+								((BoxClass) ((Instance) objetToset).boxClass).contents = newContents;
 							} else {
 								ArrayList<Object> newContents = new ArrayList<>();
 								newContents.add(value);
-								((BoxClass) ((BoxInstance) objetToset).boxClass).contents = newContents;
+								((BoxClass) ((Instance) objetToset).boxClass).contents = newContents;
 							}
-						} else if (((BoxInstance) objetToset).boxClass instanceof BoxContainerClass) {
+						} else if (((Instance) objetToset).boxClass instanceof BoxContainerClass) {
 							Object lookUpVariable = null;
 							if (exprValue instanceof Expr.Variable) {
 								lookUpVariable = interpreter.lookUpVariable(((Expr.Variable) exprValue).name,
@@ -112,14 +112,14 @@ public class Environment {
 								lookUpVariable = interpreter.lookUpVariable(((Expr.Box) exprValue).identifier,
 										((Expr.Box) exprValue));
 							}
-							if (lookUpVariable instanceof BoxInstance) {
+							if (lookUpVariable instanceof Instance) {
 								ArrayList<Object> newContents = new ArrayList<>();
 								newContents.add(lookUpVariable);
-								((BoxContainerClass) ((BoxInstance) objetToset).boxClass).contents = newContents;
+								((BoxContainerClass) ((Instance) objetToset).boxClass).contents = newContents;
 							} else {
 								ArrayList<Object> newContents = new ArrayList<>();
 								newContents.add(value);
-								((BoxClass) ((BoxInstance) objetToset).boxClass).contents = newContents;
+								((BoxClass) ((Instance) objetToset).boxClass).contents = newContents;
 							}
 						}
 					} else {
@@ -182,9 +182,10 @@ public class Environment {
 	}
 
 	public void assignAt(Integer distance, Token name, Object exprValue, Object value, Interpreter interpreter) {
-		TypesOfObject typesOfObject = ancestor(distance).types.get(name.lexeme);
+		Environment ancestor = ancestor(distance);
+		TypesOfObject typesOfObject = ancestor.types.get(name.lexeme);
 		if (RunTimeTypes.getObjectType(exprValue, value, interpreter) == typesOfObject.getRunTimeTypeForObject() || typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Any)
-			ancestor(distance).values.put(name.lexeme, value);
+			ancestor.values.put(name.lexeme, value);
 	}
 
 	public Object getTypeAt(Integer distance, String lexeme) {

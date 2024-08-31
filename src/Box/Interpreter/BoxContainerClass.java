@@ -59,7 +59,7 @@ public class BoxContainerClass extends BoxCallable{
 
 	@Override
 	public Object call(Interpreter interpreter, List<Object> arguments) {
-		BoxInstance instance = new BoxInstance(this);
+		Instance instance = new Instance(this);
 		return instance;
 	}
 
@@ -81,17 +81,17 @@ public class BoxContainerClass extends BoxCallable{
 
 	public Object get(String lexeme) {
 		for (Object expr : contents) {
-			if(expr instanceof BoxInstance) {
-				if((((BoxInstance)expr).boxClass) instanceof BoxClass) {
-					if(((BoxClass)((BoxInstance)expr).boxClass).name.equalsIgnoreCase(lexeme)) {
+			if(expr instanceof Instance) {
+				if((((Instance)expr).boxClass) instanceof BoxClass) {
+					if(((BoxClass)((Instance)expr).boxClass).name.equalsIgnoreCase(lexeme)) {
 						return expr;
 					}
-				}else if((((BoxInstance)expr).boxClass) instanceof BoxContainerClass) {
-					if(((BoxContainerClass)((BoxInstance)expr).boxClass).name.equalsIgnoreCase(lexeme)) {
+				}else if((((Instance)expr).boxClass) instanceof BoxContainerClass) {
+					if(((BoxContainerClass)((Instance)expr).boxClass).name.equalsIgnoreCase(lexeme)) {
 						return expr;
 					}
-				}else if((((BoxInstance)expr).boxClass) instanceof BoxKnotClass) {
-					if(((BoxKnotClass)((BoxInstance)expr).boxClass).name.equalsIgnoreCase(lexeme)) {
+				}else if((((Instance)expr).boxClass) instanceof BoxKnotClass) {
+					if(((BoxKnotClass)((Instance)expr).boxClass).name.equalsIgnoreCase(lexeme)) {
 						return expr;
 					}
 				}

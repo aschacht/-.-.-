@@ -17,6 +17,7 @@ import Parser.Stmt;
 import Parser.Declaration.FunDecl;
 import Parser.Declaration.StmtDecl;
 import Parser.Expr.Assignment;
+import Parser.Expr.Assignmenttnemgissa;
 import Parser.Expr.Binary;
 import Parser.Expr.Binaryyranib;
 import Parser.Expr.BoxClosed;
@@ -27,6 +28,7 @@ import Parser.Expr.Contains;
 import Parser.Expr.Cup;
 import Parser.Expr.CupClosed;
 import Parser.Expr.CupOpen;
+import Parser.Expr.Expressiontmts;
 import Parser.Expr.Factorial;
 import Parser.Expr.Get;
 import Parser.Expr.Gol;
@@ -72,16 +74,15 @@ import Parser.Stmt.Move;
 import Parser.Stmt.Moveevom;
 import Parser.Stmt.Nruter;
 import Parser.Stmt.Print;
-import Parser.Stmt.Printtnirp;
 import Parser.Stmt.Rav;
 import Parser.Stmt.Read;
 import Parser.Stmt.Readdaer;
 import Parser.Stmt.Rename;
 import Parser.Stmt.Renameemaner;
 import Parser.Stmt.Return;
-import Parser.Stmt.Returnruter;
 import Parser.Stmt.Save;
 import Parser.Stmt.Saveevas;
+import Parser.Stmt.StmttmtS;
 import Parser.Stmt.TemplatVar;
 import Parser.Stmt.Tnirp;
 import Parser.Stmt.Var;
@@ -106,15 +107,12 @@ public class Resolver implements Declaration.Visitor<Void> {
 	}
 
 	public void resolve(List<Declaration> statementLists) {
+		beginScope();
+		for (Declaration stmt : statementLists) {
+			resolve(stmt);
 
-		
-
-			for (Declaration stmt : statementLists) {
-				resolve(stmt);
-
-			}
-
-		
+		}
+		endScope();
 
 	}
 
@@ -137,7 +135,8 @@ public class Resolver implements Declaration.Visitor<Void> {
 	private void resolveLocal(Expr expr, Token name) {
 		for (int i = scopes.size() - 1; i >= 0; i--) {
 			if (scopes.get(i).containsKey(name.lexeme)) {
-				interpreter.resolve(expr, scopes.size() - 1 - i);
+				
+				interpreter.resolve(expr, (scopes.size() - 1) - i);
 				return;
 			}
 		}
@@ -154,7 +153,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 			return;
 		Map<String, Boolean> scope = scopes.peek();
 		if (scope.containsKey(name.lexeme)) {
-			Box.error(name, "Already variable with this name in this scope.",true);
+			Box.error(name, "Already variable with this name in this scope.", true);
 		}
 		scope.put(name.lexeme, false);
 
@@ -175,8 +174,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitFunctionFun(Function fun) {
 		if (fun.forwardIdentifier != null) {
-			declare(fun.forwardIdentifier);
-			define(fun.forwardIdentifier);
+			
 			FunctionType enclosingFunction = currentFunction;
 			currentFunction = FunctionType.FUNCTION;
 
@@ -187,11 +185,12 @@ public class Resolver implements Declaration.Visitor<Void> {
 			}
 			resolve(fun.sharedCup);
 			endScope();
+			declare(fun.forwardIdentifier);
+			define(fun.forwardIdentifier);
 			currentFunction = enclosingFunction;
 		}
 		if (fun.backwardIdentifier != null) {
-			declare(fun.backwardIdentifier);
-			define(fun.backwardIdentifier);
+			
 			FunctionType enclosingFunction = currentFunction;
 			currentFunction = FunctionType.FUNCTION;
 
@@ -202,6 +201,8 @@ public class Resolver implements Declaration.Visitor<Void> {
 			}
 			resolve(fun.sharedCup);
 			endScope();
+			declare(fun.backwardIdentifier);
+			define(fun.backwardIdentifier);
 			currentFunction = enclosingFunction;
 		}
 		return null;
@@ -209,9 +210,9 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitExpressionStmt(Expression stmt) {
-		if(stmt.expression!=null)
-		resolve(stmt.expression);
-		
+		if (stmt.expression != null)
+			resolve(stmt.expression);
+
 		return null;
 	}
 
@@ -239,11 +240,11 @@ public class Resolver implements Declaration.Visitor<Void> {
 	public Void visitReturnStmt(Return stmt) {
 
 		if (currentFunction == FunctionType.NONE) {
-			Box.error(stmt.keyword, "Can't return from top-level code.",true);
+			Box.error(stmt.keyword, "Can't return from top-level code.", true);
 		}
 		if (stmt.expression != null) {
 			if (currentFunction == FunctionType.INITILIZER) {
-				Box.error(stmt.keyword, "Can't return a value from an initilizer.",true);
+				Box.error(stmt.keyword, "Can't return a value from an initilizer.", true);
 			}
 			resolve(stmt.expression);
 		}
@@ -302,17 +303,18 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitTnirpStmt(Tnirp stmt) {
 		resolve(stmt.expression);
+		
 		return null;
 	}
 
 	@Override
 	public Void visitNruterStmt(Nruter stmt) {
 		if (currentFunction == FunctionType.NONE) {
-			Box.error(stmt.keyword, "Can't return from top-level code.",true);
+			Box.error(stmt.keyword, "Can't return from top-level code.", true);
 		}
 		if (stmt.expression != null) {
 			if (currentFunction == FunctionType.INITILIZER) {
-				Box.error(stmt.keyword, "Can't return a value from an initilizer.",true);
+				Box.error(stmt.keyword, "Can't return a value from an initilizer.", true);
 			}
 			resolve(stmt.expression);
 		}
@@ -505,7 +507,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitVariableExpr(Variable expr) {
 		if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
-			Box.error(expr.name, "Can't read local variable in its own initilizer.",true);
+			Box.error(expr.name, "Can't read local variable in its own initilizer.", true);
 		}
 		resolveLocal(expr, expr.name);
 		return null;
@@ -513,7 +515,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitLiteralExpr(Literal expr) {
-		
+
 		return null;
 	}
 
@@ -525,16 +527,17 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitCupExpr(Cup expr) {
-		declare(expr.identifier);
-		define(expr.identifier);
-		declare(expr.reifitnedi);
-		define(expr.reifitnedi);
+		
 		beginScope();
 		for (Declaration stmtExpression : expr.expression) {
 			resolve(stmtExpression);
 
 		}
 		endScope();
+		declare(expr.identifier);
+		define(expr.identifier);
+		declare(expr.reifitnedi);
+		define(expr.reifitnedi);
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
 
@@ -543,10 +546,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitPocketExpr(Pocket expr) {
-		declare(expr.identifier);
-		define(expr.identifier);
-		declare(expr.reifitnedi);
-		define(expr.reifitnedi);
+		
 		beginScope();
 
 		for (Stmt stmtExpression : expr.expression) {
@@ -554,6 +554,10 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 		}
 		endScope();
+		declare(expr.identifier);
+		declare(expr.reifitnedi);
+		define(expr.identifier);
+		define(expr.reifitnedi);
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
 
@@ -562,41 +566,58 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitKnotExpr(Knot expr) {
+		
 		beginScope();
 		for (Declaration stmtExpression : expr.expression) {
 			resolve(stmtExpression);
 
 		}
 		endScope();
+		declare(expr.identifier);
+		declare(expr.reifitnedi);
+		define(expr.identifier);
+		define(expr.reifitnedi);
+		resolveLocal(expr, expr.identifier);
+		resolveLocal(expr, expr.reifitnedi);
 		return null;
 	}
 
 	@Override
 	public Void visitTonkExpr(Tonk expr) {
+		
 		beginScope();
 		for (Declaration stmtExpression : expr.expression) {
 			resolve(stmtExpression);
 
 		}
 		endScope();
+		declare(expr.identifier);
+		declare(expr.reifitnedi);
+		define(expr.identifier);
+		define(expr.reifitnedi);
+		resolveLocal(expr, expr.identifier);
+		resolveLocal(expr, expr.reifitnedi);
 		return null;
 	}
 
 	@Override
 	public Void visitBoxExpr(Expr.Box expr) {
+		
 		beginScope();
-		declare(expr.identifier);
-		declare(expr.reifitnedi);
+
 		List<Stmt> primarys = expr.expression;
 		for (Stmt prim : primarys) {
 			resolve(prim);
 		}
+
+		
+		endScope();
+		declare(expr.identifier);
+		declare(expr.reifitnedi);
 		define(expr.identifier);
 		define(expr.reifitnedi);
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
-		endScope();
-
 		return null;
 	}
 
@@ -676,12 +697,6 @@ public class Resolver implements Declaration.Visitor<Void> {
 	}
 
 	@Override
-	public Void visitPrinttnirpStmt(Printtnirp stmt) {
-		resolve(stmt.expression);
-		return null;
-	}
-
-	@Override
 	public Void visitSaveevasStmt(Saveevas stmt) {
 		resolve(stmt.filePathFileName);
 		if (stmt.objecttosave != null)
@@ -711,22 +726,6 @@ public class Resolver implements Declaration.Visitor<Void> {
 	}
 
 	@Override
-	public Void visitReturnruterStmt(Returnruter stmt) {
-		if (currentFunction == FunctionType.NONE) {
-			Box.error(stmt.keywordForward, "Can't return from top-level code.",true);
-			Box.error(stmt.keywordBackward, "Can't return from top-level code.",true);
-		}
-		if (stmt.expression != null) {
-			if (currentFunction == FunctionType.INITILIZER) {
-				Box.error(stmt.keywordForward, "Can't return a value from an initilizer.",true);
-				Box.error(stmt.keywordBackward, "Can't return a value from an initilizer.",true);
-			}
-			resolve(stmt.expression);
-		}
-		return null;
-	}
-
-	@Override
 	public Void visitMonoonomExpr(Monoonom expr) {
 		resolve(expr.value);
 		return null;
@@ -750,6 +749,71 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitCallllacExpr(Callllac expr) {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitExpressiontmtsExpr(Expressiontmts expr) {
+		resolve(expr.expression);
+
+		if (expr.tnemetatsToken.type == TokenType.NRUTER) {
+			if (currentFunction == FunctionType.NONE) {
+				Box.error(expr.tnemetatsToken, "Can't return from top-level code.", true);
+			}
+			if (expr.expression != null) {
+				if (currentFunction == FunctionType.INITILIZER) {
+					Box.error(expr.tnemetatsToken, "Can't return a value from an initilizer.", true);
+				}
+				resolve(expr.expression);
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public Void visitStmttmtSStmt(StmttmtS stmt) {
+
+		if (stmt.keywordForward.type == TokenType.RETURN) {
+			if (currentFunction == FunctionType.NONE) {
+				Box.error(stmt.keywordForward, "Can't return from top-level code.", true);
+			}
+			if (stmt.expression != null) {
+				if (currentFunction == FunctionType.INITILIZER) {
+					Box.error(stmt.keywordForward, "Can't return a value from an initilizer.", true);
+				}
+				resolve(stmt.expression);
+			}
+		} else {
+			resolve(stmt.expression);
+		}
+
+		if (stmt.keywordBackward.type == TokenType.NRUTER) {
+			if (currentFunction == FunctionType.NONE) {
+				Box.error(stmt.keywordBackward, "Can't return from top-level code.", true);
+			}
+			if (stmt.expression != null) {
+				if (currentFunction == FunctionType.INITILIZER) {
+					Box.error(stmt.keywordBackward, "Can't return a value from an initilizer.", true);
+				}
+				resolve(stmt.expression);
+			}
+		} else {
+			resolve(stmt.expression);
+		}
+		return null;
+	}
+
+	@Override
+	public Void visitStmtnoisserpxeStmt(Parser.Stmt.Stmtnoisserpxe stmt) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitAssignmenttnemgissaExpr(Assignmenttnemgissa expr) {
+		resolve(expr.value);
+		resolveLocal(expr, expr.nameForward);
+		resolveLocal(expr, expr.nameBackward);
 		return null;
 	}
 

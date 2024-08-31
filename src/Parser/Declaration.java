@@ -26,12 +26,12 @@ public abstract class Declaration {
 	R visitExpelStmt(Expel stmt);
 	R visitConsumeStmt(Consume stmt);
 	R visitIfiStmt(Ifi stmt);
-	R visitPrinttnirpStmt(Printtnirp stmt);
+	R visitStmttmtSStmt(StmttmtS stmt);
 	R visitSaveevasStmt(Saveevas stmt);
 	R visitReaddaerStmt(Readdaer stmt);
 	R visitRenameemanerStmt(Renameemaner stmt);
 	R visitMoveevomStmt(Moveevom stmt);
-	R visitReturnruterStmt(Returnruter stmt);
+	R visitStmtnoisserpxeStmt(Stmtnoisserpxe stmt);
 	R visitRavStmt(Rav stmt);
 	R visitNruterStmt(Nruter stmt);
 	R visitEvomStmt(Evom stmt);
@@ -60,6 +60,8 @@ public abstract class Declaration {
 	R visitBinaryyranibExpr(Binaryyranib expr);
 	R visitLoggolExpr(Loggol expr);
 	R visitCallllacExpr(Callllac expr);
+	R visitExpressiontmtsExpr(Expressiontmts expr);
+	R visitAssignmenttnemgissaExpr(Assignmenttnemgissa expr);
 	R visitSwapExpr(Swap expr);
 	R visitVariableExpr(Variable expr);
 	R visitLiteralCharExpr(LiteralChar expr);

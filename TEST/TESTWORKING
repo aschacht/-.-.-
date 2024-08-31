@@ -72,7 +72,7 @@ print.("running forward")
 		++z++
 		("mauve").tnirp
 		--i--
-		print.("random").tnirp
+		print.(sinh.(25).nat).tnirp
 		--j--
 		("hicory").tnirp
 		--k-- 
@@ -80,6 +80,27 @@ print.("running forward")
 10= i xob 9 = j xob 8 = k xob	)
 print.("running forward")
 
-
-
-
+("running backward").tnirp
+("running backward").tnirp
+(box x =0 box y =0 box z =0 box apple =0 box pear = 0 box hmm = 0 box mmh =0 pkt mike pkt ike
+	a{x<3 b{y<4 c{z<5)  
+		(++x++)
+		(++y++)
+		(++z++)
+		(--i--)
+		(--j--)
+		(--k--) 
+		("").tnirp
+		sin.("199")
+		print.("hmm : "+hmm).tnirp
+		mike = (6  7  8  9) = ike
+		print.("mmh : "+mmh).tnirp
+		print.("pear : "+pear).tnirp
+		hmm = (pear = sin.("34").tnirp = apple) = mmh 
+		
+		print.("apple : "+apple).tnirp
+		print.("").tnirp
+		("").tnirp
+	( i >4}a j>2 }c k>3 }b
+10= i xob 9 = j xob 8 = k xob	)
+print.("running forward")

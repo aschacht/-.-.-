@@ -36,21 +36,21 @@ public enum RunTimeTypes {
 			return RunTimeTypes.Char;
 		}else if (obj instanceof Expr.Variable) {
 			Object lookUpVariable = interpreter.lookUpVariable(((Expr.Variable)obj).name, (Expr.Variable)obj);
-			if(lookUpVariable instanceof BoxInstance) {
-				if(((BoxInstance)lookUpVariable).boxClass instanceof BoxClass) {
-					if(((BoxClass)((BoxInstance)lookUpVariable).boxClass).type == TokenType.BOXCONTAINER ) {
+			if(lookUpVariable instanceof Instance) {
+				if(((Instance)lookUpVariable).boxClass instanceof BoxClass) {
+					if(((BoxClass)((Instance)lookUpVariable).boxClass).type == TokenType.BOXCONTAINER ) {
 						return RunTimeTypes.Box;
-					}else if(((BoxClass)((BoxInstance)lookUpVariable).boxClass).type == TokenType.CUPCONTAINER ) {
+					}else if(((BoxClass)((Instance)lookUpVariable).boxClass).type == TokenType.CUPCONTAINER ) {
 						return RunTimeTypes.Cup;
-					}else if(((BoxClass)((BoxInstance)lookUpVariable).boxClass).type == TokenType.POCKETCONTAINER ) {
+					}else if(((BoxClass)((Instance)lookUpVariable).boxClass).type == TokenType.POCKETCONTAINER ) {
 						return RunTimeTypes.Pocket;
 					}
-				}else if(((BoxInstance)lookUpVariable).boxClass instanceof BoxContainerClass) {
-					if(((BoxContainerClass)((BoxInstance)lookUpVariable).boxClass).type == TokenType.BOXCONTAINER ) {
+				}else if(((Instance)lookUpVariable).boxClass instanceof BoxContainerClass) {
+					if(((BoxContainerClass)((Instance)lookUpVariable).boxClass).type == TokenType.BOXCONTAINER ) {
 						return RunTimeTypes.Box;
-					}else if(((BoxContainerClass)((BoxInstance)lookUpVariable).boxClass).type == TokenType.CUPCONTAINER ) {
+					}else if(((BoxContainerClass)((Instance)lookUpVariable).boxClass).type == TokenType.CUPCONTAINER ) {
 						return RunTimeTypes.Cup;
-					}else if(((BoxContainerClass)((BoxInstance)lookUpVariable).boxClass).type == TokenType.POCKETCONTAINER ) {
+					}else if(((BoxContainerClass)((Instance)lookUpVariable).boxClass).type == TokenType.POCKETCONTAINER ) {
 						return RunTimeTypes.Pocket;
 					}
 				}

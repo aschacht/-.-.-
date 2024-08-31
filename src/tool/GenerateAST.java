@@ -38,6 +38,11 @@ public class GenerateAST {
 				"Loggol			: Token operatorForward , Expr valueBase , Expr value , Token operatorBackward", 
 				"Callllac 		: Expr calleeForward , Token calleeTokenForward , Expr calleeBackward , Token calleeTokenBackward , List<Expr> arguments ",
 				
+				"Expressiontmts	: Token expressionToken , Expr expression , Token tnemetatsToken",
+				"Assignmenttnemgissa		: Token nameForward , Expr value , Token nameBackward ",
+				
+				
+				
 				"Swap			: Expr swap1 , Expr Swap2",
 				"Variable 		: Token name",
 				"LiteralChar	: char value",
@@ -79,13 +84,14 @@ public class GenerateAST {
 				"Consume		: Token keyword , Expr boxToFill , Expr filePath",
 
 				"Ifi			: Expr ifPocket , Stmt elseIf",
-				"Printtnirp		: Token keywordForward , Expr expression , Token keywordBackward",
+				"StmttmtS		: Token keywordForward , Expr expression , Token keywordBackward",
 				"Saveevas		: Token keywordForward , Expr filePathFileName , Expr objecttosave , Token keywordBackward",
 				"Readdaer		: Token keywordForward , Expr filePath , Expr objectToReadInto , Token keywordBackward",
 				"Renameemaner	: Token keywordForward , Expr filePathAndName , Expr filenewname , Token keywordBackward",
 				"Moveevom		: Token keywordForward , Expr OringialfilePathAndFile , Expr newfilePath , Token keywordBackward",
-				"Returnruter	: Token keywordForward , Expr expression , Token keywordBackward",
 				
+				
+				"Stmtnoisserpxe	: Token statementToken , Expr expression , Token noisserpxeToken",
 				
 				"Rav 			: Token name , Token type, int num , Stmt initilizer",
 				"Nruter 		: Token keyword , Expr expression",

@@ -205,8 +205,8 @@ public static class Ifi extends Stmt {
 	public  Expr ifPocket;
 	public  Stmt elseIf;
 	}
-public static class Printtnirp extends Stmt {
-	 public Printtnirp(Token keywordForward , Expr expression , Token keywordBackward) {
+public static class StmttmtS extends Stmt {
+	 public StmttmtS(Token keywordForward , Expr expression , Token keywordBackward) {
 	this.keywordForward = keywordForward;
 	this.expression = expression;
 	this.keywordBackward = keywordBackward;
@@ -214,7 +214,7 @@ public static class Printtnirp extends Stmt {
 
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
-	 	return visitor.visitPrinttnirpStmt(this);
+	 	return visitor.visitStmttmtSStmt(this);
 	}
 
 	public  Token keywordForward;
@@ -293,21 +293,21 @@ public static class Moveevom extends Stmt {
 	public  Expr newfilePath;
 	public  Token keywordBackward;
 	}
-public static class Returnruter extends Stmt {
-	 public Returnruter(Token keywordForward , Expr expression , Token keywordBackward) {
-	this.keywordForward = keywordForward;
+public static class Stmtnoisserpxe extends Stmt {
+	 public Stmtnoisserpxe(Token statementToken , Expr expression , Token noisserpxeToken) {
+	this.statementToken = statementToken;
 	this.expression = expression;
-	this.keywordBackward = keywordBackward;
+	this.noisserpxeToken = noisserpxeToken;
 	}
 
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
-	 	return visitor.visitReturnruterStmt(this);
+	 	return visitor.visitStmtnoisserpxeStmt(this);
 	}
 
-	public  Token keywordForward;
+	public  Token statementToken;
 	public  Expr expression;
-	public  Token keywordBackward;
+	public  Token noisserpxeToken;
 	}
 public static class Rav extends Stmt {
 	 public Rav(Token name , Token type, int num , Stmt initilizer) {
