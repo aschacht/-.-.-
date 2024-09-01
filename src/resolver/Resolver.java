@@ -93,6 +93,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 	private final Stack<Map<String, Boolean>> scopes = new Stack<>();
 	private FunctionType currentFunction = FunctionType.NONE;
 	private ClassType currentClass = ClassType.NONE;
+	private boolean forward = true;
 
 	public Resolver(Interpreter interpreter) {
 		this.interpreter = interpreter;
@@ -110,6 +111,14 @@ public class Resolver implements Declaration.Visitor<Void> {
 		beginScope();
 		for (Declaration stmt : statementLists) {
 			resolve(stmt);
+
+		}
+		endScope();
+
+		forward = false;
+		beginScope();
+		for (int i = statementLists.size() - 1; i >= 0; i--) {
+			resolve(statementLists.get(i));
 
 		}
 		endScope();
@@ -135,7 +144,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 	private void resolveLocal(Expr expr, Token name) {
 		for (int i = scopes.size() - 1; i >= 0; i--) {
 			if (scopes.get(i).containsKey(name.lexeme)) {
-				
+
 				interpreter.resolve(expr, (scopes.size() - 1) - i);
 				return;
 			}
@@ -174,7 +183,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitFunctionFun(Function fun) {
 		if (fun.forwardIdentifier != null) {
-			
+
 			FunctionType enclosingFunction = currentFunction;
 			currentFunction = FunctionType.FUNCTION;
 
@@ -190,7 +199,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 			currentFunction = enclosingFunction;
 		}
 		if (fun.backwardIdentifier != null) {
-			
+
 			FunctionType enclosingFunction = currentFunction;
 			currentFunction = FunctionType.FUNCTION;
 
@@ -303,7 +312,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitTnirpStmt(Tnirp stmt) {
 		resolve(stmt.expression);
-		
+
 		return null;
 	}
 
@@ -352,12 +361,21 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitVarStmt(Var stmt) {
+
+		if (!match(stmt.name.lexeme)) {
+			stmt.name.lexeme = stmt.name.lexeme + "varravargssgra";
+		}
 		declare(stmt.name);
 		if (stmt.initilizer != null) {
 			resolve(stmt.initilizer);
 		}
 		define(stmt.name);
 		return null;
+	}
+
+	private boolean match(String lexeme) {
+
+		return lexeme.contains("varravargssgra");
 	}
 
 	@Override
@@ -506,6 +524,9 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitVariableExpr(Variable expr) {
+
+		if (!match(expr.name.lexeme))
+			expr.name.lexeme = expr.name.lexeme + "varravargssgra";
 		if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
 			Box.error(expr.name, "Can't read local variable in its own initilizer.", true);
 		}
@@ -527,56 +548,113 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitCupExpr(Cup expr) {
-		
-		beginScope();
-		for (Declaration stmtExpression : expr.expression) {
-			resolve(stmtExpression);
 
-		}
+		beginScope();
+		if (forward)
+			for (Declaration stmtExpression : expr.expression) {
+				resolve(stmtExpression);
+
+			}
+		else
+			for (int i = expr.expression.size() - 1; i >= 0; i--) {
+				resolve(expr.expression.get(i));
+
+			}
+
 		endScope();
 		declare(expr.identifier);
 		define(expr.identifier);
 		declare(expr.reifitnedi);
 		define(expr.reifitnedi);
+		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+
+		declare(identifier);
+		define(identifier);
+		declare(reifitnedi);
+		define(reifitnedi);
+		resolveLocal(new Variable(identifier), identifier);
+
+		resolveLocal(new Variable(reifitnedi), reifitnedi);
+
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
-
 		return null;
 	}
 
 	@Override
 	public Void visitPocketExpr(Pocket expr) {
-		
+
 		beginScope();
 
-		for (Stmt stmtExpression : expr.expression) {
-			resolve(stmtExpression);
+		if (forward)
+			for (Stmt stmtExpression : expr.expression) {
+				resolve(stmtExpression);
 
-		}
+			}
+		else
+			for (int i = expr.expression.size() - 1; i >= 0; i--) {
+				resolve(expr.expression.get(i));
+
+			}
+
 		endScope();
 		declare(expr.identifier);
 		declare(expr.reifitnedi);
 		define(expr.identifier);
 		define(expr.reifitnedi);
+
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
+		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
 
+		declare(identifier);
+		define(identifier);
+		declare(reifitnedi);
+		define(reifitnedi);
+		resolveLocal(new Variable(identifier), identifier);
+
+		resolveLocal(new Variable(reifitnedi), reifitnedi);
 		return null;
 	}
 
 	@Override
 	public Void visitKnotExpr(Knot expr) {
-		
-		beginScope();
-		for (Declaration stmtExpression : expr.expression) {
-			resolve(stmtExpression);
 
-		}
+		beginScope();
+		if (forward)
+			for (Stmt stmtExpression : expr.expression) {
+				resolve(stmtExpression);
+
+			}
+		else
+			for (int i = expr.expression.size() - 1; i >= 0; i--) {
+				resolve(expr.expression.get(i));
+
+			}
 		endScope();
 		declare(expr.identifier);
 		declare(expr.reifitnedi);
 		define(expr.identifier);
 		define(expr.reifitnedi);
+		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+
+		declare(identifier);
+		define(identifier);
+		declare(reifitnedi);
+		define(reifitnedi);
+		resolveLocal(new Variable(identifier), identifier);
+
+		resolveLocal(new Variable(reifitnedi), reifitnedi);
+
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
 		return null;
@@ -584,17 +662,36 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitTonkExpr(Tonk expr) {
-		
-		beginScope();
-		for (Declaration stmtExpression : expr.expression) {
-			resolve(stmtExpression);
 
-		}
+		beginScope();
+		if (forward)
+			for (Stmt stmtExpression : expr.expression) {
+				resolve(stmtExpression);
+
+			}
+		else
+			for (int i = expr.expression.size() - 1; i >= 0; i--) {
+				resolve(expr.expression.get(i));
+
+			}
 		endScope();
 		declare(expr.identifier);
 		declare(expr.reifitnedi);
 		define(expr.identifier);
 		define(expr.reifitnedi);
+		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+
+		declare(identifier);
+		define(identifier);
+		declare(reifitnedi);
+		define(reifitnedi);
+		resolveLocal(new Variable(identifier), identifier);
+
+		resolveLocal(new Variable(reifitnedi), reifitnedi);
+
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
 		return null;
@@ -602,20 +699,24 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitBoxExpr(Expr.Box expr) {
-		
-		beginScope();
 
-		List<Stmt> primarys = expr.expression;
-		for (Stmt prim : primarys) {
-			resolve(prim);
-		}
-
-		
-		endScope();
 		declare(expr.identifier);
 		declare(expr.reifitnedi);
 		define(expr.identifier);
 		define(expr.reifitnedi);
+		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+
+		declare(identifier);
+		define(identifier);
+		declare(reifitnedi);
+		define(reifitnedi);
+		resolveLocal(new Variable(identifier), identifier);
+
+		resolveLocal(new Variable(reifitnedi), reifitnedi);
+
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
 		return null;

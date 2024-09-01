@@ -1,11 +1,13 @@
 ("running backward").tnirp
-dc(box x =0 
+dc(box x =10 box y = 0
 		vb{true)cd
 			(x+" : x").tnirp
-			{{{{x--}--}--}--}--
+			(pl+" : pl").tnirp
+			
+			pl({x-ol(y-(x++))lo})lp
+			
+			print.("pl : "+pl)
 			print.("x : "+x)
-			
-			
 		}bv
 		
 		dc

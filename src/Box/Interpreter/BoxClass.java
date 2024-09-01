@@ -49,9 +49,9 @@ public class BoxClass extends BoxCallable {
 			contents = name + "( ";
 		
 		for (Object object : this.contents) {
-			if(object !=null)
+			if(object !=null) {
 			contents += object.toString() + " ";
-			else
+			}else
 				contents+= "null ";
 		}
 		if (type == TokenType.CUPCONTAINER)
@@ -66,45 +66,26 @@ public class BoxClass extends BoxCallable {
 		Instance instance = null;
 		
 		if (body instanceof Expr.Knot) {
-			instance = new KnotTonkInstance(this,((Expr.Knot) body).expression);
+			instance = new KnotTonkInstance(this,((Expr.Knot) body).expression,body);
 			
 		}else if (body instanceof Expr.Cup) {
-			instance = new CupInstance(this,((Expr.Cup) body).expression);
+			instance = new CupInstance(this,((Expr.Cup) body).expression,body);
 			
 		}else if (body instanceof Expr.Pocket) {
-			instance = new PocketInstance(this,((Expr.Pocket) body).expression);
+			instance = new PocketInstance(this,((Expr.Pocket) body).expression,body);
 			
 		}else if(body instanceof Expr.Tonk) {
-			instance = new KnotTonkInstance(this,((Expr.Tonk) body).expression);
+			instance = new KnotTonkInstance(this,((Expr.Tonk) body).expression,body);
 			
 		}
 		else if(body instanceof Expr.Box) {
-			instance = new BoxInstance(this,((Expr.Box) body).expression);
+			instance = new BoxInstance(this,((Expr.Box) body).expression,body);
 			
 	}
 		return instance;
 	}
 	
-	@Override
-	public Instance instance(Interpreter interpreter) {
-		Instance instance = null;
-		
-		if (body instanceof Expr.Knot) {
-			instance = new KnotTonkInstance(this,((Expr.Knot) body).expression);
-			
-		}else if (body instanceof Expr.Cup) {
-			instance = new CupInstance(this,((Expr.Cup) body).expression);
-		}else if (body instanceof Expr.Pocket) {
-			instance = new PocketInstance(this,((Expr.Pocket) body).expression);
-		}else if(body instanceof Expr.Tonk) {
-			instance = new KnotTonkInstance(this,((Expr.Tonk) body).expression);
-		}
-		else if(body instanceof Expr.Box) {
-			instance = new BoxInstance(this,((Expr.Box) body).expression);
-	}
-		return instance;
-		
-	}
+
 	
 
 	@Override

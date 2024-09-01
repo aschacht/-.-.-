@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +115,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	public Environment globals = new Environment();
 	private Environment environment = globals;
-	private Map<Expr, Integer> locals = new HashMap<>();
+	private Map<Expr, Integer> locals = new WesMap<>();
 	private boolean fromCall = false;
 	private boolean forward;
 	HashMap<String, String> nameMap = new HashMap<>();
@@ -183,11 +185,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			return ((Stmt.Expression) stmt).expression.accept(this);
 		}
 		return null;
-
-	}
-
-	private Object evaluate(StmtDecl stmtDecl) {
-		return stmtDecl.statement.accept(this);
 
 	}
 
@@ -323,6 +320,9 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		Object left = evaluate(expr.left);
 		Object right = evaluate(expr.right);
 
+		left = parse(left);
+		right = parse(right);
+
 		switch (expr.operator.type) {
 		case NOTEQUALS:
 			return !isEqual(left, right);
@@ -331,200 +331,368 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		case EQUALSEQUALS:
 			return isEqual(left, right);
 		case MINUSEQUALS:
-			if (forward)
-				return findRootForLeftAndRightAndMinusEquals(left, right, expr);
-			else
-				return null;
+			return null;
 		case PLUSEQUALS:
-			if (forward)
-				return findRootForLeftAndRightAndPlusEquals(left, right, expr);
-			else
-				return null;
+			return null;
 		case GREATERTHEN:
-			return findRootForLeftAndRightAndGreaterThen(left, right, expr);
+			return null;
 		case GREATERTHENEQUAL:
-			return findRootForLeftAndRightAndGreaterThenEquals(left, right, expr);
+			return null;
 		case LESSTHEN:
-			return findRootForLeftAndRightAndLessThen(left, right, expr);
+			return null;
 		case LESSTHENEQUAL:
-			return findRootForLeftAndRightAndLessThenEquals(left, right, expr);
+			return null;
 		case MINUS:
 
-			return findRootForLeftAndRightAndSubtract(left, right, expr);
+			if (left instanceof Integer) {
+				if (right instanceof Integer) {
+					return addIntegerInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addIntegerDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addIntegerBin(left, Bin.times(new Bin(-1), (Bin) right));
+				} else if (right instanceof ArrayList<?>) {
+					addArrayList(left, right, -1);
+					 return right;
+				}
+			} else if (left instanceof Double) {
+				if (right instanceof Integer) {
+					return addDoubleInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addDoubleDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addDoubleBin(left, Bin.times(new Bin(-1), (Bin) right));
+				} else if (right instanceof ArrayList<?>) {
+					addArrayList(left, right, -1);
+					 return right;
+				}
+			} else if (left instanceof Bin) {
+				if (right instanceof Integer) {
+					return addBinInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addBinDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addBinBin(left, Bin.times(new Bin(-1), (Bin) right));
+				} else if (right instanceof ArrayList<?>) {
+					addArrayList(left, right, -1);
+					 return right;
+				}
+			}
+
+			return null;
 
 		case PLUS:
+			if (left instanceof Integer) {
+				if (right instanceof Integer) {
+					return addIntegerInteger(left, right);
+				} else if (right instanceof Double) {
+					return addIntegerDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addIntegerBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				} else if (right instanceof ArrayList<?>) {
+					addArrayList(left, right, 1);
+					 return right;
+				}
+			} else if (left instanceof Double) {
+				if (right instanceof Integer) {
+					return addDoubleInteger(left, right);
+				} else if (right instanceof Double) {
+					return addDoubleDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addDoubleBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				} else if (right instanceof ArrayList<?>) {
+					addArrayList(left, right, 1);
+					 return right;
+				}
+			} else if (left instanceof Bin) {
+				if (right instanceof Integer) {
+					return addBinInteger(left, right);
+				} else if (right instanceof Double) {
+					return addBinDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addBinBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				} else if (right instanceof ArrayList<?>) {
+					 addArrayList(left, right, 1);
+					 return right;
+				}
+			} else if (left instanceof String) {
+				if (right instanceof Integer) {
+					return addObjectString(left, right);
+				} else if (right instanceof Double) {
+					return addObjectString(left, right);
+				} else if (right instanceof Bin) {
+					return addObjectString(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				} else if (right instanceof ArrayList<?>) {
+					return addStringArray(left, right);
+				}
 
-			return findRootForLeftAndRightAndAdd(left, right, expr);
+			} else if (left instanceof ArrayList<?>) {
+				if (right instanceof Integer) {
+					return addArrayInteger(left, right);
+				} else if (right instanceof Double) {
+					return addArrayDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addArrayBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				}
+			}
+			return null;
 
 		case FORWARDSLASH:
-			return findRootForLeftAndRightAndDivide(left, right, expr);
+			return null;
 		case BACKSLASH:
-			return findRootForLeftAndRightAndDivide(left, right, expr);
+			return null;
 		case TIMES:
-			return findRootForLeftAndRightAndTimes(left, right, expr);
+			return null;
 
 		case POWER:
-			return findRootForLeftAndRightAndPower(left, right, expr);
+			return null;
 		case YROOT:
-			return findRootForLeftAndRightAndYroot(left, right, expr);
+			return null;
 
 		case DNA:
-			return findRootForLeftAndRightAndAnd(left, right, expr);
+			return null;
 		case AND:
-			return findRootForLeftAndRightAndAnd(left, right, expr);
+			return null;
 		case RO:
-			return findRootForLeftAndRightAndOr(left, right, expr);
+			return null;
 		case OR:
-			return findRootForLeftAndRightAndOr(left, right, expr);
+			return null;
 		default:
 			return null;
 		}
 
 	}
 
-	private Object findRootForLeftAndRightAndOr(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
+	private void addArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
 
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Boolean && theRight instanceof Boolean) {
-			return (boolean) theLeft || (boolean) theRight;
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be boolean.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be boolean.");
+					object = (Integer) left + (i * (Integer) object);
+				} else if (object instanceof Double) {
+					object = (Integer) left + (i * (Double) object);
 
+				} else if (object instanceof Bin) {
+					object = Bin.add(new Bin((Integer) left),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object))));
+
+				}else if(object instanceof ArrayList<?>) {
+					addArrayList(left, object, i);
+				}
+			}
+
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					object = (Double) left + (i * (Integer) object);
+				} else if (object instanceof Double) {
+					object = (Double) left + (i * (Double) object);
+
+				} else if (object instanceof Bin) {
+					object = Bin.add(new Bin(((Double) left).intValue()),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object))));
+
+				}else if(object instanceof ArrayList<?>) {
+					addArrayList(left, object, i);
+				}
+			}
+
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					object = Bin.add(((Bin) left), new Bin(Bin.times(new Bin(i), new Bin((Integer) object))));
+
+				} else if (object instanceof Double) {
+					object = Bin.add(((Bin) left),
+							new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue()))));
+
+				} else if (object instanceof Bin) {
+					object = Bin.add(((Bin) left), new Bin(Bin.times(new Bin(i), (Bin) object)));
+
+				}else if(object instanceof ArrayList<?>) {
+					addArrayList(left, object, i);
+				}
+			}
+
+		}
+		
 	}
 
-	private Object findRootForLeftAndRightAndAnd(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
+	private Object addStringArray(Object left, Object right) {
+		ArrayList<?> arr = ((ArrayList<?>) right);
+		String str = "";
 
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
+		str += "[";
+		for (Object object : arr) {
+			if (object instanceof Integer) {
+				str += ((Integer) object);
+			} else if (object instanceof Double) {
+				str += ((Double) object);
+			} else if (object instanceof Bin) {
+				str += ((Bin) object);
+			} else if (object instanceof String) {
+				str += ((String) object);
+			} else if (object instanceof ArrayList<?>) {
+				str += "[";
+				str += printArray("", (ArrayList<?>) object);
+				str += "]";
 			}
 		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Boolean && theRight instanceof Boolean) {
-			return (boolean) theLeft && (boolean) theRight;
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be boolean.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be boolean.");
-
+		str += "]";
+		str = (String) left + str;
+		return str;
 	}
 
-	private Object findRootForLeftAndRightAndYroot(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
+	private String printArray(String str, ArrayList<?> object) {
 
+		for (int i = 0; i < object.size(); i++) {
+			if (object.get(i) instanceof ArrayList<?>) {
+				str += "[";
+				str += printArray("", (ArrayList<?>) object.get(i));
+				str += "]";
+			} else {
+				if (i == object.size() - 1)
+					str += object.get(i).toString();
+				else
+					str += object.get(i).toString() + " ";
+			}
+		}
+
+		return str;
+	}
+
+	private Object addIntegerInteger(Object left, Object right) {
+		return ((Integer) left) + ((Integer) right);
+	}
+
+	private Object addArrayInteger(Object left, Object right) {
+		ArrayList<?> arr = ((ArrayList<?>) left);
+		for (Object object : arr) {
+			if (object instanceof Integer) {
+				object = ((Integer) object) + ((Integer) right);
+			} else if (object instanceof Double) {
+				object = ((Double) object) + ((Integer) right);
+			} else if (object instanceof Bin) {
+				object = Bin.add(((Bin) object), new Bin((Integer) right));
+			} else if (object instanceof String) {
+				object = ((String) object) + ((Integer) right);
+			}
+		}
+
+		return arr;
+	}
+
+	private Object addArrayDouble(Object left, Object right) {
+		ArrayList<?> arr = ((ArrayList<?>) left);
+		for (Object object : arr) {
+			if (object instanceof Integer) {
+				object = ((Integer) object) + ((Double) right);
+			} else if (object instanceof Double) {
+				object = ((Double) object) + ((Double) right);
+			} else if (object instanceof Bin) {
+				object = Bin.add(((Bin) object), new Bin(((Double) right).intValue()));
+			} else if (object instanceof String) {
+				object = ((String) object) + ((Double) right);
+			}
+		}
+
+		return arr;
+	}
+
+	private Object addArrayBin(Object left, Object right) {
+		ArrayList<?> arr = ((ArrayList<?>) left);
+		for (Object object : arr) {
+			if (object instanceof Integer) {
+				object = Bin.add(new Bin((Integer) object), ((Bin) right));
+			} else if (object instanceof Double) {
+				object = Bin.add(new Bin((Integer) object), ((Bin) right));
+			} else if (object instanceof Bin) {
+				object = Bin.add(((Bin) object), (Bin) right);
+			} else if (object instanceof String) {
+				object = ((String) object) + ((Bin) right);
+			}
+		}
+
+		return arr;
+	}
+
+	private Object addDoubleInteger(Object left, Object right) {
+		return ((Double) left) + ((Integer) right);
+	}
+
+	private Object addDoubleDouble(Object left, Object right) {
+		return ((Double) left) + ((Double) right);
+	}
+
+	private Object addIntegerDouble(Object left, Object right) {
+		return ((Integer) left) + ((Double) right);
+	}
+
+	private Object addDoubleBin(Object left, Object right) {
+		return Bin.add(new Bin(((Double) left).intValue()), ((Bin) right));
+	}
+
+	private Object addIntegerBin(Object left, Object right) {
+		return Bin.add(new Bin((Integer) left), ((Bin) right));
+	}
+
+	private Object addBinInteger(Object left, Object right) {
+		return Bin.add((Bin) left, new Bin((Integer) right));
+	}
+
+	private Object addBinDouble(Object left, Object right) {
+		return Bin.add((Bin) left, new Bin(((Double) right).intValue()));
+	}
+
+	private Object addBinBin(Object left, Object right) {
+		return Bin.add((Bin) left, (Bin) right);
+	}
+
+	private Object addObjectString(Object left, Object right) {
+		return left.toString() + right.toString();
+	}
+
+	private Object parse(Object left) {
 		if (left instanceof Stmt.Expression) {
 			Expr expression = ((Stmt.Expression) left).expression;
 			if (expression instanceof Expr.Literal) {
 				left = ((Expr.Literal) expression).value;
 			}
+		} else if (left instanceof PocketInstance) {
+			Token identifier = new Token(TokenType.IDENTIFIER,
+					((Pocket) ((PocketInstance) left).expr).identifier.lexeme + "varravargssgra", null, null, null,
+					((Pocket) ((PocketInstance) left).expr).identifier.column,
+					((Pocket) ((PocketInstance) left).expr).identifier.line,
+					((Pocket) ((PocketInstance) left).expr).identifier.start,
+					((Pocket) ((PocketInstance) left).expr).identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			left = lookUpVariableByName(variable);
+		} else if (left instanceof CupInstance) {
+			Token identifier = new Token(TokenType.IDENTIFIER,
+					((Cup) ((CupInstance) left).expr).identifier.lexeme + "varravargssgra", null, null, null,
+					((Cup) ((CupInstance) left).expr).identifier.column,
+					((Cup) ((CupInstance) left).expr).identifier.line,
+					((Cup) ((CupInstance) left).expr).identifier.start,
+					((Cup) ((CupInstance) left).expr).identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			left = lookUpVariableByName(variable);
 		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			Double remainder = (Double) theLeft;
-
-			Double xsubone = findNthRootOfRemainder((Double) theRight, remainder);
-
-			return xsubone;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			Double remainder = ((Integer) theLeft).doubleValue();
-
-			Double xsubone = findNthRootOfRemainder(((Integer) theRight).doubleValue(), remainder);
-
-			return xsubone;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			Double remainder = ((Integer) theLeft).doubleValue();
-
-			Double xsubone = findNthRootOfRemainder((Double) theRight, remainder);
-
-			return xsubone;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			Double remainder = ((Double) theLeft);
-
-			Double xsubone = findNthRootOfRemainder(((Integer) theRight).doubleValue(), remainder);
-
-			return xsubone;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			Double remainder = ((Bin) theLeft).toDouble();
-
-			Double xsubone = findNthRootOfRemainder(((Integer) theRight).doubleValue(), remainder);
-
-			return xsubone;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			Double remainder = ((Integer) theLeft).doubleValue();
-
-			Double xsubone = findNthRootOfRemainder(((Bin) theRight).toDouble(), remainder);
-
-			return xsubone;
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			Double remainder = ((Double) theLeft);
-
-			Double xsubone = findNthRootOfRemainder(((Bin) theRight).toDouble(), remainder);
-
-			return xsubone;
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			Double remainder = ((Bin) theLeft).toDouble();
-
-			Double xsubone = findNthRootOfRemainder((Double) theRight, remainder);
-
-			return xsubone;
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			Double remainder = ((Bin) theLeft).toDouble();
-
-			Double xsubone = findNthRootOfRemainder(((Bin) theRight).toDouble(), remainder);
-
-			return xsubone;
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
+		return left;
 	}
 
 	private Double findNthRootOfRemainder(Double theRight, Double remainder) {
@@ -581,24 +749,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return Math.pow(x, theRight) - remainder;
 	}
 
-	private ArrayList<Integer> factorPrimes(Double remainder) {
-		ArrayList<Integer> thePrimeFactors = new ArrayList<>();
-		Integer thePrime = remainder.intValue();
-		for (int i = 2; i <= remainder; i++) {
-
-			boolean prime = isPrime(i);
-			if (prime) {
-				while (thePrime % i == 0) {
-					thePrime = thePrime / i;
-					thePrimeFactors.add(i);
-				}
-
-			}
-		}
-
-		return thePrimeFactors;
-	}
-
 	private boolean isPrime(int num) {
 		if (num < 1) {
 			return false;
@@ -613,674 +763,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return true;
 	}
 
-	private Object findRootForLeftAndRightAndPower(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			double power = 1;
-			for (int i = 0; i < (int) theRight; i++) {
-				power = power * (double) theLeft;
-			}
-			return power;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			int power = 1;
-			for (int i = 0; i < (int) theRight; i++) {
-				power = power * (int) theLeft;
-			}
-			return power;
-
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			int power = 1;
-			for (int i = 0; i < (int) theRight; i++) {
-				power = power * (int) theLeft;
-			}
-			return power;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			double power = 1;
-			for (int i = 0; i < (int) theRight; i++) {
-				power = power * (double) theLeft;
-			}
-			return power;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			int power = 1;
-			for (int i = 0; i < (int) theRight; i++) {
-				power = power * (int) ((Bin) theLeft).toInteger();
-			}
-			return power;
-
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			int power = 1;
-			for (int i = 0; i < (int) ((Bin) theRight).toInteger(); i++) {
-				power = power * (int) theLeft;
-			}
-			return power;
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			double power = 1;
-			for (int i = 0; i < (int) ((Bin) theRight).toInteger(); i++) {
-				power = power * (double) theLeft;
-			}
-			return power;
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			double power = 1;
-			for (int i = 0; i < (int) theRight; i++) {
-				power = power * (int) ((Bin) theLeft).toInteger();
-			}
-			return power;
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			double power = 1;
-			for (int i = 0; i < (int) ((Bin) theRight).toInteger(); i++) {
-				power = power * (int) ((Bin) theLeft).toInteger();
-			}
-			return power;
-
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, ".");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object findRootForLeftAndRightAndTimes(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft * (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft * (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft * (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft * (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() * (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft * ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) * (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) * ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.times((Bin) theLeft, (Bin) theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-	}
-
-	private Object findRootForLeftAndRightAndDivide(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft / (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft / (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft / (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft / (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() / (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft / ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) / (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) / ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.divide((Bin) theLeft, (Bin) theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object findRootForLeftAndRightAndMinusEquals(Object left, Object right, Expr expr) {
-
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft - (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft - (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft - (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft - (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() - (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft - ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) - (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) - ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.subtract((Bin) theLeft, (Bin) theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object findRootForLeftAndRightAndPlusEquals(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft + (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft + (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft + (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft + (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() + (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft + ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) + (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) + ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.add((Bin) theLeft, (Bin) theRight);
-		} else if (theLeft instanceof Stmt.Expression && theRight instanceof Integer) {
-			return evaluateBoxPocketCup(((Stmt.Expression) theLeft), theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object evaluateBoxPocketCup(Stmt.Expression theLeft, Object theRight) {
-
-		if (theLeft.expression != null) {
-			Object evaluate = evaluate(theLeft.expression);
-			ArrayList<?> arr = null;
-			ArrayList<Integer> arr1 = new ArrayList<>();
-			if (evaluate instanceof ArrayList) {
-				arr = ((ArrayList<?>) evaluate);
-				for (Object object : arr) {
-					if (object instanceof Integer) {
-						Integer teger = ((Integer) object);
-
-						teger += (Integer) theRight;
-						arr1.add(teger);
-					}
-				}
-
-			}
-
-			return arr1;
-		}
-
-		return null;
-	}
-
-	private Object findRootForLeftAndRightAndGreaterThen(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft > (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft > (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft > (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft > (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() > (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft > ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) > (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) > ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.greaterThen((Bin) theLeft, (Bin) theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object findRootForLeftAndRightAndGreaterThenEquals(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft >= (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft >= (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft >= (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft >= (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() >= (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft >= ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) >= (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) >= ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.greaterThenEquals((Bin) theLeft, (Bin) theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object findRootForLeftAndRightAndLessThen(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft < (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft < (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft < (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft < (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() < (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft < ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) < (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) < ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.lessThen((Bin) theLeft, (Bin) theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object findRootForLeftAndRightAndLessThenEquals(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft <= (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft <= (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft <= (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft <= (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() <= (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft <= ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) <= (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) <= ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.lessThenEquals((Bin) theLeft, (Bin) theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object findRootForLeftAndRightAndSubtract(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft - (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft - (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft - (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft - (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() - (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft - ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) - (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) - ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.subtract((Bin) theLeft, (Bin) theRight);
-		} else if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private Object findRootForLeftAndRightAndAdd(Object left, Object right, Expr expr) {
-		Expr.Binary binExpr = null;
-		Expr.Yranib yraExpr = null;
-		if (expr instanceof Expr.Binary)
-			binExpr = (Expr.Binary) expr;
-		if (expr instanceof Expr.Yranib)
-			yraExpr = (Expr.Yranib) expr;
-
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-		Object theLeft = left;
-		Object theRight = right;
-		if (theLeft instanceof Double && theRight instanceof Double) {
-			return (double) theLeft + (double) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Integer) {
-			return (int) theLeft + (int) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Double) {
-			return (int) theLeft + (double) theRight;
-		} else if (theLeft instanceof Double && theRight instanceof Integer) {
-			return (double) theLeft + (int) theRight;
-		} else if (theLeft instanceof Bin && theRight instanceof Integer) {
-			return ((Bin) theLeft).toInteger() + (Integer) theRight;
-		} else if (theLeft instanceof Integer && theRight instanceof Bin) {
-			return (int) theLeft + ((Bin) theRight).toInteger();
-		} else if (theLeft instanceof Double && theRight instanceof Bin) {
-			return ((Double) theLeft) + (((Bin) theRight).toDouble());
-		} else if (theLeft instanceof Bin && theRight instanceof Double) {
-			return (((Bin) theLeft).toDouble()) + ((Double) theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Bin) {
-			return Bin.add((Bin) theLeft, (Bin) theRight);
-		} else if (theLeft instanceof String && theRight instanceof String) {
-			return (String) theLeft + (String) theRight;
-		} else if (theLeft instanceof String && theRight instanceof Integer) {
-			return (String) theLeft + ((Integer) theRight).toString();
-		} else if (theLeft instanceof Integer && theRight instanceof String) {
-			return ((Integer) theLeft).toString() + (String) theRight;
-		} else if (theLeft instanceof String && theRight instanceof Double) {
-			return (String) theLeft + ((Double) theRight).toString();
-		} else if (theLeft instanceof Double && theRight instanceof String) {
-			return ((Double) theLeft).toString() + (String) theRight;
-		} else if (theLeft instanceof String && theRight instanceof Bin) {
-			return (String) theLeft + ((Bin) theRight).toString();
-		} else if (theLeft instanceof Bin && theRight instanceof String) {
-			return ((Bin) theLeft).toString() + (String) theRight;
-		} else if (theLeft instanceof Instance && theRight instanceof String) {
-			return theLeft.toString() + (String) theRight;
-		} else if (theLeft instanceof String && theRight instanceof Instance) {
-			return (String) theLeft + theRight.toString();
-		} else if (theLeft instanceof Instance && theRight instanceof Integer) {
-			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
-		} else if (theLeft instanceof Integer && theRight instanceof Instance) {
-			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
-		} else if (theLeft instanceof Instance && theRight instanceof Double) {
-			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
-		} else if (theLeft instanceof Double && theRight instanceof Instance) {
-			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
-		} else if (theLeft instanceof Instance && theRight instanceof Bin) {
-			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
-		} else if (theLeft instanceof Bin && theRight instanceof Instance) {
-			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
-		} else if (theLeft instanceof Instance && theRight instanceof Instance) {
-			System.out.println("the Left: " + theLeft);
-			System.out.println("the Right: " + theRight);
-			return addBoxInstanceBinaryYranib(expr, theLeft, theRight);
-
-		}
-		if (binExpr != null)
-			throw new RuntimeError(binExpr.operator, "Operands must be numbers.");
-		else
-			throw new RuntimeError(yraExpr.operator, "Operands must be numbers.");
-
-	}
-
-	private ArrayList<Object> addBoxInstanceBinaryYranib(Expr expr, Object theLeft, Object theRight) {
-		ArrayList<Object> returnedObject = new ArrayList<Object>();
-		int leftSize = 1;
-		if (theLeft instanceof Instance) {
-			leftSize = ((Instance) theLeft).size();
-		}
-		int rightSize = 1;
-		if (theRight instanceof Instance) {
-			rightSize = ((Instance) theRight).size();
-		}
-
-		for (int leftindex = 0; leftindex < leftSize; leftindex++) {
-			for (int rightindex = 0; rightindex < rightSize; rightindex++) {
-				Object leftatindex = theLeft;
-				if (theLeft instanceof Instance) {
-					leftatindex = ((Instance) theLeft).getAt(leftindex);
-					if (leftatindex instanceof Stmt.Expression) {
-						Expr expression = ((Stmt.Expression) leftatindex).expression;
-						leftatindex = evaluate(expression);
-					}
-				}
-
-				Object leftvalue = leftatindex;
-				if (leftatindex instanceof Expr.Literal) {
-					leftvalue = ((Expr.Literal) leftatindex).value;
-				}
-
-				Object rightatindex = theRight;
-				if (theRight instanceof Instance) {
-					rightatindex = ((Instance) theRight).getAt(rightindex);
-					if (rightatindex instanceof Stmt.Expression) {
-						Expr expression = ((Stmt.Expression) rightatindex).expression;
-						rightatindex = evaluate(expression);
-					}
-				}
-				Object rightvalue = rightatindex;
-				if (rightatindex instanceof Expr.Literal) {
-					rightvalue = ((Expr.Literal) rightatindex).value;
-				}
-
-				Object findRootForLeftAndRightAndAdd = findRootForLeftAndRightAndAdd(leftvalue, rightvalue, expr);
-				returnedObject.add(findRootForLeftAndRightAndAdd);
-				System.out.println(findRootForLeftAndRightAndAdd);
-			}
-		}
-		return returnedObject;
-	}
-
 	@Override
 	public Object visitLiteralExpr(Literal expr) {
 
@@ -1292,12 +774,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 		Object right = evaluate(expr.right);
 
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
+		right = parse(right);
 		switch (expr.operator.type) {
 		case QMARK:
 			return !isTruthy(right);
@@ -1309,9 +786,19 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 			if (right instanceof Bin)
 				return ((Bin) right).negate();
-			if (right instanceof ArrayList) {
-
-				return findRootForMinus(right);
+			if (right instanceof Instance) {
+				Environment previous = environment;
+				try {
+					environment = new Environment(environment);
+					int valueToAssign = -1;
+					for (int i = 0; i < ((Instance) right).body.size(); i++) {
+						Object at = ((Instance) right).body.get(i);
+						multiplyByValueAndAssign(at, valueToAssign);
+					}
+				} finally {
+					this.environment = previous;
+				}
+				return right;
 
 			}
 			throw new RuntimeError(expr.operator, "Operand must be a number.");
@@ -1339,22 +826,19 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 					return value;
 				}
+				int valueToAssign = 1;
 
-				if (right instanceof Instance) {
-					Environment previous = environment;
-					try {
-						environment = new Environment(environment);
-						for (int i = 0; i < ((Instance) right).size(); i++) {
-							Object at = ((Instance) right).getAt(i);
-							if (at instanceof StmtDecl) {
-								evaluate(((StmtDecl) at));
-							}
-						}
-					} finally {
-						this.environment = previous;
-					}
-					return right;
-				}
+				Object pocketInstance = isPocketInstance(right, valueToAssign);
+				Object cupInstance = isCupInstance(right, valueToAssign);
+				Object boxInstance = isBoxInstance(right, valueToAssign);
+
+				if (pocketInstance != null)
+					return pocketInstance;
+				else if (cupInstance != null)
+					return cupInstance;
+				else if (boxInstance != null)
+					return boxInstance;
+
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
 			return right;
@@ -1382,19 +866,19 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return value;
 				}
 
-				if (right instanceof CupInstance) {
-					Environment previous = environment;
-					try {
-						environment = new Environment(environment);
-						for (int i = 0; i < ((CupInstance) right).body.size(); i++) {
-							Object at = ((Instance) right).body.get(i);
-							subtractAndAssign(at);
-						}
-					} finally {
-						this.environment = previous;
-					}
-					return right;
-				}
+				int valueToAssign = -1;
+
+				Object pocketInstance = isPocketInstance(right, valueToAssign);
+				Object cupInstance = isCupInstance(right, valueToAssign);
+				Object boxInstance = isBoxInstance(right, valueToAssign);
+
+				if (pocketInstance != null)
+					return pocketInstance;
+				else if (cupInstance != null)
+					return cupInstance;
+				else if (boxInstance != null)
+					return boxInstance;
+
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
 			return right;
@@ -1404,44 +888,377 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
-	private void subtractAndAssign(Object at) {
-		if (at instanceof StmtDecl) {
-			Stmt statement = ((StmtDecl) at).statement;
-			if (statement instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) statement).expression;
-				if (expression instanceof Expr.Unary) {
-					Expr right2 = ((Expr.Unary) expression).right;
-					if (right2 instanceof Expr.Variable) {
-						Variable variable = (Expr.Variable) right2;
-						assignVarableSubtract(variable);
-					} else if (right2 instanceof Expr.Cup) {
-						Environment previous = environment;
-						try {
-							environment = new Environment(environment);
-							for (Declaration declaration : ((Cup) right2).expression) {
-								subtractAndAssign(declaration);
+	private Object isBoxInstance(Object right, int valueToAssign) {
+		if (right instanceof CupInstance) {
+			Environment previous = environment;
+			ArrayList<Object> arr = new ArrayList<>();
+			try {
+				environment = new Environment(environment);
+				Object evaluate = null;
+				for (int i = 0; i < ((BoxInstance) right).body.size(); i++) {
+					Object at = ((BoxInstance) right).body.get(i);
+					addOrSubtractAndAssign(at, valueToAssign);
+					if (at instanceof Stmt.Expression) {
+						evaluate = evaluate(((Stmt.Expression) at));
+						if (evaluate != null)
+							if (evaluate instanceof BoxInstance) {
+								Token identifier = new Token(TokenType.IDENTIFIER,
+										((Expr.Box) ((Stmt.Expression) at).expression).identifier.lexeme
+												+ "varravargssgra",
+										null, null, null,
+										((Expr.Box) ((Stmt.Expression) at).expression).identifier.column,
+										((Expr.Box) ((Stmt.Expression) at).expression).identifier.line,
+										((Expr.Box) ((Stmt.Expression) at).expression).identifier.start,
+										((Expr.Box) ((Stmt.Expression) at).expression).identifier.finish);
+
+								Expr.Variable variable = new Expr.Variable(identifier);
+								Object lookUpVariableByName = lookUpVariableByName(variable);
+								arr.add(lookUpVariableByName);
+							} else {
+								arr.add(evaluate);
+
 							}
-						} finally {
-							this.environment = previous;
-						}
 					}
+				}
+			} finally {
+				this.environment = previous;
+			}
+
+			Expr.Box expr2 = (Expr.Box) ((BoxInstance) right).expr;
+			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
+					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
+					expr2.identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			Integer distance = locals.get(variable);
+			if (distance != null) {
+				environment.assignAt(distance, identifier, arr, arr, null);
+			} else {
+				globals.assignAt(distance, identifier, arr, arr, null);
+			}
+
+			return arr;
+		} else {
+			return null;
+		}
+	}
+
+	private Object isCupInstance(Object right, int valueToAssign) {
+		if (right instanceof CupInstance) {
+			Environment previous = environment;
+			ArrayList<Object> arr = new ArrayList<>();
+			try {
+				environment = new Environment(environment);
+				Object evaluate = null;
+				for (int i = 0; i < ((CupInstance) right).body.size(); i++) {
+					Object at = ((CupInstance) right).body.get(i);
+					addOrSubtractAndAssign(at, valueToAssign);
+					if (at instanceof Stmt.Expression) {
+						evaluate = evaluate(((Stmt.Expression) at));
+						if (evaluate != null)
+							if (evaluate instanceof CupInstance) {
+								Token identifier = new Token(TokenType.IDENTIFIER,
+										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.lexeme
+												+ "varravargssgra",
+										null, null, null,
+										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.column,
+										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.line,
+										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.start,
+										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.finish);
+
+								Expr.Variable variable = new Expr.Variable(identifier);
+								Object lookUpVariableByName = lookUpVariableByName(variable);
+								arr.add(lookUpVariableByName);
+							} else {
+								arr.add(evaluate);
+
+							}
+					}
+				}
+			} finally {
+				this.environment = previous;
+			}
+
+			Expr.Cup expr2 = (Cup) ((CupInstance) right).expr;
+			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
+					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
+					expr2.identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			Integer distance = locals.get(variable);
+			if (distance != null) {
+				environment.assignAt(distance, identifier, arr, arr, null);
+			} else {
+				globals.assignAt(distance, identifier, arr, arr, null);
+			}
+
+			return arr;
+		} else {
+			return null;
+		}
+	}
+
+	private Object isPocketInstance(Object right, int valueToAssign) {
+		if (right instanceof PocketInstance) {
+			Environment previous = environment;
+			ArrayList<Object> arr = new ArrayList<>();
+			try {
+				environment = new Environment(environment);
+				Object evaluate = null;
+				for (int i = 0; i < ((PocketInstance) right).body.size(); i++) {
+					Object at = ((PocketInstance) right).body.get(i);
+					addOrSubtractAndAssign(at, valueToAssign);
+					if (at instanceof Stmt.Expression) {
+						evaluate = evaluate(((Stmt.Expression) at));
+						if (evaluate != null)
+							if (evaluate instanceof PocketInstance) {
+								Token identifier = new Token(TokenType.IDENTIFIER,
+										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.lexeme
+												+ "varravargssgra",
+										null, null, null,
+										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.column,
+										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.line,
+										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.start,
+										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.finish);
+
+								Expr.Variable variable = new Expr.Variable(identifier);
+								Object lookUpVariableByName = lookUpVariableByName(variable);
+								arr.add(lookUpVariableByName);
+							} else {
+								arr.add(evaluate);
+
+							}
+					}
+				}
+			} finally {
+				this.environment = previous;
+			}
+
+			Expr.Pocket expr2 = (Pocket) ((PocketInstance) right).expr;
+			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
+					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
+					expr2.identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			Integer distance = locals.get(variable);
+			if (distance != null) {
+				environment.assignAt(distance, identifier, arr, arr, null);
+			} else {
+				globals.assignAt(distance, identifier, arr, arr, null);
+			}
+
+			return arr;
+		} else {
+			return null;
+		}
+	}
+
+	private Object evaluate(StmtDecl stmtDecl) {
+		return stmtDecl.statement.accept(this);
+
+	}
+
+	private void addOrSubtractAndAssign(Object at, int valueToAssign) {
+		if (at instanceof StmtDecl) {
+			assignExpression(((StmtDecl) at).statement, valueToAssign);
+		} else if (at instanceof Stmt.Expression) {
+			assignExpression(at, valueToAssign);
+
+		}
+	}
+
+	private void multiplyByValueAndAssign(Object at, int valueToAssign) {
+		if (at instanceof StmtDecl) {
+			multByValueAndAssignExpression(((StmtDecl) at).statement, valueToAssign);
+		} else if (at instanceof Stmt.Expression) {
+			multByValueAndAssignExpression(at, valueToAssign);
+
+		}
+	}
+
+	private void multByValueAndAssignExpression(Object at, int valueToAssign) {
+
+		if (at instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) at).expression;
+			if (expression instanceof Expr.Unary) {
+				Expr right2 = ((Expr.Unary) expression).right;
+				if (right2 instanceof Expr.Variable) {
+					Variable variable = (Expr.Variable) right2;
+					assignVarableMult(variable, valueToAssign);
+				} else if (right2 instanceof Expr.Cup) {
+					assignCupMultiply(valueToAssign, right2);
+				} else if (right2 instanceof Expr.Pocket) {
+					assignPocketMultiply(valueToAssign, right2);
+				} else if (expression instanceof Expr.Binary) {
+					assignBinaryMultiply(valueToAssign, expression);
 				}
 			}
 		}
 	}
 
-	private void assignVarableSubtract(Variable variable) {
+	private void assignExpression(Object at, int valueToAssign) {
+
+		if (at instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) at).expression;
+			if (expression instanceof Expr.Unary) {
+				Expr right2 = ((Expr.Unary) expression).right;
+				if (right2 instanceof Expr.Variable) {
+					Variable variable = (Expr.Variable) right2;
+					assignVarableSubtract(variable, valueToAssign);
+				} else if (right2 instanceof Expr.Cup) {
+					assignCupAdd(valueToAssign, right2);
+				} else if (right2 instanceof Expr.Pocket) {
+					assignPocketAdd(valueToAssign, right2);
+				} else if (expression instanceof Expr.Binary) {
+					assignBinaryAdd(valueToAssign, expression);
+				}
+			} else if (expression instanceof Expr.Binary) {
+				assignBinaryAdd(valueToAssign, expression);
+			}
+		}
+	}
+
+	private void assignBinaryAdd(int valueToAssign, Expr expression) {
+		Expr right2 = ((Expr.Binary) expression).right;
+		Expr left2 = ((Expr.Binary) expression).left;
+		if (right2 instanceof Expr.Variable && left2 instanceof Expr.Variable) {
+			Variable variable1 = (Expr.Variable) right2;
+			assignVarableSubtract(variable1, valueToAssign);
+			Variable variable = (Expr.Variable) left2;
+			assignVarableSubtract(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Cup && left2 instanceof Expr.Variable) {
+			assignCupAdd(valueToAssign, right2);
+			Variable variable = (Expr.Variable) left2;
+			assignVarableSubtract(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Variable && left2 instanceof Expr.Cup) {
+			assignCupAdd(valueToAssign, left2);
+			Variable variable = (Expr.Variable) right2;
+			assignVarableSubtract(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Cup && left2 instanceof Expr.Cup) {
+			assignCupAdd(valueToAssign, right2);
+			assignCupAdd(valueToAssign, left2);
+		} else if (right2 instanceof Expr.Pocket && left2 instanceof Expr.Variable) {
+			assignPocketAdd(valueToAssign, right2);
+			Variable variable = (Expr.Variable) left2;
+			assignVarableSubtract(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Variable && left2 instanceof Expr.Pocket) {
+			assignPocketAdd(valueToAssign, left2);
+			Variable variable = (Expr.Variable) right2;
+			assignVarableSubtract(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Pocket && left2 instanceof Expr.Pocket) {
+			assignPocketAdd(valueToAssign, right2);
+			assignPocketAdd(valueToAssign, left2);
+		} else if (right2 instanceof Expr.Pocket && left2 instanceof Expr.Cup) {
+			assignPocketAdd(valueToAssign, right2);
+			assignCupAdd(valueToAssign, left2);
+		} else if (right2 instanceof Expr.Cup && left2 instanceof Expr.Pocket) {
+			assignCupAdd(valueToAssign, right2);
+			assignPocketAdd(valueToAssign, left2);
+		}
+
+	}
+
+	private void assignBinaryMultiply(int valueToAssign, Expr expression) {
+		Expr right2 = ((Expr.Binary) expression).right;
+		Expr left2 = ((Expr.Binary) expression).left;
+		if (right2 instanceof Expr.Variable && left2 instanceof Expr.Variable) {
+			Variable variable1 = (Expr.Variable) right2;
+			assignVarableMult(variable1, valueToAssign);
+			Variable variable = (Expr.Variable) left2;
+			assignVarableMult(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Cup && left2 instanceof Expr.Variable) {
+			assignCupMultiply(valueToAssign, right2);
+			Variable variable = (Expr.Variable) left2;
+			assignVarableMult(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Variable && left2 instanceof Expr.Cup) {
+			assignCupMultiply(valueToAssign, left2);
+			Variable variable = (Expr.Variable) right2;
+			assignVarableMult(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Cup && left2 instanceof Expr.Cup) {
+			assignCupMultiply(valueToAssign, right2);
+			assignCupMultiply(valueToAssign, left2);
+		} else if (right2 instanceof Expr.Pocket && left2 instanceof Expr.Variable) {
+			assignPocketMultiply(valueToAssign, right2);
+			Variable variable = (Expr.Variable) left2;
+			assignVarableMult(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Variable && left2 instanceof Expr.Pocket) {
+			assignPocketMultiply(valueToAssign, left2);
+			Variable variable = (Expr.Variable) right2;
+			assignVarableSubtract(variable, valueToAssign);
+		} else if (right2 instanceof Expr.Pocket && left2 instanceof Expr.Pocket) {
+			assignPocketMultiply(valueToAssign, right2);
+			assignPocketMultiply(valueToAssign, left2);
+		} else if (right2 instanceof Expr.Pocket && left2 instanceof Expr.Cup) {
+			assignPocketMultiply(valueToAssign, right2);
+			assignCupMultiply(valueToAssign, left2);
+		} else if (right2 instanceof Expr.Cup && left2 instanceof Expr.Pocket) {
+			assignCupMultiply(valueToAssign, right2);
+			assignPocketMultiply(valueToAssign, left2);
+		}
+
+	}
+
+	private void assignCupMultiply(int valueToAssign, Expr right2) {
+		Environment previous = environment;
+		try {
+			environment = new Environment(environment);
+			for (Declaration declaration : ((Cup) right2).expression) {
+				multiplyByValueAndAssign(declaration, valueToAssign);
+			}
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	private void assignCupAdd(int valueToAssign, Expr right2) {
+		Environment previous = environment;
+		try {
+			environment = new Environment(environment);
+			for (Declaration declaration : ((Cup) right2).expression) {
+				addOrSubtractAndAssign(declaration, valueToAssign);
+			}
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	private void assignPocketMultiply(int valueToAssign, Expr right2) {
+		Environment previous = environment;
+		try {
+			environment = new Environment(environment);
+			for (Declaration declaration : ((Pocket) right2).expression) {
+				multiplyByValueAndAssign(declaration, valueToAssign);
+			}
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	private void assignPocketAdd(int valueToAssign, Expr right2) {
+		Environment previous = environment;
+		try {
+			environment = new Environment(environment);
+			for (Declaration declaration : ((Pocket) right2).expression) {
+				addOrSubtractAndAssign(declaration, valueToAssign);
+			}
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	private void assignVarableMult(Variable variable, int valueToAssign) {
 		Object lookUpVariableByName = lookUpVariable(variable.name, variable);
 		if (lookUpVariableByName instanceof Stmt.Expression) {
 			Expr expression2 = ((Stmt.Expression) lookUpVariableByName).expression;
 			if (expression2 instanceof Expr.Literal) {
 
 				if (((Literal) expression2).value instanceof Integer) {
-					((Literal) expression2).value = ((Integer) ((Literal) expression2).value) - 1;
+					((Literal) expression2).value = ((Integer) ((Literal) expression2).value) * valueToAssign;
 				} else if (((Literal) expression2).value instanceof Double) {
-					((Literal) expression2).value = ((Double) ((Literal) expression2).value) - 1;
+					((Literal) expression2).value = ((Double) ((Literal) expression2).value) * valueToAssign;
 				} else if (((Literal) expression2).value instanceof Bin) {
-					((Literal) expression2).value = Bin.subtract(((Bin) ((Literal) expression2).value), new Bin(1));
+					((Literal) expression2).value = Bin.times(((Bin) ((Literal) expression2).value),
+							new Bin(valueToAssign));
 				}
 				Integer distance = locals.get(variable);
 				if (distance != null)
@@ -1452,27 +1269,76 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		} else if (lookUpVariableByName instanceof Integer) {
 			Integer distance = locals.get(variable);
 			if (distance != null)
-				environment.assignAt(distance, variable.name, ((Integer) lookUpVariableByName) - 1,
-						((Integer) lookUpVariableByName) - 1, this);
+				environment.assignAt(distance, variable.name, ((Integer) lookUpVariableByName) * valueToAssign,
+						((Integer) lookUpVariableByName) * valueToAssign, this);
 			else
-				globals.assign(variable.name, ((Integer) lookUpVariableByName) - 1,
-						((Integer) lookUpVariableByName) - 1, this);
+				globals.assign(variable.name, ((Integer) lookUpVariableByName) * valueToAssign,
+						((Integer) lookUpVariableByName) * valueToAssign, this);
 		} else if (lookUpVariableByName instanceof Double) {
 			Integer distance = locals.get(variable);
 			if (distance != null)
-				environment.assignAt(distance, variable.name, ((Double) lookUpVariableByName) - 1,
-						((Double) lookUpVariableByName) - 1, this);
+				environment.assignAt(distance, variable.name, ((Double) lookUpVariableByName) * valueToAssign,
+						((Double) lookUpVariableByName) * valueToAssign, this);
 			else
-				globals.assign(variable.name, ((Double) lookUpVariableByName) - 1, ((Double) lookUpVariableByName) - 1,
-						this);
+				globals.assign(variable.name, ((Double) lookUpVariableByName) * valueToAssign,
+						((Double) lookUpVariableByName) * valueToAssign, this);
 		} else if (lookUpVariableByName instanceof Bin) {
 			Integer distance = locals.get(variable);
 			if (distance != null)
-				environment.assignAt(distance, variable.name, Bin.subtract(((Bin) lookUpVariableByName), new Bin(1)),
-						Bin.subtract(((Bin) lookUpVariableByName), new Bin(1)), this);
+				environment.assignAt(distance, variable.name,
+						Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign)),
+						Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign)), this);
 			else
-				globals.assign(variable.name, Bin.subtract(((Bin) lookUpVariableByName), new Bin(1)),
-						Bin.subtract(((Bin) lookUpVariableByName), new Bin(1)), this);
+				globals.assign(variable.name, Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign)),
+						Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign)), this);
+		}
+	}
+
+	private void assignVarableSubtract(Variable variable, int valueToAssign) {
+		Object lookUpVariableByName = lookUpVariable(variable.name, variable);
+		if (lookUpVariableByName instanceof Stmt.Expression) {
+			Expr expression2 = ((Stmt.Expression) lookUpVariableByName).expression;
+			if (expression2 instanceof Expr.Literal) {
+
+				if (((Literal) expression2).value instanceof Integer) {
+					((Literal) expression2).value = ((Integer) ((Literal) expression2).value) + valueToAssign;
+				} else if (((Literal) expression2).value instanceof Double) {
+					((Literal) expression2).value = ((Double) ((Literal) expression2).value) + valueToAssign;
+				} else if (((Literal) expression2).value instanceof Bin) {
+					((Literal) expression2).value = Bin.add(((Bin) ((Literal) expression2).value),
+							new Bin(valueToAssign));
+				}
+				Integer distance = locals.get(variable);
+				if (distance != null)
+					environment.assignAt(distance, variable.name, lookUpVariableByName, lookUpVariableByName, this);
+				else
+					globals.assign(variable.name, lookUpVariableByName, lookUpVariableByName, this);
+			}
+		} else if (lookUpVariableByName instanceof Integer) {
+			Integer distance = locals.get(variable);
+			if (distance != null)
+				environment.assignAt(distance, variable.name, ((Integer) lookUpVariableByName) + valueToAssign,
+						((Integer) lookUpVariableByName) + valueToAssign, this);
+			else
+				globals.assign(variable.name, ((Integer) lookUpVariableByName) + valueToAssign,
+						((Integer) lookUpVariableByName) + valueToAssign, this);
+		} else if (lookUpVariableByName instanceof Double) {
+			Integer distance = locals.get(variable);
+			if (distance != null)
+				environment.assignAt(distance, variable.name, ((Double) lookUpVariableByName) + valueToAssign,
+						((Double) lookUpVariableByName) + valueToAssign, this);
+			else
+				globals.assign(variable.name, ((Double) lookUpVariableByName) + valueToAssign,
+						((Double) lookUpVariableByName) + valueToAssign, this);
+		} else if (lookUpVariableByName instanceof Bin) {
+			Integer distance = locals.get(variable);
+			if (distance != null)
+				environment.assignAt(distance, variable.name,
+						Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign)),
+						Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign)), this);
+			else
+				globals.assign(variable.name, Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign)),
+						Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign)), this);
 		}
 	}
 
@@ -1583,76 +1449,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
-	private Object findRootRightAndAdd(Object right) {
-
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-
-		Object theRight = right;
-		if (theRight instanceof Double) {
-			return (double) theRight + 1;
-		} else if (theRight instanceof Integer) {
-			return (int) theRight + 1;
-		} else if (theRight instanceof Bin) {
-			return ((Bin) theRight).toInteger() + 1;
-		} else if (theRight instanceof Instance) {
-			return addBoxInstance(theRight);
-		} else if (theRight instanceof Stmt) {
-			Object evaluate = evaluate((Stmt) theRight);
-
-			if (evaluate instanceof Integer)
-				return ((Integer) evaluate) + 1;
-			else if (evaluate instanceof Double)
-				return ((Double) evaluate) + 1;
-			else if (evaluate instanceof Bin)
-				return ((Bin) evaluate).toInteger() + 1;
-
-		}
-		return theRight;
-
-		/// Runtime error
-
-	}
-
-	private Object findRootRightAndSub(Object right) {
-
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
-
-		Object theRight = right;
-		if (theRight instanceof Double) {
-			return (double) theRight - 1;
-		} else if (theRight instanceof Integer) {
-			return (int) theRight - 1;
-		} else if (theRight instanceof Bin) {
-			return ((Bin) theRight).toInteger() - 1;
-		} else if (theRight instanceof Instance) {
-			return subBoxInstance(theRight);
-		} else if (theRight instanceof Stmt) {
-			Object evaluate = evaluate((Stmt) theRight);
-
-			if (evaluate instanceof Integer)
-				return ((Integer) evaluate) - 1;
-			else if (evaluate instanceof Double)
-				return ((Double) evaluate) - 1;
-			else if (evaluate instanceof Bin)
-				return ((Bin) evaluate).toInteger() - 1;
-
-		}
-		return theRight;
-
-		/// Runtime error
-
-	}
-
 	private ArrayList<Object> addBoxInstance(Object theRight) {
 		ArrayList<Object> returnedObject = new ArrayList<Object>();
 
@@ -1715,12 +1511,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	private Object findRootForRightAndAdd(Object right) {
 
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
+		right = parse(right);
 
 		Object theRight = right;
 		if (theRight instanceof Double) {
@@ -1739,12 +1530,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	private Object findRootForRightAndSub(Object right) {
 
-		if (right instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) right).expression;
-			if (expression instanceof Expr.Literal) {
-				right = ((Expr.Literal) expression).value;
-			}
-		}
+		right = parse(right);
 
 		Object theRight = right;
 		if (theRight instanceof Double) {
@@ -1777,64 +1563,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return null;
 	}
 
-	private Object findRootForPlus(Object right) {
-		if (((ArrayList<?>) right).size() > 0) {
-			if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-				return findRootForMinus(((ArrayList<?>) right).get(0));
-			} else if (((ArrayList<?>) right).get(0) instanceof Bin) {
-				return ((Bin) ((ArrayList<?>) right).get(0));
-			} else if (((ArrayList<?>) right).get(0) instanceof Double) {
-				return (double) ((ArrayList<?>) right).get(0);
-			} else if (((ArrayList<?>) right).get(0) instanceof Integer) {
-				return (int) ((ArrayList<?>) right).get(0);
-			}
-
-		}
-		return null;
-	}
-
-	private Object findRootForPlusPlus(Object right) {
-		if (((ArrayList<?>) right).size() > 0) {
-			if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-				return findRootForPlus(((ArrayList<?>) right).get(0));
-			} else if (((ArrayList<?>) right).get(0) instanceof Bin) {
-				return Bin.add(((Bin) ((ArrayList<?>) right).get(0)), new Bin("1"));
-			} else if (((ArrayList<?>) right).get(0) instanceof Double) {
-				return ((double) ((ArrayList<?>) right).get(0)) + 1.0;
-			} else if (((ArrayList<?>) right).get(0) instanceof Integer) {
-				return ((int) ((ArrayList<?>) right).get(0)) + 1;
-			}
-
-		}
-		return null;
-	}
-
-	private Object findRootForMinusMinus(Object right) {
-		if (((ArrayList<?>) right).size() > 0) {
-			if (((ArrayList<?>) right).get(0) instanceof ArrayList) {
-				return findRootForMinus(((ArrayList<?>) right).get(0));
-			} else if (((ArrayList<?>) right).get(0) instanceof Bin) {
-				return Bin.subtract(((Bin) ((ArrayList<?>) right).get(0)), new Bin("1"));
-			} else if (((ArrayList<?>) right).get(0) instanceof Double) {
-				return ((double) ((ArrayList<?>) right).get(0)) - 1.0;
-			} else if (((ArrayList<?>) right).get(0) instanceof Integer) {
-				return ((int) ((ArrayList<?>) right).get(0)) - 1;
-			}
-
-		}
-		return null;
-	}
-
 	@Override
 	public Object visitYranuExpr(Yranu expr) {
 
 		Object left = evaluate(expr.right);
-		if (left instanceof Stmt.Expression) {
-			Expr expression = ((Stmt.Expression) left).expression;
-			if (expression instanceof Expr.Literal) {
-				left = ((Expr.Literal) expression).value;
-			}
-		}
+		left = parse(left);
 		switch (expr.operator.type) {
 		case QMARK:
 			return !isTruthy(left);
@@ -1876,21 +1609,18 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 					return value;
 				}
-				if (left instanceof Instance) {
-					Environment previous = environment;
-					try {
-						environment = new Environment(environment);
-						for (int i = 0; i < ((Instance) left).size(); i++) {
-							Object at = ((Instance) left).getAt(i);
-							if (at instanceof StmtDecl) {
-								evaluate(((StmtDecl) at));
-							}
-						}
-					} finally {
-						this.environment = previous;
-					}
-					return left;
-				}
+				int valueToAssign = 1;
+
+				Object pocketInstance = isPocketInstance(left, valueToAssign);
+				Object cupInstance = isCupInstance(left, valueToAssign);
+				Object boxInstance = isBoxInstance(left, valueToAssign);
+
+				if (pocketInstance != null)
+					return pocketInstance;
+				else if (cupInstance != null)
+					return cupInstance;
+				else if (boxInstance != null)
+					return boxInstance;
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
 			return left;
@@ -1917,21 +1647,18 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 					return value;
 				}
-				if (left instanceof Instance) {
-					Environment previous = environment;
-					try {
-						environment = new Environment(environment);
-						for (int i = 0; i < ((Instance) left).size(); i++) {
-							Object at = ((Instance) left).getAt(i);
-							if (at instanceof StmtDecl) {
-								evaluate(((StmtDecl) at));
-							}
-						}
-					} finally {
-						this.environment = previous;
-					}
-					return left;
-				}
+				int valueToAssign = -1;
+
+				Object pocketInstance = isPocketInstance(left, valueToAssign);
+				Object cupInstance = isCupInstance(left, valueToAssign);
+				Object boxInstance = isBoxInstance(left, valueToAssign);
+
+				if (pocketInstance != null)
+					return pocketInstance;
+				else if (cupInstance != null)
+					return cupInstance;
+				else if (boxInstance != null)
+					return boxInstance;
 				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
 			return left;
@@ -1963,29 +1690,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				globals.assign(((Expr.Variable) expr2).name, value, value, this);
 		}
 
-	}
-
-	private void assignValueBoxInstance(Expr expr, Integer distance, Object value) {
-
-		Expr expr2 = expr;
-		while ((expr2 instanceof Expr.Yranu) || (expr2 instanceof Expr.Unary)) {
-
-			if (expr2 instanceof Expr.Yranu) {
-				expr2 = ((Expr.Yranu) expr2).right;
-			}
-
-			if (expr2 instanceof Expr.Unary) {
-				expr2 = ((Expr.Unary) expr2).right;
-			}
-
-		}
-
-		if (expr2 instanceof Expr.Variable) {
-			if (distance != null)
-				environment.assignAt(distance, ((Expr.Variable) expr2).name, value, value, this);
-			else
-				globals.assign(((Expr.Variable) expr2).name, value, value, this);
-		}
 	}
 
 	@Override
@@ -2028,10 +1732,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					}
 				} else if (expr.contents instanceof Expr.Box) {
 
-					boolean contains = lookUpContainer.contains((Expr.Box) expr.contents);
-					if (contains) {
-						System.out.println("hey");
-					}
 				} else if (expr.contents instanceof Expr.Pocket) {
 
 					boolean contains = lookUpContainer.contains((Expr.Pocket) expr.contents);
@@ -2418,42 +2118,93 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		case EQUALSEQUALS:
 			return isEqual(right, left);
 		case EQUALSMINUS:
-			if (!forward)
-				return findRootForLeftAndRightAndMinusEquals(right, left, expr);
-			else
-				return null;
+			return null;
 		case EQUALSPLUS:
-			if (!forward)
-				return findRootForLeftAndRightAndPlusEquals(right, left, expr);
-			else
-				return null;
+			return null;
 		case GREATERTHEN:
-			return findRootForLeftAndRightAndGreaterThen(right, left, expr);
+			return null;
 		case GREATERTHENEQUAL:
-			return findRootForLeftAndRightAndGreaterThenEquals(right, left, expr);
+			return null;
 		case LESSTHEN:
-			return findRootForLeftAndRightAndLessThen(right, left, expr);
+			return null;
 		case LESSTHENEQUAL:
-			return findRootForLeftAndRightAndLessThenEquals(right, left, expr);
+			return null;
 		case MINUS:
+			if (left instanceof Integer) {
+				if (right instanceof Integer) {
+					return addIntegerInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addIntegerDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addIntegerBin(left, Bin.times(new Bin(-1), (Bin) right));
+				}
+			} else if (left instanceof Double) {
+				if (right instanceof Integer) {
+					return addDoubleInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addDoubleDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addDoubleBin(left, Bin.times(new Bin(-1), (Bin) right));
+				}
+			} else if (left instanceof Bin) {
+				if (right instanceof Integer) {
+					return addBinInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addBinDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addBinBin(left, Bin.times(new Bin(-1), (Bin) right));
+				}
+			}
 
-			return findRootForLeftAndRightAndSubtract(right, left, expr);
+			return null;
 
 		case PLUS:
+			if (left instanceof Integer) {
+				if (right instanceof Integer) {
+					return addIntegerInteger(left, right);
+				} else if (right instanceof Double) {
+					return addIntegerDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addIntegerBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				}
+			} else if (left instanceof Double) {
+				if (right instanceof Integer) {
+					return addDoubleInteger(left, right);
+				} else if (right instanceof Double) {
+					return addDoubleDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addDoubleBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				}
+			} else if (left instanceof Bin) {
+				if (right instanceof Integer) {
+					return addBinInteger(left, right);
+				} else if (right instanceof Double) {
+					return addBinDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addBinBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				}
+			} else if (left instanceof String) {
+				return addObjectString(left, right);
 
-			return findRootForLeftAndRightAndAdd(right, left, expr);
-
+			}
+			return null;
 		case FORWARDSLASH:
-			return findRootForLeftAndRightAndDivide(right, left, expr);
+			return null;
 		case BACKSLASH:
-			return findRootForLeftAndRightAndDivide(right, left, expr);
+			return null;
 		case TIMES:
-			return findRootForLeftAndRightAndTimes(right, left, expr);
+			return null;
 
 		case POWER:
-			return findRootForLeftAndRightAndPower(right, left, expr);
+			return null;
 		case TOORY:
-			return findRootForLeftAndRightAndYroot(right, left, expr);
+			return null;
 		default:
 			return null;
 
@@ -2581,7 +2332,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	}
 
 	public void resolve(Expr expr, int i) {
-		locals.put(expr, i);
+		if (!locals.containsKey(expr))
+			locals.put(expr, i);
 	}
 
 	public void setForward(boolean forward) {
@@ -2596,8 +2348,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitStmtDeclDeclaration(StmtDecl declaration) {
-		declaration.statement.accept(this);
-		return null;
+		
+		return declaration.statement.accept(this);
 	}
 
 	@Override
@@ -2729,6 +2481,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitCupExpr(Cup expr) {
 		Environment previous = environment;
 		Object name = lookUpVariable(expr.identifier, expr);
+		ArrayList<Object> notnull = new ArrayList<>();
 		try {
 
 			if (name == null) {
@@ -2737,9 +2490,52 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 			}
 			environment = new Environment(environment);
-			executeCup(expr.expression, environment);
+
+			for (Declaration stmt : expr.expression) {
+				Object execute = execute(stmt);
+				if (execute != null)
+					if (execute instanceof PocketInstance) {
+						Token identifier = new Token(TokenType.IDENTIFIER,
+								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.lexeme
+										+ "varravargssgra",
+								null, null, null, ((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.column,
+								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.line,
+								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.start,
+								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.finish);
+
+						Expr.Variable variable = new Expr.Variable(identifier);
+						Object lookUpVariableByName = lookUpVariableByName(variable);
+						notnull.add(lookUpVariableByName);
+					}else if (execute instanceof CupInstance) {
+						Token identifier = new Token(TokenType.IDENTIFIER,
+								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.lexeme
+										+ "varravargssgra",
+								null, null, null, ((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.column,
+								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.line,
+								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.start,
+								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.finish);
+
+						Expr.Variable variable = new Expr.Variable(identifier);
+						Object lookUpVariableByName = lookUpVariableByName(variable);
+						notnull.add(lookUpVariableByName);
+					} else {
+						notnull.add(execute);
+
+					}
+			}
+
 		} finally {
 			this.environment = previous;
+		}
+		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+
+		Expr.Variable variable = new Expr.Variable(identifier);
+		Integer distance = locals.get(variable);
+		if (distance != null) {
+			environment.assignAt(distance, identifier, notnull, notnull, null);
+		} else {
+			globals.assignAt(distance, identifier, notnull, notnull, null);
 		}
 		name = lookUpVariable(expr.identifier, expr);
 		BoxCallable knot = (BoxCallable) name;
@@ -2751,6 +2547,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitPocketExpr(Pocket expr) {
 		Environment previous = environment;
 		Object name = lookUpVariable(expr.identifier, expr);
+		ArrayList<Object> notnull = new ArrayList<>();
 		try {
 
 			if (name == null) {
@@ -2759,9 +2556,52 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 			}
 			environment = new Environment(environment);
-			executePocket(expr.expression, environment);
+
+			for (Stmt stmt : expr.expression) {
+				Object execute = execute(stmt);
+				if (execute != null)
+					if (execute instanceof PocketInstance) {
+						Token identifier = new Token(TokenType.IDENTIFIER,
+								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.lexeme
+										+ "varravargssgra",
+								null, null, null, ((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.column,
+								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.line,
+								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.start,
+								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.finish);
+
+						Expr.Variable variable = new Expr.Variable(identifier);
+						Object lookUpVariableByName = lookUpVariableByName(variable);
+						notnull.add(lookUpVariableByName);
+					}else if (execute instanceof CupInstance) {
+						Token identifier = new Token(TokenType.IDENTIFIER,
+								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.lexeme
+										+ "varravargssgra",
+								null, null, null, ((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.column,
+								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.line,
+								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.start,
+								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.finish);
+
+						Expr.Variable variable = new Expr.Variable(identifier);
+						Object lookUpVariableByName = lookUpVariableByName(variable);
+						notnull.add(lookUpVariableByName);
+					} else {
+						notnull.add(execute);
+
+					}
+			}
+
 		} finally {
 			this.environment = previous;
+		}
+		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+
+		Expr.Variable variable = new Expr.Variable(identifier);
+		Integer distance = locals.get(variable);
+		if (distance != null) {
+			environment.assignAt(distance, identifier, notnull, notnull, null);
+		} else {
+			globals.assignAt(distance, identifier, notnull, notnull, null);
 		}
 		name = lookUpVariable(expr.identifier, expr);
 		BoxCallable knot = (BoxCallable) name;
@@ -2796,6 +2636,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitTonkExpr(Tonk expr) {
 		Environment previous = environment;
 		Object name = lookUpVariable(expr.identifier, expr);
+		ArrayList<Object> notnull = new ArrayList<>();
 		try {
 
 			if (name == null) {
@@ -2804,9 +2645,21 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 			}
 			environment = new Environment(environment);
-			executeTonk(expr, environment);
+
+			new KnotRunner(expr.expression, this);
+
 		} finally {
 			this.environment = previous;
+		}
+		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+
+		Expr.Variable variable = new Expr.Variable(identifier);
+		Integer distance = locals.get(variable);
+		if (distance != null) {
+			environment.assignAt(distance, identifier, notnull, notnull, null);
+		} else {
+			globals.assignAt(distance, identifier, notnull, notnull, null);
 		}
 		name = lookUpVariable(expr.identifier, expr);
 		BoxCallable knot = (BoxCallable) name;
@@ -2913,7 +2766,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 		}
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Tonk) expr).identifier.lexeme + "varravargssgra",
+				null, null, null, ((Expr.Tonk) expr).identifier.column, ((Expr.Tonk) expr).identifier.line,
+				((Expr.Tonk) expr).identifier.start, ((Expr.Tonk) expr).identifier.finish);
 
+		environment.define(identifier.lexeme, null, null);
 		environment.define(((Tonk) expr).identifier.lexeme, ((Tonk) expr).identifier, null);
 
 		if (((Tonk) expr).identifier.identifierToken != null) {
@@ -2946,7 +2803,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 		}
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Knot) expr).identifier.lexeme + "varravargssgra",
+				null, null, null, ((Expr.Knot) expr).identifier.column, ((Expr.Knot) expr).identifier.line,
+				((Expr.Knot) expr).identifier.start, ((Expr.Knot) expr).identifier.finish);
 
+		environment.define(identifier.lexeme, null, null);
 		environment.define(((Knot) expr).identifier.lexeme, ((Knot) expr).identifier, null);
 
 		if (((Knot) expr).identifier.identifierToken != null) {
@@ -2980,7 +2841,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 		}
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Pocket) expr).identifier.lexeme + "varravargssgra",
+				null, null, null, ((Expr.Pocket) expr).identifier.column, ((Expr.Pocket) expr).identifier.line,
+				((Expr.Pocket) expr).identifier.start, ((Expr.Pocket) expr).identifier.finish);
 
+		environment.define(identifier.lexeme, null, null);
 		environment.define(((Expr.Pocket) expr).identifier.lexeme, ((Expr.Pocket) expr).identifier, null);
 
 		if (((Expr.Pocket) expr).identifier.identifierToken != null) {
@@ -3013,7 +2878,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 		}
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Cup) expr).identifier.lexeme + "varravargssgra", null,
+				null, null, ((Expr.Cup) expr).identifier.column, ((Expr.Cup) expr).identifier.line,
+				((Expr.Cup) expr).identifier.start, ((Expr.Cup) expr).identifier.finish);
 
+		environment.define(identifier.lexeme, null, null);
 		environment.define(((Expr.Cup) expr).identifier.lexeme, ((Expr.Cup) expr).identifier, null);
 
 		if (((Expr.Cup) expr).identifier.identifierToken != null) {
@@ -3173,61 +3042,111 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		case EQUALSEQUALS:
 			return isEqual(left, right);
 		case MINUSEQUALS:
-			if (forward)
-				return findRootForLeftAndRightAndMinusEquals(left, right, expr);
-			else
-				return null;
-		case PLUSEQUALS:
-			if (forward)
-				return findRootForLeftAndRightAndPlusEquals(left, right, expr);
-			else
-				return null;
-		case EQUALSMINUS:
-			if (!forward)
-				return findRootForLeftAndRightAndMinusEquals(right, left, expr);
-			else
-				return null;
-		case EQUALSPLUS:
-			if (!forward)
-				return findRootForLeftAndRightAndPlusEquals(right, left, expr);
-			else
-				return null;
-		case GREATERTHEN:
-			return findRootForLeftAndRightAndGreaterThen(left, right, expr);
-		case GREATERTHENEQUAL:
-			return findRootForLeftAndRightAndGreaterThenEquals(left, right, expr);
-		case LESSTHEN:
-			return findRootForLeftAndRightAndLessThen(left, right, expr);
-		case LESSTHENEQUAL:
-			return findRootForLeftAndRightAndLessThenEquals(left, right, expr);
-		case MINUS:
 
-			return findRootForLeftAndRightAndSubtract(left, right, expr);
+			return null;
+		case PLUSEQUALS:
+
+			return null;
+		case EQUALSMINUS:
+
+			return null;
+		case EQUALSPLUS:
+
+			return null;
+		case GREATERTHEN:
+			return null;
+		case GREATERTHENEQUAL:
+			return null;
+		case LESSTHEN:
+			return null;
+		case LESSTHENEQUAL:
+			return null;
+		case MINUS:
+			if (left instanceof Integer) {
+				if (right instanceof Integer) {
+					return addIntegerInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addIntegerDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addIntegerBin(left, Bin.times(new Bin(-1), (Bin) right));
+				}
+			} else if (left instanceof Double) {
+				if (right instanceof Integer) {
+					return addDoubleInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addDoubleDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addDoubleBin(left, Bin.times(new Bin(-1), (Bin) right));
+				}
+			} else if (left instanceof Bin) {
+				if (right instanceof Integer) {
+					return addBinInteger(left, -1 * (Integer) right);
+				} else if (right instanceof Double) {
+					return addBinDouble(left, -1 * (Double) right);
+				} else if (right instanceof Bin) {
+					return addBinBin(left, Bin.times(new Bin(-1), (Bin) right));
+				}
+			}
+
+			return null;
 
 		case PLUS:
+			if (left instanceof Integer) {
+				if (right instanceof Integer) {
+					return addIntegerInteger(left, right);
+				} else if (right instanceof Double) {
+					return addIntegerDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addIntegerBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				}
+			} else if (left instanceof Double) {
+				if (right instanceof Integer) {
+					return addDoubleInteger(left, right);
+				} else if (right instanceof Double) {
+					return addDoubleDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addDoubleBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				}
+			} else if (left instanceof Bin) {
+				if (right instanceof Integer) {
+					return addBinInteger(left, right);
+				} else if (right instanceof Double) {
+					return addBinDouble(left, right);
+				} else if (right instanceof Bin) {
+					return addBinBin(left, right);
+				} else if (right instanceof String) {
+					return addObjectString(left, right);
+				}
+			} else if (left instanceof String) {
+				return addObjectString(left, right);
 
-			return findRootForLeftAndRightAndAdd(left, right, expr);
+			}
+			return null;
 
 		case FORWARDSLASH:
-			return findRootForLeftAndRightAndDivide(left, right, expr);
+			return null;
 		case BACKSLASH:
-			return findRootForLeftAndRightAndDivide(left, right, expr);
+			return null;
 		case TIMES:
-			return findRootForLeftAndRightAndTimes(left, right, expr);
+			return null;
 
 		case POWER:
-			return findRootForLeftAndRightAndPower(left, right, expr);
+			return null;
 		case YROOT:
-			return findRootForLeftAndRightAndYroot(left, right, expr);
+			return null;
 
 		case DNA:
-			return findRootForLeftAndRightAndAnd(left, right, expr);
+			return null;
 		case AND:
-			return findRootForLeftAndRightAndAnd(left, right, expr);
+			return null;
 		case RO:
-			return findRootForLeftAndRightAndOr(left, right, expr);
+			return null;
 		case OR:
-			return findRootForLeftAndRightAndOr(left, right, expr);
+			return null;
 		default:
 			return null;
 		}
@@ -3441,15 +3360,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				globals.assign(expr.nameBackward, expr.value, value, this);
 			return value;
 		}
-	}
-
-	public void executePocket(List<Stmt> expression, Environment environment1) {
-
-		this.environment = new Environment(environment1);
-		for (Stmt stmt : expression) {
-			execute(stmt);
-		}
-
 	}
 
 	public void executeExprBlock(List<Stmt> expression, Environment environment1) {

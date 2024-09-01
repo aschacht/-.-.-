@@ -20,17 +20,18 @@ public abstract class Instance {
 	public BoxCallable boxClass;
 	private final Map<String, Object> fields = new HashMap<>();
 	public List<?> body;
+	public Expr expr;
 	
 
-	public Instance(BoxCallable boxClass,List<?> body) {
+	public Instance(BoxCallable boxClass,List<?> body,Expr expr) {
 		this.boxClass = boxClass;
 		this.body = body;
+		this.expr = expr;
 		
 	}
 
 	@Override
 	public String toString() {
-
 		return boxClass.toString();
 	}
 
@@ -191,10 +192,7 @@ public abstract class Instance {
 		return false;
 	}
 
-	public boolean contains(Expr.Box contents) {
-		System.out.println("Does the container contain"+contents.toString() );
-		return false;
-	}
+
 
 	public boolean contains(Pocket contents) {
 		System.out.println("Does the container contain"+contents.toString() );
@@ -215,4 +213,6 @@ public abstract class Instance {
 		System.out.println("Does the container contain"+contents.toString() );
 		return false;
 	}
+
+	
 }

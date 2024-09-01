@@ -1,10 +1,38 @@
 package Parser;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.ArrayList;
 import Box.Token.Token;
 
 public abstract class Expr extends Declaration {
+	
+
+ 
+	@Override
+    public boolean equals(Object obj) {
+		if (this instanceof Variable) {
+        return obj instanceof Variable && ((Variable)this).name.lexeme.equals(((Variable) obj).name.lexeme)
+        		&&((Variable)this).name.type == ((Variable) obj).name.type
+        		&&((Variable)this).name.line == ((Variable) obj).name.line&&
+        				((Variable)this).name.column == ((Variable) obj).name.column&&
+        						((Variable)this).name.start == ((Variable) obj).name.start&&
+        								((Variable)this).name.finish == ((Variable) obj).name.finish;
+		}
+		return super.equals(obj);
+		}
+	
+
+		@Override
+		public int hashCode() {
+			if (this instanceof Variable) {
+			return Objects.hash(((Variable)this).name.lexeme,((Variable)this).name.type,((Variable)this).name.line,((Variable)this).name.column,((Variable)this).name.start,((Variable)this).name.finish);
+			}
+			return super.hashCode();
+		}
+	
+	
+	
 public static class Assignment extends Expr {
 	 public Assignment(Token name , Expr value) {
 	this.name = name;
@@ -380,6 +408,9 @@ public static class Variable extends Expr {
 	}
 
 	public  Token name;
+	
+	 
+	
 	}
 public static class LiteralChar extends Expr {
 	 public LiteralChar(char value) {
