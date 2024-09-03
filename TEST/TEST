@@ -1,13 +1,13 @@
 ("running backward").tnirp
-dc(box x =10 box y = 0
+dc(box x =10 box y = 0 box z = 99
 		vb{true)cd
-			(x+" : x").tnirp
+			(z+" : z").tnirp
 			(pl+" : pl").tnirp
 			
-			pl({x-ol(y-(x++))lo})lp
+			pl((7,5)<(9,3))lp
 			
 			print.("pl : "+pl)
-			print.("x : "+x)
+			print.("z : "+z)
 		}bv
 		
 		dc

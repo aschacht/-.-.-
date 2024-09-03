@@ -316,12 +316,21 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitBinaryExpr(Binary expr) {
+		Object left = null;
+		Object right = null;
+		if (expr.left instanceof Pocket || expr.left instanceof Cup) {
+			left = evaluate(expr.left);
+			right = evaluate(expr.right);
+		} else if (expr.right instanceof Pocket || expr.right instanceof Cup) {
+			right = evaluate(expr.right);
+			left = evaluate(expr.left);
+		} else {
+			left = evaluate(expr.left);
+			right = evaluate(expr.right);
+		}
 
-		Object left = evaluate(expr.left);
-		Object right = evaluate(expr.right);
-
-		left = parse(left);
-		right = parse(right);
+		left = parseBinData(left);
+		right = parseBinData(right);
 
 		switch (expr.operator.type) {
 		case NOTEQUALS:
@@ -335,127 +344,30 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		case PLUSEQUALS:
 			return null;
 		case GREATERTHEN:
-			return null;
+			return greaterthen(left, right);
 		case GREATERTHENEQUAL:
 			return null;
 		case LESSTHEN:
-			return null;
+			return lessthen(left, right);
 		case LESSTHENEQUAL:
 			return null;
 		case MINUS:
 
-			if (left instanceof Integer) {
-				if (right instanceof Integer) {
-					return addIntegerInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addIntegerDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addIntegerBin(left, Bin.times(new Bin(-1), (Bin) right));
-				} else if (right instanceof ArrayList<?>) {
-					addArrayList(left, right, -1);
-					 return right;
-				}
-			} else if (left instanceof Double) {
-				if (right instanceof Integer) {
-					return addDoubleInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addDoubleDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addDoubleBin(left, Bin.times(new Bin(-1), (Bin) right));
-				} else if (right instanceof ArrayList<?>) {
-					addArrayList(left, right, -1);
-					 return right;
-				}
-			} else if (left instanceof Bin) {
-				if (right instanceof Integer) {
-					return addBinInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addBinDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addBinBin(left, Bin.times(new Bin(-1), (Bin) right));
-				} else if (right instanceof ArrayList<?>) {
-					addArrayList(left, right, -1);
-					 return right;
-				}
-			}
-
-			return null;
+			return sub(left, right);
 
 		case PLUS:
-			if (left instanceof Integer) {
-				if (right instanceof Integer) {
-					return addIntegerInteger(left, right);
-				} else if (right instanceof Double) {
-					return addIntegerDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addIntegerBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				} else if (right instanceof ArrayList<?>) {
-					addArrayList(left, right, 1);
-					 return right;
-				}
-			} else if (left instanceof Double) {
-				if (right instanceof Integer) {
-					return addDoubleInteger(left, right);
-				} else if (right instanceof Double) {
-					return addDoubleDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addDoubleBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				} else if (right instanceof ArrayList<?>) {
-					addArrayList(left, right, 1);
-					 return right;
-				}
-			} else if (left instanceof Bin) {
-				if (right instanceof Integer) {
-					return addBinInteger(left, right);
-				} else if (right instanceof Double) {
-					return addBinDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addBinBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				} else if (right instanceof ArrayList<?>) {
-					 addArrayList(left, right, 1);
-					 return right;
-				}
-			} else if (left instanceof String) {
-				if (right instanceof Integer) {
-					return addObjectString(left, right);
-				} else if (right instanceof Double) {
-					return addObjectString(left, right);
-				} else if (right instanceof Bin) {
-					return addObjectString(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				} else if (right instanceof ArrayList<?>) {
-					return addStringArray(left, right);
-				}
-
-			} else if (left instanceof ArrayList<?>) {
-				if (right instanceof Integer) {
-					return addArrayInteger(left, right);
-				} else if (right instanceof Double) {
-					return addArrayDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addArrayBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				}
-			}
-			return null;
+			return add(left, right);
 
 		case FORWARDSLASH:
-			return null;
+			return div(left, right);
 		case BACKSLASH:
-			return null;
+			return div(right, left);
+
 		case TIMES:
-			return null;
+			return times(left, right);
 
 		case POWER:
-			return null;
+			return power(left, right);
 		case YROOT:
 			return null;
 
@@ -473,22 +385,361 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
-	private void addArrayList(Object left, Object right, int i) {
+	private Object times(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return timesIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return timesIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return timesIntegerBin(left, right);
+			} else if (right instanceof String) {
+				return timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return timesArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return timesDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return timesDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return timesDoubleBin(left, right);
+			} else if (right instanceof String) {
+				return timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return timesArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return timesBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return timesBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return timesBinBin(left, right);
+			} else if (right instanceof String) {
+				return timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return timesArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof String) {
+			if (right instanceof Integer) {
+				return timesObjectString(right, left);
+			} else if (right instanceof Double) {
+				return timesObjectString(right, left);
+			} else if (right instanceof Bin) {
+				return timesObjectString(right, left);
+			} else if (right instanceof ArrayList<?>) {
+				return addStringArray(left, right);
+			}
+
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return timesArrayListArrayList(left, right, 1);
+			else
+				return timesBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+
+	private Object power(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return powerIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return powerIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return powerIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return powerArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return timesDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return timesDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return timesDoubleBin(left, right);
+			} else if (right instanceof String) {
+				return timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return powerArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return timesBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return timesBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return timesBinBin(left, right);
+			} else if (right instanceof String) {
+				return timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return powerArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof String) {
+			if (right instanceof Integer) {
+				return timesObjectString(right, left);
+			} else if (right instanceof Double) {
+				return timesObjectString(right, left);
+			} else if (right instanceof Bin) {
+				return timesObjectString(right, left);
+			} else if (right instanceof ArrayList<?>) {
+				return addStringArray(left, right);
+			}
+
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return powerArrayListArrayList(left, right, 1);
+			else
+				return powerBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+
+	private Object sub(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return addIntegerInteger(left, -1 * (Integer) right);
+			} else if (right instanceof Double) {
+				return addIntegerDouble(left, -1 * (Double) right);
+			} else if (right instanceof Bin) {
+				return addIntegerBin(left, Bin.times(new Bin(-1), (Bin) right));
+			} else if (right instanceof ArrayList<?>) {
+				return addArrayBinaryList(left, right, -1);
+
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return addDoubleInteger(left, -1 * (Integer) right);
+			} else if (right instanceof Double) {
+				return addDoubleDouble(left, -1 * (Double) right);
+			} else if (right instanceof Bin) {
+				return addDoubleBin(left, Bin.times(new Bin(-1), (Bin) right));
+			} else if (right instanceof ArrayList<?>) {
+
+				return addArrayBinaryList(left, right, -1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return addBinInteger(left, -1 * (Integer) right);
+			} else if (right instanceof Double) {
+				return addBinDouble(left, -1 * (Double) right);
+			} else if (right instanceof Bin) {
+				return addBinBin(left, Bin.times(new Bin(-1), (Bin) right));
+			} else if (right instanceof ArrayList<?>) {
+				return addArrayBinaryList(left, right, -1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return addArrayListArrayList(left, right, -1);
+			else
+				return addBinaryArrayList(left, right, -1);
+		}
+
+		return null;
+	}
+
+	private Object add(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return addIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return addIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return addIntegerBin(left, right);
+			} else if (right instanceof String) {
+				return addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return addDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return addDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return addDoubleBin(left, right);
+			} else if (right instanceof String) {
+				return addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return addBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return addBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return addBinBin(left, right);
+			} else if (right instanceof String) {
+				return addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+
+				return addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof String) {
+			if (right instanceof Integer) {
+				return addObjectString(left, right);
+			} else if (right instanceof Double) {
+				return addObjectString(left, right);
+			} else if (right instanceof Bin) {
+				return addObjectString(left, right);
+			} else if (right instanceof String) {
+				return addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return addStringArray(left, right);
+			}
+
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return addArrayListArrayList(left, right, 1);
+			else
+				return addBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+
+	private Object greaterthen(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return gtIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return gtIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return gtIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return gtArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return gtDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return gtDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return gtDoubleBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return gtArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return gtBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return gtBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return gtBinBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+
+				return gtArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return gtArrayListArrayList(left, right, 1);
+			else
+				return gtBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+	private Object lessthen(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return ltIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return ltIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return ltIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return ltArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return ltDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return ltDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return ltDoubleBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return ltArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return ltBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return ltBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return ltBinBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				
+				return ltArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return ltArrayListArrayList(left, right, 1);
+			else
+				return ltBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+
+	private Object div(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return divIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return divIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return divIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return divArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return divDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return divDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return divDoubleBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return divArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return divBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return divBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return divBinBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return divArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return divArrayListArrayList(left, right, 1);
+			else
+				return divBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+
+	private ArrayList<?> addArrayBinaryList(Object left, Object right, int i) {
 		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
 		if (left instanceof Integer) {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
 
-					object = (Integer) left + (i * (Integer) object);
+					arr2.add((Integer) left + (i * (Integer) object));
 				} else if (object instanceof Double) {
-					object = (Integer) left + (i * (Double) object);
+					arr2.add((Integer) left + (i * (Double) object));
 
 				} else if (object instanceof Bin) {
-					object = Bin.add(new Bin((Integer) left),
-							new Bin(Bin.times(new Bin(i), new Bin((Integer) object))));
+					arr2.add(Bin.add(new Bin((Integer) left),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
 
-				}else if(object instanceof ArrayList<?>) {
-					addArrayList(left, object, i);
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addArrayBinaryList(left, object, i));
+
 				}
 			}
 
@@ -496,16 +747,17 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
 
-					object = (Double) left + (i * (Integer) object);
+					arr2.add((Double) left + (i * (Integer) object));
 				} else if (object instanceof Double) {
-					object = (Double) left + (i * (Double) object);
+					arr2.add((Double) left + (i * (Double) object));
 
 				} else if (object instanceof Bin) {
-					object = Bin.add(new Bin(((Double) left).intValue()),
-							new Bin(Bin.times(new Bin(i), new Bin((Integer) object))));
+					arr2.add(Bin.add(new Bin(((Double) left).intValue()),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
 
-				}else if(object instanceof ArrayList<?>) {
-					addArrayList(left, object, i);
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addArrayBinaryList(left, object, i));
+
 				}
 			}
 
@@ -513,22 +765,1450 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
 
-					object = Bin.add(((Bin) left), new Bin(Bin.times(new Bin(i), new Bin((Integer) object))));
+					arr2.add(Bin.add(((Bin) left), new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
 
 				} else if (object instanceof Double) {
-					object = Bin.add(((Bin) left),
-							new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue()))));
+					arr2.add(Bin.add(((Bin) left),
+							new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue())))));
 
 				} else if (object instanceof Bin) {
-					object = Bin.add(((Bin) left), new Bin(Bin.times(new Bin(i), (Bin) object)));
+					arr2.add(Bin.add(((Bin) left), new Bin(Bin.times(new Bin(i), (Bin) object))));
 
-				}else if(object instanceof ArrayList<?>) {
-					addArrayList(left, object, i);
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addArrayBinaryList(left, object, i));
+
 				}
 			}
 
 		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> ltArrayBinaryList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) left < (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) left < (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) left < ((Bin) object).toInteger());
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) left < (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Double) left < (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) left) < ((Bin) object).toInteger());
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(((Bin) left).toInteger() < Bin.times(new Bin(i), new Bin((Integer) object)));
+
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) left).toInteger() < Bin.times(new Bin(i), new Bin(((Double) object).intValue())));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) left).toInteger() < Bin.times(new Bin(i), (Bin) object));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+	private ArrayList<?> gtArrayBinaryList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
 		
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+					
+					arr2.add((Integer) left > (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) left > (i * (Double) object));
+					
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) left > ((Bin) object).toInteger());
+					
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtArrayBinaryList(left, object, i));
+					
+				}
+			}
+			
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+					
+					arr2.add((Double) left > (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Double) left > (i * (Double) object));
+					
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) left) > ((Bin) object).toInteger());
+					
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtArrayBinaryList(left, object, i));
+					
+				}
+			}
+			
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+					
+					arr2.add(((Bin) left).toInteger() > Bin.times(new Bin(i), new Bin((Integer) object)));
+					
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) left).toInteger() > Bin.times(new Bin(i), new Bin(((Double) object).intValue())));
+					
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) left).toInteger() > Bin.times(new Bin(i), (Bin) object));
+					
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtArrayBinaryList(left, object, i));
+					
+				}
+			}
+			
+		}
+		return arr2;
+		
+	}
+
+	private ArrayList<?> powerArrayBinaryList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(
+							Math.pow(((Integer) left).doubleValue(), ((Integer) (i * (Integer) object)).doubleValue()));
+				} else if (object instanceof Double) {
+					arr2.add(Math.pow(((Integer) left).doubleValue(), (Double) (i * (Double) object)));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Math.pow((new Bin((Integer) left)).toDouble(),
+							(new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))).toDouble()));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(powerArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) left + (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Double) left + (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(new Bin(((Double) left).intValue()),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(powerArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Bin.add(((Bin) left), new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+				} else if (object instanceof Double) {
+					arr2.add(Bin.add(((Bin) left),
+							new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue())))));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(((Bin) left), new Bin(Bin.times(new Bin(i), (Bin) object))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(powerArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> timesArrayBinaryList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) left * (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) left * (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(new Bin((Integer) left),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addArrayBinaryList(left, object, i));
+
+				} else if (object instanceof String) {
+					String str = "";
+
+					for (int j = 0; j < ((Integer) left); j++) {
+						str += object.toString();
+					}
+					arr2.add(str);
+				}
+			}
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) left * (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Double) left * (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(new Bin(((Double) left).intValue()),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addArrayBinaryList(left, object, i));
+
+				} else if (object instanceof String) {
+					String str = "";
+
+					for (int j = 0; j < ((Double) left).intValue(); j++) {
+						str += object.toString();
+					}
+					arr2.add(str);
+				}
+			}
+
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Bin.times(((Bin) left), new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+				} else if (object instanceof Double) {
+					arr2.add(Bin.times(((Bin) left),
+							new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue())))));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.times(((Bin) left), new Bin(Bin.times(new Bin(i), (Bin) object))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addArrayBinaryList(left, object, i));
+
+				} else if (object instanceof String) {
+					String str = "";
+
+					for (int j = 0; j < ((Bin) left).toInteger(); j++) {
+						str += object.toString();
+					}
+					arr2.add(str);
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> divArrayBinaryList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) left / (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) left / (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.divide(new Bin((Integer) left),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(divArrayBinaryList(left, object, i));
+
+				}
+			}
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) left / (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Double) left / (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.divide(new Bin(((Double) left).intValue()),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(divArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Bin.divide(((Bin) left), new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+				} else if (object instanceof Double) {
+					arr2.add(Bin.divide(((Bin) left),
+							new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue())))));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.divide(((Bin) left), new Bin(Bin.times(new Bin(i), (Bin) object))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(divArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> addBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) object + (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) object + (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(new Bin((Integer) object),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) object + (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object + (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(new Bin(((Double) object).intValue()),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Bin.add(((Bin) object), new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof Double) {
+					arr2.add(Bin.add(((Bin) object),
+							new Bin(Bin.times(new Bin(i), new Bin(((Double) right).intValue())))));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(((Bin) object), new Bin(Bin.times(new Bin(i), (Bin) right))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(addBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof String) {
+			String str = "";
+			str+="[";
+			for (int j = 0; j < arr.size(); j++) {
+				if (arr.get(j) instanceof Integer) {
+					if (j == arr.size() - 1)
+						str += (Double) arr.get(j);
+					else
+						str += (Double) arr.get(j) + ", ";
+
+				} else if (arr.get(j) instanceof Double) {
+					if (j == arr.size() - 1)
+						str += (Double) arr.get(j);
+					else
+						str += (Double) arr.get(j) + ", ";
+				} else if (arr.get(j) instanceof Boolean) {
+					if (j == arr.size() - 1)
+						str += (Boolean) arr.get(j);
+					else
+						str += (Boolean) arr.get(j) + ", ";
+				} else if (arr.get(j) instanceof Bin) {
+					if (j == arr.size() - 1)
+						str += new Bin(((Double) arr.get(j)).intValue()).toString();
+					else
+						str += new Bin(((Double) arr.get(j)).intValue()).toString() + ", ";
+						} else if (arr.get(j) instanceof ArrayList<?>) {
+					if (j == arr.size() - 1)
+						str += arr.get(j).toString();
+					else
+						str += arr.get(j).toString() + ", ";
+				}
+				
+				
+			}
+			str+="]";
+			str = str + right;
+			arr2.add(str);
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> gtBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) object > (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) object > (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) object > Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) object > (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object > (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) object) > Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(((Bin) object).toInteger() > Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) object).toInteger() > Bin.times(new Bin(i), new Bin(((Double) right).intValue())));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) object).toInteger() > Bin.times(new Bin(i), (Bin) right));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+	private ArrayList<?> ltBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+					
+					arr2.add((Integer) object < (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) object < (i * (Double) right));
+					
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) object < Bin.times(new Bin(i), new Bin((Integer) right)));
+					
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltBinaryArrayList(object, right, i));
+					
+				}
+			}
+			
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+					
+					arr2.add((Double) object < (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object < (i * (Double) right));
+					
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) object) < Bin.times(new Bin(i), new Bin((Integer) right)));
+					
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltBinaryArrayList(object, right, i));
+					
+				}
+			}
+			
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+					
+					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), new Bin((Integer) right)));
+					
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), new Bin(((Double) right).intValue())));
+					
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), (Bin) right));
+					
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltBinaryArrayList(object, right, i));
+					
+				}
+			}
+			
+		}
+		return arr2;
+		
+	}
+
+	private ArrayList<?> timesBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) object * (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) object * (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(new Bin((Integer) object),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(timesBinaryArrayList(object, right, i));
+
+				} else if (object instanceof String) {
+					String str = "";
+
+					for (int j = 0; j < ((Integer) right); j++) {
+						str += object.toString();
+					}
+					arr2.add(str);
+				}
+			}
+
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) object * (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object * (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.add(new Bin(((Double) object).intValue()),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(timesBinaryArrayList(object, right, i));
+
+				} else if (object instanceof String) {
+					String str = "";
+
+					for (int j = 0; j < ((Double) right).intValue(); j++) {
+						str += object.toString();
+					}
+					arr2.add(str);
+				}
+			}
+
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Bin.times(((Bin) object), new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof Double) {
+					arr2.add(Bin.times(((Bin) object),
+							new Bin(Bin.times(new Bin(i), new Bin(((Double) right).intValue())))));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.times(((Bin) object), new Bin(Bin.times(new Bin(i), (Bin) right))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(timesBinaryArrayList(object, right, i));
+
+				} else if (object instanceof String) {
+					String str = "";
+
+					for (int j = 0; j < ((Bin) right).toInteger(); j++) {
+						str += object.toString();
+					}
+					arr2.add(str);
+				}
+			}
+
+		} else if (right instanceof String) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+					String str = "";
+
+					for (int j = 0; j < ((Integer) object); j++) {
+						str += right.toString();
+					}
+					arr2.add(str);
+
+				} else if (object instanceof Double) {
+					String str = "";
+
+					for (int j = 0; j < ((Double) object).intValue(); j++) {
+						str += right.toString();
+					}
+					arr2.add(str);
+
+				} else if (object instanceof Bin) {
+					String str = "";
+
+					for (int j = 0; j < ((Bin) object).toInteger(); j++) {
+						str += right.toString();
+					}
+					arr2.add(str);
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(timesBinaryArrayList(object, right, i));
+
+				} else if (object instanceof String) {
+					String str = "";
+
+					str += object.toString() + right.toString();
+
+					arr2.add(str);
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> powerBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Math.pow(((Integer) object).doubleValue(),
+							((Integer) (i * (Integer) right)).doubleValue()));
+				} else if (object instanceof Double) {
+					arr2.add(Math.pow(((Integer) object).doubleValue(), (Double) (i * (Double) right)));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Math.pow(new Bin((Integer) object).toDouble(),
+							(new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))).toDouble()));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(powerBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Math.pow((Double) object, ((Integer) (i * (Integer) right)).doubleValue()));
+				} else if (object instanceof Double) {
+					arr2.add(Math.pow((Double) object, (i * (Double) right)));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Math.pow(((Bin) object).toDouble(), ((Double) (i * (Double) right))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(powerBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Math.pow(((Bin) object).toDouble(),
+							(new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))).toDouble()));
+
+				} else if (object instanceof Double) {
+					arr2.add(Math.pow(((Bin) object).toDouble(),
+							(new Bin(Bin.times(new Bin(i), new Bin(((Double) right).intValue())))).toDouble()));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Math.pow(((Bin) object).toDouble(),
+							(new Bin(Bin.times(new Bin(i), (Bin) right))).toDouble()));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(powerBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> divBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) object / (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) object / (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.divide(new Bin((Integer) object),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(divBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) object / (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object / (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.divide(new Bin(((Double) object).intValue()),
+							new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(divBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(Bin.divide(((Bin) object), new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))));
+
+				} else if (object instanceof Double) {
+					arr2.add(Bin.divide(((Bin) object),
+							new Bin(Bin.times(new Bin(i), new Bin(((Double) right).intValue())))));
+
+				} else if (object instanceof Bin) {
+					arr2.add(Bin.divide(((Bin) object), new Bin(Bin.times(new Bin(i), (Bin) right))));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(divBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> addArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Integer) object1 + (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Integer) object1 + (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.add(new Bin((Integer) object1),
+								new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(addBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 + (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 + (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.add(new Bin(((Double) object1).intValue()),
+								new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(addBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(Bin.add(((Bin) object1), new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof Double) {
+						arr2.add(Bin.add(((Bin) object1),
+								new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue())))));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.add(((Bin) object1), new Bin(Bin.times(new Bin(i), (Bin) object))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(addBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 + (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 + (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.add(new Bin(((Double) object1).intValue()),
+								new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof ArrayList<?>) {
+
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+
+								arr2.add(addBinaryArrayList(object2, object3, i));
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> gtArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Integer) object1 > (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Integer) object1 > (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add((Integer) object1 > Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(gtBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 > (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 > (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1) > Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(gtBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(((Bin) object1).toInteger() > Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof Double) {
+						arr2.add(((Bin) object1).toInteger() > Bin.times(new Bin(i),
+								new Bin(((Double) object).intValue())));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Bin) object1).toInteger() > Bin.times(new Bin(i), (Bin) object));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(gtBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 > (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 > (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1).intValue()>Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+
+								arr2.add(gtBinaryArrayList(object2, object3, i));
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+		return arr2;
+
+	}
+	private ArrayList<?> ltArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+						
+						arr2.add((Integer) object1 < (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Integer) object1 < (i * (Double) object));
+						
+					} else if (object instanceof Bin) {
+						arr2.add((Integer) object1 < Bin.times(new Bin(i), new Bin((Integer) object)));
+						
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(ltBinaryArrayList(object1, object, i));
+						
+					}
+				}
+				
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+						
+						arr2.add((Double) object1 < (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 < (i * (Double) object));
+						
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1) < Bin.times(new Bin(i), new Bin((Integer) object)));
+						
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(ltBinaryArrayList(object1, object, i));
+						
+					}
+				}
+				
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+						
+						arr2.add(((Bin) object1).toInteger() < Bin.times(new Bin(i), new Bin((Integer) object)));
+						
+					} else if (object instanceof Double) {
+						arr2.add(((Bin) object1).toInteger() < Bin.times(new Bin(i),
+								new Bin(((Double) object).intValue())));
+						
+					} else if (object instanceof Bin) {
+						arr2.add(((Bin) object1).toInteger() < Bin.times(new Bin(i), (Bin) object));
+						
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(ltBinaryArrayList(object1, object, i));
+						
+					}
+				}
+				
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+						
+						arr2.add((Double) object1 < (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 < (i * (Double) object));
+						
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1)<Bin.times(new Bin(i), new Bin((Integer) object)));
+						
+					} else if (object instanceof ArrayList<?>) {
+						
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+						
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+								
+								arr2.add(ltBinaryArrayList(object2, object3, i));
+							}
+						}
+						
+					}
+				}
+				
+			}
+		}
+		return arr2;
+		
+	}
+
+	private ArrayList<?> timesArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Integer) object1 * (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Integer) object1 * (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.times(new Bin((Integer) object1),
+								new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(timesArrayBinaryList(object1, object, i));
+
+					} else if (object instanceof String) {
+						String str = "";
+
+						for (int j = 0; j < ((Integer) object1); j++) {
+							str += object.toString();
+						}
+						arr2.add(str);
+					}
+				}
+
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 * (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 * (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.times(new Bin(((Double) object1).intValue()),
+								new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(timesArrayBinaryList(object1, object, i));
+
+					} else if (object instanceof String) {
+						String str = "";
+
+						for (int j = 0; j < ((Double) object1).intValue(); j++) {
+							str += object.toString();
+						}
+						arr2.add(str);
+					}
+				}
+
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(Bin.times(((Bin) object1), new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof Double) {
+						arr2.add(Bin.times(((Bin) object1),
+								new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue())))));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.times(((Bin) object1), new Bin(Bin.times(new Bin(i), (Bin) object))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(timesArrayBinaryList(object1, object, i));
+
+					} else if (object instanceof String) {
+						String str = "";
+
+						for (int j = 0; j < ((Bin) object1).toInteger(); j++) {
+							str += object.toString();
+						}
+						arr2.add(str);
+					}
+				}
+
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(timesBinaryArrayList(object1, object, i));
+					} else if (object instanceof Double) {
+						arr2.add(timesBinaryArrayList(object1, object, i));
+
+					} else if (object instanceof Bin) {
+						arr2.add(timesBinaryArrayList(object1, object, i));
+					} else if (object instanceof ArrayList<?>) {
+
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+								if (object2 instanceof ArrayList<?> && !(object3 instanceof ArrayList<?>))
+									arr2.add(timesBinaryArrayList(object2, object3, i));
+								else if (object3 instanceof ArrayList<?> && !(object2 instanceof ArrayList<?>))
+									arr2.add(timesArrayBinaryList(object2, object3, i));
+								else if (object3 instanceof ArrayList<?> && (object2 instanceof ArrayList<?>))
+									arr2.add(timesArrayListArrayList(object2, object3, i));
+								else
+									arr2.add(times(object2, object3));
+
+							}
+						}
+
+					} else if (object instanceof String) {
+						arr2.add(timesBinaryArrayList(object1, object, i));
+					}
+				}
+
+			}
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> powerArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(Math.pow(((Integer) object1).doubleValue(),
+								((Integer) (i * (Integer) object)).doubleValue()));
+					} else if (object instanceof Double) {
+						arr2.add(Math.pow(((Integer) object1).doubleValue(), (Double) (i * (Double) object)));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Math.pow((new Bin((Integer) object1)).toDouble(),
+								(new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))).toDouble()));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(powerArrayBinaryList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(Math.pow(((Double) object1), ((Integer) (i * (Integer) object)).doubleValue()));
+					} else if (object instanceof Double) {
+						arr2.add(Math.pow(((Double) object1), (Double) (i * (Double) object)));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Math.pow(((Double) object1),
+								(new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))).toDouble()));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(powerArrayBinaryList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(Math.pow(((Bin) left).toDouble(),
+								(new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))).toDouble()));
+
+					} else if (object instanceof Double) {
+						arr2.add(Math.pow(((Bin) left).toDouble(),
+								(new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue())))).toDouble()));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Math.pow(((Bin) left).toDouble(),
+								(new Bin(Bin.times(new Bin(i), (Bin) object))).toDouble()));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(powerArrayBinaryList(left, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(timesBinaryArrayList(object1, object, i));
+					} else if (object instanceof Double) {
+						arr2.add(timesBinaryArrayList(object1, object, i));
+
+					} else if (object instanceof Bin) {
+						arr2.add(timesBinaryArrayList(object1, object, i));
+					} else if (object instanceof ArrayList<?>) {
+
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+								if (object2 instanceof ArrayList<?> && !(object3 instanceof ArrayList<?>))
+									arr2.add(powerBinaryArrayList(object2, object3, i));
+								else if (object3 instanceof ArrayList<?> && !(object2 instanceof ArrayList<?>))
+									arr2.add(powerArrayBinaryList(object2, object3, i));
+								else if (object3 instanceof ArrayList<?> && (object2 instanceof ArrayList<?>))
+									arr2.add(powerArrayListArrayList(object2, object3, i));
+								else
+									arr2.add(power(object2, object3));
+
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> divArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Integer) object1 / (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Integer) object1 / (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.divide(new Bin((Integer) object1),
+								new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(divArrayBinaryList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 / (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 / (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.divide(new Bin(((Double) object1).intValue()),
+								new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(divArrayBinaryList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(
+								Bin.divide(((Bin) object1), new Bin(Bin.times(new Bin(i), new Bin((Integer) object)))));
+
+					} else if (object instanceof Double) {
+						arr2.add(Bin.divide(((Bin) object1),
+								new Bin(Bin.times(new Bin(i), new Bin(((Double) object).intValue())))));
+
+					} else if (object instanceof Bin) {
+						arr2.add(Bin.divide(((Bin) object1), new Bin(Bin.times(new Bin(i), (Bin) object))));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(divArrayBinaryList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(divBinaryArrayList(object1, object, i));
+					} else if (object instanceof Double) {
+						arr2.add(divBinaryArrayList(object1, object, i));
+
+					} else if (object instanceof Bin) {
+						arr2.add(divBinaryArrayList(object1, object, i));
+					} else if (object instanceof ArrayList<?>) {
+
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+
+								if (object2 instanceof ArrayList<?> && !(object3 instanceof ArrayList<?>))
+									arr2.add(divBinaryArrayList(object2, object3, i));
+								else if (object3 instanceof ArrayList<?> && !(object2 instanceof ArrayList<?>))
+									arr2.add(divArrayBinaryList(object2, object3, i));
+								else if (object3 instanceof ArrayList<?> && (object2 instanceof ArrayList<?>))
+									arr2.add(divArrayListArrayList(object2, object3, i));
+								else
+									arr2.add(div(object2, object3));
+
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> addArrayUnaryList(Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		for (Object object : arr) {
+			if (object instanceof Integer) {
+
+				arr2.add((Integer) object + i);
+			} else if (object instanceof Double) {
+				arr2.add((Double) object + i);
+
+			} else if (object instanceof Bin) {
+				arr2.add(Bin.add(new Bin(i), new Bin((Integer) object)));
+
+			} else if (object instanceof ArrayList<?>) {
+				arr2.add(addArrayUnaryList(object, i));
+
+			}
+		}
+
+		return arr2;
+
 	}
 
 	private Object addStringArray(Object left, Object right) {
@@ -536,19 +2216,44 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		String str = "";
 
 		str += "[";
-		for (Object object : arr) {
-			if (object instanceof Integer) {
-				str += ((Integer) object);
-			} else if (object instanceof Double) {
-				str += ((Double) object);
-			} else if (object instanceof Bin) {
-				str += ((Bin) object);
-			} else if (object instanceof String) {
-				str += ((String) object);
-			} else if (object instanceof ArrayList<?>) {
-				str += "[";
-				str += printArray("", (ArrayList<?>) object);
-				str += "]";
+		for (int i = 0; i < arr.size(); i++) {
+			if (arr.get(i) instanceof Integer) {
+				if (i == arr.size() - 1)
+					str += ((Integer) arr.get(i));
+				else
+					str += ((Integer) arr.get(i)) + ", ";
+			} else if (arr.get(i) instanceof Double) {
+				if (i == arr.size() - 1)
+					str += ((Double) arr.get(i));
+				else
+					str += ((Double) arr.get(i)) + ", ";
+
+			} else if (arr.get(i) instanceof Bin) {
+				if (i == arr.size() - 1)
+					str += ((Bin) arr.get(i));
+				else
+					str += ((Bin) arr.get(i)) + ", ";
+			} else if (arr.get(i) instanceof String) {
+				if (i == arr.size() - 1)
+					str += ((String) arr.get(i));
+				else
+					str += ((String) arr.get(i)) + ", ";
+			} else if (arr.get(i) instanceof Boolean) {
+				if (i == arr.size() - 1)
+					str += ((Boolean) arr.get(i));
+				else
+					str += ((Boolean) arr.get(i)) + ", ";
+			} else if (arr.get(i) instanceof ArrayList<?>) {
+				if (i == arr.size() - 1) {
+					str += "[";
+					str += printArray("", (ArrayList<?>) arr.get(i));
+					str += "]";
+				} else {
+
+					str += "[";
+					str += printArray("", (ArrayList<?>) arr.get(i));
+					str += "], ";
+				}
 			}
 		}
 		str += "]";
@@ -560,14 +2265,21 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 		for (int i = 0; i < object.size(); i++) {
 			if (object.get(i) instanceof ArrayList<?>) {
-				str += "[";
-				str += printArray("", (ArrayList<?>) object.get(i));
-				str += "]";
+				if (i == object.size() - 1) {
+					str += "[";
+					str += printArray("", (ArrayList<?>) object.get(i));
+					str += "]";
+				} else {
+
+					str += "[";
+					str += printArray("", (ArrayList<?>) object.get(i));
+					str += "], ";
+				}
 			} else {
 				if (i == object.size() - 1)
 					str += object.get(i).toString();
 				else
-					str += object.get(i).toString() + " ";
+					str += object.get(i).toString() + ", ";
 			}
 		}
 
@@ -576,6 +2288,25 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	private Object addIntegerInteger(Object left, Object right) {
 		return ((Integer) left) + ((Integer) right);
+	}
+
+	private Object gtIntegerInteger(Object left, Object right) {
+		return ((Integer) left) > ((Integer) right);
+	}
+	private Object ltIntegerInteger(Object left, Object right) {
+		return ((Integer) left) < ((Integer) right);
+	}
+
+	private Object timesIntegerInteger(Object left, Object right) {
+		return ((Integer) left) * ((Integer) right);
+	}
+
+	private Object powerIntegerInteger(Object left, Object right) {
+		return Math.pow(((Integer) left).doubleValue(), ((Integer) right).doubleValue());
+	}
+
+	private Object divIntegerInteger(Object left, Object right) {
+		return ((Integer) left) / ((Integer) right);
 	}
 
 	private Object addArrayInteger(Object left, Object right) {
@@ -633,36 +2364,186 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return ((Double) left) + ((Integer) right);
 	}
 
+	private Object gtDoubleInteger(Object left, Object right) {
+		return ((Double) left) > ((Integer) right);
+	}
+	private Object ltDoubleInteger(Object left, Object right) {
+		return ((Double) left) < ((Integer) right);
+	}
+
+	private Object timesDoubleInteger(Object left, Object right) {
+		return ((Double) left) * ((Integer) right);
+	}
+
+	private Object divDoubleInteger(Object left, Object right) {
+		return ((Double) left) / ((Integer) right);
+	}
+
 	private Object addDoubleDouble(Object left, Object right) {
 		return ((Double) left) + ((Double) right);
+	}
+
+	private Object gtDoubleDouble(Object left, Object right) {
+		return ((Double) left) > ((Double) right);
+	}
+	private Object ltDoubleDouble(Object left, Object right) {
+		return ((Double) left) < ((Double) right);
+	}
+
+	private Object timesDoubleDouble(Object left, Object right) {
+		return ((Double) left) * ((Double) right);
+	}
+
+	private Object divDoubleDouble(Object left, Object right) {
+		return ((Double) left) / ((Double) right);
 	}
 
 	private Object addIntegerDouble(Object left, Object right) {
 		return ((Integer) left) + ((Double) right);
 	}
 
+	private Object gtIntegerDouble(Object left, Object right) {
+		return ((Integer) left) > ((Double) right);
+	}
+	private Object ltIntegerDouble(Object left, Object right) {
+		return ((Integer) left) < ((Double) right);
+	}
+
+	private Object timesIntegerDouble(Object left, Object right) {
+		return ((Integer) left) * ((Double) right);
+	}
+
+	private Object powerIntegerDouble(Object left, Object right) {
+		return Math.pow(((Integer) left).doubleValue(), ((Double) right));
+	}
+
+	private Object divIntegerDouble(Object left, Object right) {
+		return ((Integer) left) / ((Double) right);
+	}
+
 	private Object addDoubleBin(Object left, Object right) {
 		return Bin.add(new Bin(((Double) left).intValue()), ((Bin) right));
+	}
+
+	private Object gtDoubleBin(Object left, Object right) {
+		return ((Double) left).intValue() > ((Bin) right).toInteger();
+	}
+	private Object ltDoubleBin(Object left, Object right) {
+		return ((Double) left).intValue() < ((Bin) right).toInteger();
+	}
+
+	private Object timesDoubleBin(Object left, Object right) {
+		return Bin.times(new Bin(((Double) left).intValue()), ((Bin) right));
+	}
+
+	private Object divDoubleBin(Object left, Object right) {
+		return Bin.divide(new Bin(((Double) left).intValue()), ((Bin) right));
 	}
 
 	private Object addIntegerBin(Object left, Object right) {
 		return Bin.add(new Bin((Integer) left), ((Bin) right));
 	}
 
+	private Object gtIntegerBin(Object left, Object right) {
+		return ((Integer) left) > ((Bin) right).toInteger();
+	}
+	private Object ltIntegerBin(Object left, Object right) {
+		return ((Integer) left) < ((Bin) right).toInteger();
+	}
+
+	private Object timesIntegerBin(Object left, Object right) {
+		return Bin.add(new Bin((Integer) left), ((Bin) right));
+	}
+
+	private Object powerIntegerBin(Object left, Object right) {
+		return Math.pow(((Integer) left).doubleValue(), ((Bin) right).toDouble());
+	}
+
+	private Object divIntegerBin(Object left, Object right) {
+		return Bin.divide((new Bin((Integer) left)), ((Bin) right));
+	}
+
 	private Object addBinInteger(Object left, Object right) {
 		return Bin.add((Bin) left, new Bin((Integer) right));
+	}
+
+	private Object gtBinInteger(Object left, Object right) {
+		return ((Bin) left).toInteger() > (Integer) right;
+	}
+	private Object ltBinInteger(Object left, Object right) {
+		return ((Bin) left).toInteger() < (Integer) right;
+	}
+
+	private Object timesBinInteger(Object left, Object right) {
+		return Bin.times((Bin) left, new Bin((Integer) right));
+	}
+
+	private Object divBinInteger(Object left, Object right) {
+		return Bin.divide((Bin) left, new Bin((Integer) right));
 	}
 
 	private Object addBinDouble(Object left, Object right) {
 		return Bin.add((Bin) left, new Bin(((Double) right).intValue()));
 	}
 
+	private Object gtBinDouble(Object left, Object right) {
+		return ((Bin) left).toInteger() > ((Double) right);
+	}
+	private Object ltBinDouble(Object left, Object right) {
+		return ((Bin) left).toInteger() < ((Double) right);
+	}
+
+	private Object timesBinDouble(Object left, Object right) {
+		return Bin.times((Bin) left, new Bin(((Double) right).intValue()));
+	}
+
+	private Object divBinDouble(Object left, Object right) {
+		return Bin.divide((Bin) left, new Bin(((Double) right).intValue()));
+	}
+
 	private Object addBinBin(Object left, Object right) {
 		return Bin.add((Bin) left, (Bin) right);
 	}
 
+	private Object gtBinBin(Object left, Object right) {
+		return ((Bin) left).toInteger() > ((Bin) right).toInteger();
+	}
+	private Object ltBinBin(Object left, Object right) {
+		return ((Bin) left).toInteger() < ((Bin) right).toInteger();
+	}
+
+	private Object timesBinBin(Object left, Object right) {
+		return Bin.times((Bin) left, (Bin) right);
+	}
+
+	private Object divBinBin(Object left, Object right) {
+		return Bin.divide((Bin) left, (Bin) right);
+	}
+
 	private Object addObjectString(Object left, Object right) {
 		return left.toString() + right.toString();
+	}
+
+	private Object timesObjectString(Object left, Object right) {
+		String str = "";
+		if (left instanceof Integer) {
+
+			for (int i = 0; i < ((Integer) left); i++) {
+				str += right.toString();
+			}
+
+		} else if (left instanceof Double) {
+			for (int i = 0; i < ((Double) left).intValue(); i++) {
+				str += right.toString();
+			}
+
+		} else if (left instanceof Bin) {
+			for (int i = 0; i < ((Bin) left).toInteger(); i++) {
+				str += right.toString();
+			}
+
+		}
+		return str;
 	}
 
 	private Object parse(Object left) {
@@ -671,6 +2552,18 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			if (expression instanceof Expr.Literal) {
 				left = ((Expr.Literal) expression).value;
 			}
+		}
+		return left;
+	}
+
+	private Object parseBinData(Object left) {
+		if (left instanceof Stmt.Expression) {
+			Expr expression = ((Stmt.Expression) left).expression;
+			if (expression instanceof Expr.Literal) {
+				left = ((Expr.Literal) expression).value;
+			}
+		} else if (left instanceof ArrayList<?>) {
+			left = reformatArrayListDataForJustValues((ArrayList<?>) left);
 		} else if (left instanceof PocketInstance) {
 			Token identifier = new Token(TokenType.IDENTIFIER,
 					((Pocket) ((PocketInstance) left).expr).identifier.lexeme + "varravargssgra", null, null, null,
@@ -693,6 +2586,28 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			left = lookUpVariableByName(variable);
 		}
 		return left;
+	}
+
+	private ArrayList<?> reformatArrayListDataForJustValues(ArrayList<?> left) {
+		ArrayList<?> arr = left;
+		ArrayList<Object> arr1 = new ArrayList<>();
+		for (int i = 0; i < arr.size(); i++) {
+			if (arr.get(i) instanceof Stmt.Expression) {
+				Expr expr = ((Stmt.Expression) arr.get(i)).expression;
+				if (expr instanceof Literal) {
+					arr1.add(((Literal) expr).value);
+				} else {
+					arr1.add(expr);
+				}
+			} else if (arr.get(i) instanceof ArrayList<?>) {
+				arr1.add(reformatArrayListDataForJustValues((ArrayList<?>) arr.get(i)));
+			} else {
+				arr1.add(arr.get(i));
+			}
+		}
+
+		return arr1;
+
 	}
 
 	private Double findNthRootOfRemainder(Double theRight, Double remainder) {
@@ -839,7 +2754,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				else if (boxInstance != null)
 					return boxInstance;
 
-				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
 			return right;
 		case MINUSMINUS:
@@ -878,8 +2792,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return cupInstance;
 				else if (boxInstance != null)
 					return boxInstance;
-
-				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
 			return right;
 		default:
@@ -889,7 +2801,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	}
 
 	private Object isBoxInstance(Object right, int valueToAssign) {
-		if (right instanceof CupInstance) {
+		if (right instanceof BoxInstance) {
 			Environment previous = environment;
 			ArrayList<Object> arr = new ArrayList<>();
 			try {
@@ -901,23 +2813,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					if (at instanceof Stmt.Expression) {
 						evaluate = evaluate(((Stmt.Expression) at));
 						if (evaluate != null)
-							if (evaluate instanceof BoxInstance) {
-								Token identifier = new Token(TokenType.IDENTIFIER,
-										((Expr.Box) ((Stmt.Expression) at).expression).identifier.lexeme
-												+ "varravargssgra",
-										null, null, null,
-										((Expr.Box) ((Stmt.Expression) at).expression).identifier.column,
-										((Expr.Box) ((Stmt.Expression) at).expression).identifier.line,
-										((Expr.Box) ((Stmt.Expression) at).expression).identifier.start,
-										((Expr.Box) ((Stmt.Expression) at).expression).identifier.finish);
-
-								Expr.Variable variable = new Expr.Variable(identifier);
-								Object lookUpVariableByName = lookUpVariableByName(variable);
-								arr.add(lookUpVariableByName);
-							} else {
-								arr.add(evaluate);
-
-							}
+							lookUpVariableAddToArray(arr, evaluate);
 					}
 				}
 			} finally {
@@ -931,11 +2827,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 			Expr.Variable variable = new Expr.Variable(identifier);
 			Integer distance = locals.get(variable);
-			if (distance != null) {
-				environment.assignAt(distance, identifier, arr, arr, null);
-			} else {
-				globals.assignAt(distance, identifier, arr, arr, null);
-			}
+			setGlobalOrCurrentEnvironmentVariable(arr, variable);
 
 			return arr;
 		} else {
@@ -953,26 +2845,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				for (int i = 0; i < ((CupInstance) right).body.size(); i++) {
 					Object at = ((CupInstance) right).body.get(i);
 					addOrSubtractAndAssign(at, valueToAssign);
-					if (at instanceof Stmt.Expression) {
-						evaluate = evaluate(((Stmt.Expression) at));
+					if (at instanceof StmtDecl) {
+						evaluate = evaluate(((StmtDecl) at));
 						if (evaluate != null)
-							if (evaluate instanceof CupInstance) {
-								Token identifier = new Token(TokenType.IDENTIFIER,
-										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.lexeme
-												+ "varravargssgra",
-										null, null, null,
-										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.column,
-										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.line,
-										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.start,
-										((Expr.Cup) ((Stmt.Expression) at).expression).identifier.finish);
-
-								Expr.Variable variable = new Expr.Variable(identifier);
-								Object lookUpVariableByName = lookUpVariableByName(variable);
-								arr.add(lookUpVariableByName);
-							} else {
-								arr.add(evaluate);
-
-							}
+							lookUpVariableAddToArray(arr, evaluate);
 					}
 				}
 			} finally {
@@ -985,16 +2861,44 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					expr2.identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
-			Integer distance = locals.get(variable);
-			if (distance != null) {
-				environment.assignAt(distance, identifier, arr, arr, null);
-			} else {
-				globals.assignAt(distance, identifier, arr, arr, null);
-			}
+			setGlobalOrCurrentEnvironmentVariable(arr, variable);
 
 			return arr;
 		} else {
 			return null;
+		}
+	}
+
+	private void lookUpVariableAddToArray(ArrayList<Object> arr, Object evaluate) {
+		if (evaluate instanceof CupInstance) {
+			Cup cup = (Expr.Cup) ((CupInstance) evaluate).expr;
+			Token identifier = new Token(TokenType.IDENTIFIER, cup.identifier.lexeme + "varravargssgra", null, null,
+					null, cup.identifier.column, cup.identifier.line, cup.identifier.start, cup.identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			Object lookUpVariableByName = lookUpVariableByName(variable);
+			arr.add(lookUpVariableByName);
+		} else if (evaluate instanceof PocketInstance) {
+			Pocket pocket = (Expr.Pocket) ((PocketInstance) evaluate).expr;
+			Token identifier = new Token(TokenType.IDENTIFIER,
+
+					pocket.identifier.lexeme + "varravargssgra", null, null, null, pocket.identifier.column,
+					pocket.identifier.line, pocket.identifier.start, pocket.identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			Object lookUpVariableByName = lookUpVariableByName(variable);
+			arr.add(lookUpVariableByName);
+		} else if (evaluate instanceof BoxInstance) {
+			Parser.Expr.Box box = (Expr.Box) ((BoxInstance) evaluate).expr;
+			Token identifier = new Token(TokenType.IDENTIFIER, box.identifier.lexeme + "varravargssgra", null, null,
+					null, box.identifier.column, box.identifier.line, box.identifier.start, box.identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			Object lookUpVariableByName = lookUpVariableByName(variable);
+			arr.add(lookUpVariableByName);
+		} else {
+			arr.add(evaluate);
+
 		}
 	}
 
@@ -1011,23 +2915,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					if (at instanceof Stmt.Expression) {
 						evaluate = evaluate(((Stmt.Expression) at));
 						if (evaluate != null)
-							if (evaluate instanceof PocketInstance) {
-								Token identifier = new Token(TokenType.IDENTIFIER,
-										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.lexeme
-												+ "varravargssgra",
-										null, null, null,
-										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.column,
-										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.line,
-										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.start,
-										((Expr.Pocket) ((Stmt.Expression) at).expression).identifier.finish);
-
-								Expr.Variable variable = new Expr.Variable(identifier);
-								Object lookUpVariableByName = lookUpVariableByName(variable);
-								arr.add(lookUpVariableByName);
-							} else {
-								arr.add(evaluate);
-
-							}
+							lookUpVariableAddToArray(arr, evaluate);
 					}
 				}
 			} finally {
@@ -1040,12 +2928,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					expr2.identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
-			Integer distance = locals.get(variable);
-			if (distance != null) {
-				environment.assignAt(distance, identifier, arr, arr, null);
-			} else {
-				globals.assignAt(distance, identifier, arr, arr, null);
-			}
+			setGlobalOrCurrentEnvironmentVariable(arr, variable);
 
 			return arr;
 		} else {
@@ -1114,6 +2997,12 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 			} else if (expression instanceof Expr.Binary) {
 				assignBinaryAdd(valueToAssign, expression);
+			} else if (expression instanceof Expr.Variable) {
+				assignVarableSubtract((Expr.Variable) expression, valueToAssign);
+			} else if (expression instanceof Expr.Cup) {
+				assignCupAdd(valueToAssign, expression);
+			} else if (expression instanceof Expr.Pocket) {
+				assignPocketAdd(valueToAssign, expression);
 			}
 		}
 	}
@@ -1260,37 +3149,18 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					((Literal) expression2).value = Bin.times(((Bin) ((Literal) expression2).value),
 							new Bin(valueToAssign));
 				}
-				Integer distance = locals.get(variable);
-				if (distance != null)
-					environment.assignAt(distance, variable.name, lookUpVariableByName, lookUpVariableByName, this);
-				else
-					globals.assign(variable.name, lookUpVariableByName, lookUpVariableByName, this);
+				setGlobalOrCurrentEnvironmentVariable(lookUpVariableByName, variable);
 			}
 		} else if (lookUpVariableByName instanceof Integer) {
-			Integer distance = locals.get(variable);
-			if (distance != null)
-				environment.assignAt(distance, variable.name, ((Integer) lookUpVariableByName) * valueToAssign,
-						((Integer) lookUpVariableByName) * valueToAssign, this);
-			else
-				globals.assign(variable.name, ((Integer) lookUpVariableByName) * valueToAssign,
-						((Integer) lookUpVariableByName) * valueToAssign, this);
+			int value = ((Integer) lookUpVariableByName) * valueToAssign;
+			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		} else if (lookUpVariableByName instanceof Double) {
+			double value = ((Double) lookUpVariableByName) * valueToAssign;
 			Integer distance = locals.get(variable);
-			if (distance != null)
-				environment.assignAt(distance, variable.name, ((Double) lookUpVariableByName) * valueToAssign,
-						((Double) lookUpVariableByName) * valueToAssign, this);
-			else
-				globals.assign(variable.name, ((Double) lookUpVariableByName) * valueToAssign,
-						((Double) lookUpVariableByName) * valueToAssign, this);
+			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		} else if (lookUpVariableByName instanceof Bin) {
-			Integer distance = locals.get(variable);
-			if (distance != null)
-				environment.assignAt(distance, variable.name,
-						Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign)),
-						Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign)), this);
-			else
-				globals.assign(variable.name, Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign)),
-						Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign)), this);
+			Integer value = Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign));
+			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		}
 	}
 
@@ -1300,153 +3170,26 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			Expr expression2 = ((Stmt.Expression) lookUpVariableByName).expression;
 			if (expression2 instanceof Expr.Literal) {
 
-				if (((Literal) expression2).value instanceof Integer) {
-					((Literal) expression2).value = ((Integer) ((Literal) expression2).value) + valueToAssign;
-				} else if (((Literal) expression2).value instanceof Double) {
-					((Literal) expression2).value = ((Double) ((Literal) expression2).value) + valueToAssign;
-				} else if (((Literal) expression2).value instanceof Bin) {
-					((Literal) expression2).value = Bin.add(((Bin) ((Literal) expression2).value),
-							new Bin(valueToAssign));
+				Object value = ((Literal) expression2).value;
+				if (value instanceof Integer) {
+					value = ((Integer) value) + valueToAssign;
+				} else if (value instanceof Double) {
+					value = ((Double) value) + valueToAssign;
+				} else if (value instanceof Bin) {
+					value = Bin.add(((Bin) value), new Bin(valueToAssign));
 				}
-				Integer distance = locals.get(variable);
-				if (distance != null)
-					environment.assignAt(distance, variable.name, lookUpVariableByName, lookUpVariableByName, this);
-				else
-					globals.assign(variable.name, lookUpVariableByName, lookUpVariableByName, this);
+				setGlobalOrCurrentEnvironmentVariable(value, variable);
 			}
 		} else if (lookUpVariableByName instanceof Integer) {
-			Integer distance = locals.get(variable);
-			if (distance != null)
-				environment.assignAt(distance, variable.name, ((Integer) lookUpVariableByName) + valueToAssign,
-						((Integer) lookUpVariableByName) + valueToAssign, this);
-			else
-				globals.assign(variable.name, ((Integer) lookUpVariableByName) + valueToAssign,
-						((Integer) lookUpVariableByName) + valueToAssign, this);
+			int value = ((Integer) lookUpVariableByName) + valueToAssign;
+			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		} else if (lookUpVariableByName instanceof Double) {
-			Integer distance = locals.get(variable);
-			if (distance != null)
-				environment.assignAt(distance, variable.name, ((Double) lookUpVariableByName) + valueToAssign,
-						((Double) lookUpVariableByName) + valueToAssign, this);
-			else
-				globals.assign(variable.name, ((Double) lookUpVariableByName) + valueToAssign,
-						((Double) lookUpVariableByName) + valueToAssign, this);
+			int value = ((Integer) lookUpVariableByName) + valueToAssign;
+			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		} else if (lookUpVariableByName instanceof Bin) {
-			Integer distance = locals.get(variable);
-			if (distance != null)
-				environment.assignAt(distance, variable.name,
-						Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign)),
-						Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign)), this);
-			else
-				globals.assign(variable.name, Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign)),
-						Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign)), this);
+			Bin value = Bin.add(((Bin) lookUpVariableByName), new Bin(+valueToAssign));
+			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		}
-	}
-
-	private Object updateBoxClass(Object right, int toupdateby) {
-		BoxClass boxClass = (BoxClass) right;
-
-		Object call = boxClass.instance(this);
-
-		if (call instanceof CupInstance) {
-			CupInstance cupInstance = (CupInstance) call;
-			for (Object object : cupInstance.body) {
-				findVariablePocketCupKnotTonkandAdd(object, toupdateby);
-			}
-		}
-
-		return call;
-	}
-
-	private void findVariablePocketCupKnotTonkandAdd(Object object, int toupdateby) {
-		Object target = object;
-		Variable name = null;
-		while (true) {
-			if (target instanceof StmtDecl) {
-				target = ((StmtDecl) target).statement;
-			} else if (target instanceof Stmt.Expression) {
-				target = ((Stmt.Expression) target).expression;
-			} else if (target instanceof Expr.Unary) {
-				target = ((Expr.Unary) target).right;
-			} else if (target instanceof Expr.Yranu) {
-				target = ((Expr.Yranu) target).right;
-			} else if (target instanceof Expr.Variable) {
-				name = ((Expr.Variable) target);
-				break;
-			} else if (target instanceof Expr.Pocket) {
-				name = new Variable(((Expr.Pocket) target).identifier);
-				break;
-			} else if (target instanceof Expr.Cup) {
-				name = new Variable(((Expr.Cup) target).identifier);
-				break;
-			} else if (target instanceof Expr.Knot) {
-				name = new Variable(((Expr.Knot) target).identifier);
-				break;
-			} else if (target instanceof Expr.Tonk) {
-				name = new Variable(((Expr.Tonk) target).identifier);
-				break;
-			}
-
-			else if (target instanceof Expr.CupOpen) {
-				break;
-			} else if (target instanceof Expr.CupClosed) {
-				break;
-			} else if (target instanceof Expr.PocketClosed) {
-				break;
-			} else if (target instanceof Expr.PocketOpen) {
-				break;
-			} else if (target instanceof Expr.BoxOpen) {
-				break;
-			} else if (target instanceof Expr.BoxClosed) {
-				break;
-			} else {
-				break;
-			}
-
-		}
-		if (name != null) {
-			Object lookUpVariableByName = lookUpVariable(name.name, name);
-			if (lookUpVariableByName instanceof BoxClass) {
-				updateBoxClass(lookUpVariableByName, toupdateby);
-			} else if (lookUpVariableByName instanceof Stmt.Expression) {
-				Expr expression = ((Stmt.Expression) lookUpVariableByName).expression;
-				if (expression instanceof Expr.Literal) {
-
-					if (((Literal) expression).value instanceof Integer) {
-						((Literal) expression).value = ((Integer) ((Literal) expression).value) + toupdateby;
-					} else if (((Literal) expression).value instanceof Double) {
-						((Literal) expression).value = ((Double) ((Literal) expression).value) + toupdateby;
-					} else if (((Literal) expression).value instanceof Bin) {
-						((Literal) expression).value = Bin.add(((Bin) ((Literal) expression).value),
-								new Bin(toupdateby));
-					}
-					Integer distance = locals.get(target);
-					if (distance != null)
-						environment.assignAt(distance, name.name, lookUpVariableByName, lookUpVariableByName, this);
-					else
-						globals.assign(name.name, lookUpVariableByName, lookUpVariableByName, this);
-				}
-			} else if (lookUpVariableByName instanceof Integer) {
-				Integer distance = locals.get(target);
-				if (distance != null)
-					environment.assignAt(distance, name.name, lookUpVariableByName, lookUpVariableByName, this);
-				else
-					globals.assign(name.name, lookUpVariableByName, lookUpVariableByName, this);
-			} else if (lookUpVariableByName instanceof Double) {
-				Integer distance = locals.get(target);
-				if (distance != null)
-					environment.assignAt(distance, name.name, lookUpVariableByName, lookUpVariableByName, this);
-				else
-					globals.assign(name.name, lookUpVariableByName, lookUpVariableByName, this);
-			} else if (lookUpVariableByName instanceof Bin) {
-				Integer distance = locals.get(target);
-				if (distance != null)
-					environment.assignAt(distance, name.name, lookUpVariableByName, lookUpVariableByName, this);
-				else
-					globals.assign(name.name, lookUpVariableByName, lookUpVariableByName, this);
-			}
-
-		}
-
 	}
 
 	private ArrayList<Object> addBoxInstance(Object theRight) {
@@ -1621,7 +3364,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return cupInstance;
 				else if (boxInstance != null)
 					return boxInstance;
-				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
 			return left;
 		case MINUSMINUS:
@@ -1659,7 +3401,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return cupInstance;
 				else if (boxInstance != null)
 					return boxInstance;
-				throw new RuntimeError(expr.operator, "Operand must be a number.");
 			}
 			return left;
 		default:
@@ -1683,13 +3424,31 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 		}
 		if (expr2 instanceof Expr.Variable) {
-			Integer distance = locals.get(expr2);
-			if (distance != null)
-				environment.assignAt(distance, ((Expr.Variable) expr2).name, value, value, this);
-			else
-				globals.assign(((Expr.Variable) expr2).name, value, value, this);
+			setGlobalOrCurrentEnvironmentVariable(value, (Variable) expr2);
+		} else if (expr2 instanceof Pocket) {
+			Token identifier = new Token(TokenType.IDENTIFIER, ((Pocket) expr2).identifier.lexeme + "varravargssgra",
+					null, null, null, ((Pocket) expr2).identifier.column, ((Pocket) expr2).identifier.line,
+					((Pocket) expr2).identifier.start, ((Pocket) expr2).identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			setGlobalOrCurrentEnvironmentVariable(value, variable);
+		} else if (expr2 instanceof Cup) {
+			Token identifier = new Token(TokenType.IDENTIFIER, ((Cup) expr2).identifier.lexeme + "varravargssgra", null,
+					null, null, ((Cup) expr2).identifier.column, ((Cup) expr2).identifier.line,
+					((Cup) expr2).identifier.start, ((Cup) expr2).identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		}
 
+	}
+
+	private void setGlobalOrCurrentEnvironmentVariable(Object value, Expr.Variable variable) {
+		Integer distance = locals.get(variable);
+		if (distance != null)
+			environment.assignAt(distance, variable.name, value, value, this);
+		else
+			globals.assign(variable.name, value, value, this);
 	}
 
 	@Override
@@ -2096,9 +3855,9 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			Object value = evaluate(expr.value);
 			Integer distance = locals.get(expr);
 			if (distance != null)
-				environment.assignAt(distance, expr.name, expr.value, value, this);
+				environment.assignAt(distance, expr.name, value, value, this);
 			else
-				globals.assign(expr.name, expr.value, value, this);
+				globals.assign(expr.name, value, value, this);
 			return value;
 		}
 		return null;
@@ -2107,108 +3866,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitYranibExpr(Yranib expr) {
 
-		Object left = evaluate(expr.left);
-		Object right = evaluate(expr.right);
-
-		switch (expr.operator.type) {
-		case NOTEQUALS:
-			return !isEqual(right, left);
-		case EQUALSNOT:
-			return !isEqual(right, left);
-		case EQUALSEQUALS:
-			return isEqual(right, left);
-		case EQUALSMINUS:
-			return null;
-		case EQUALSPLUS:
-			return null;
-		case GREATERTHEN:
-			return null;
-		case GREATERTHENEQUAL:
-			return null;
-		case LESSTHEN:
-			return null;
-		case LESSTHENEQUAL:
-			return null;
-		case MINUS:
-			if (left instanceof Integer) {
-				if (right instanceof Integer) {
-					return addIntegerInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addIntegerDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addIntegerBin(left, Bin.times(new Bin(-1), (Bin) right));
-				}
-			} else if (left instanceof Double) {
-				if (right instanceof Integer) {
-					return addDoubleInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addDoubleDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addDoubleBin(left, Bin.times(new Bin(-1), (Bin) right));
-				}
-			} else if (left instanceof Bin) {
-				if (right instanceof Integer) {
-					return addBinInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addBinDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addBinBin(left, Bin.times(new Bin(-1), (Bin) right));
-				}
-			}
-
-			return null;
-
-		case PLUS:
-			if (left instanceof Integer) {
-				if (right instanceof Integer) {
-					return addIntegerInteger(left, right);
-				} else if (right instanceof Double) {
-					return addIntegerDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addIntegerBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				}
-			} else if (left instanceof Double) {
-				if (right instanceof Integer) {
-					return addDoubleInteger(left, right);
-				} else if (right instanceof Double) {
-					return addDoubleDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addDoubleBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				}
-			} else if (left instanceof Bin) {
-				if (right instanceof Integer) {
-					return addBinInteger(left, right);
-				} else if (right instanceof Double) {
-					return addBinDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addBinBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				}
-			} else if (left instanceof String) {
-				return addObjectString(left, right);
-
-			}
-			return null;
-		case FORWARDSLASH:
-			return null;
-		case BACKSLASH:
-			return null;
-		case TIMES:
-			return null;
-
-		case POWER:
-			return null;
-		case TOORY:
-			return null;
-		default:
-			return null;
-
-		}
+		return null;
 
 	}
 
@@ -2348,7 +4006,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitStmtDeclDeclaration(StmtDecl declaration) {
-		
+
 		return declaration.statement.accept(this);
 	}
 
@@ -2496,28 +4154,31 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				if (execute != null)
 					if (execute instanceof PocketInstance) {
 						Token identifier = new Token(TokenType.IDENTIFIER,
-								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.lexeme
-										+ "varravargssgra",
-								null, null, null, ((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.column,
-								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.line,
-								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.start,
-								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.finish);
+								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.lexeme + "varravargssgra",
+								null, null, null, ((Expr.Pocket) ((PocketInstance) execute).expr).identifier.column,
+								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.line,
+								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.start,
+								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.finish);
 
 						Expr.Variable variable = new Expr.Variable(identifier);
 						Object lookUpVariableByName = lookUpVariableByName(variable);
 						notnull.add(lookUpVariableByName);
-					}else if (execute instanceof CupInstance) {
+					} else if (execute instanceof CupInstance) {
 						Token identifier = new Token(TokenType.IDENTIFIER,
-								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.lexeme
-										+ "varravargssgra",
-								null, null, null, ((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.column,
-								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.line,
-								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.start,
-								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.finish);
+								((Expr.Cup) ((CupInstance) execute).expr).identifier.lexeme + "varravargssgra", null,
+								null, null, ((Expr.Cup) ((CupInstance) execute).expr).identifier.column,
+								((Expr.Cup) ((CupInstance) execute).expr).identifier.line,
+								((Expr.Cup) ((CupInstance) execute).expr).identifier.start,
+								((Expr.Cup) ((CupInstance) execute).expr).identifier.finish);
 
 						Expr.Variable variable = new Expr.Variable(identifier);
 						Object lookUpVariableByName = lookUpVariableByName(variable);
 						notnull.add(lookUpVariableByName);
+					} else if (execute instanceof Stmt.Expression) {
+						Expr expr2 = ((Stmt.Expression) execute).expression;
+						if (expr2 instanceof Literal)
+							notnull.add(((Literal) expr2).value);
+
 					} else {
 						notnull.add(execute);
 
@@ -2531,12 +4192,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
 
 		Expr.Variable variable = new Expr.Variable(identifier);
-		Integer distance = locals.get(variable);
-		if (distance != null) {
-			environment.assignAt(distance, identifier, notnull, notnull, null);
-		} else {
-			globals.assignAt(distance, identifier, notnull, notnull, null);
-		}
+		setGlobalOrCurrentEnvironmentVariable(notnull, variable);
 		name = lookUpVariable(expr.identifier, expr);
 		BoxCallable knot = (BoxCallable) name;
 
@@ -2562,29 +4218,33 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				if (execute != null)
 					if (execute instanceof PocketInstance) {
 						Token identifier = new Token(TokenType.IDENTIFIER,
-								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.lexeme
-										+ "varravargssgra",
-								null, null, null, ((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.column,
-								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.line,
-								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.start,
-								((Expr.Pocket) ((Stmt.Expression) stmt).expression).identifier.finish);
+								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.lexeme + "varravargssgra",
+								null, null, null, ((Expr.Pocket) ((PocketInstance) execute).expr).identifier.column,
+								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.line,
+								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.start,
+								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.finish);
 
 						Expr.Variable variable = new Expr.Variable(identifier);
 						Object lookUpVariableByName = lookUpVariableByName(variable);
 						notnull.add(lookUpVariableByName);
-					}else if (execute instanceof CupInstance) {
+					} else if (execute instanceof CupInstance) {
 						Token identifier = new Token(TokenType.IDENTIFIER,
-								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.lexeme
-										+ "varravargssgra",
-								null, null, null, ((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.column,
-								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.line,
-								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.start,
-								((Expr.Cup) ((Stmt.Expression) stmt).expression).identifier.finish);
+								((Expr.Cup) ((CupInstance) execute).expr).identifier.lexeme + "varravargssgra", null,
+								null, null, ((Expr.Cup) ((CupInstance) execute).expr).identifier.column,
+								((Expr.Cup) ((CupInstance) execute).expr).identifier.line,
+								((Expr.Cup) ((CupInstance) execute).expr).identifier.start,
+								((Expr.Cup) ((CupInstance) execute).expr).identifier.finish);
 
 						Expr.Variable variable = new Expr.Variable(identifier);
 						Object lookUpVariableByName = lookUpVariableByName(variable);
 						notnull.add(lookUpVariableByName);
+					} else if (execute instanceof Stmt.Expression) {
+						Expr expr2 = ((Stmt.Expression) execute).expression;
+						if (expr2 instanceof Literal)
+							notnull.add(((Literal) expr2).value);
+
 					} else {
+
 						notnull.add(execute);
 
 					}
@@ -2597,12 +4257,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
 
 		Expr.Variable variable = new Expr.Variable(identifier);
-		Integer distance = locals.get(variable);
-		if (distance != null) {
-			environment.assignAt(distance, identifier, notnull, notnull, null);
-		} else {
-			globals.assignAt(distance, identifier, notnull, notnull, null);
-		}
+		setGlobalOrCurrentEnvironmentVariable(notnull, variable);
 		name = lookUpVariable(expr.identifier, expr);
 		BoxCallable knot = (BoxCallable) name;
 
@@ -2656,11 +4311,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 		Expr.Variable variable = new Expr.Variable(identifier);
 		Integer distance = locals.get(variable);
-		if (distance != null) {
-			environment.assignAt(distance, identifier, notnull, notnull, null);
-		} else {
-			globals.assignAt(distance, identifier, notnull, notnull, null);
-		}
+		setGlobalOrCurrentEnvironmentVariable(notnull, variable);
 		name = lookUpVariable(expr.identifier, expr);
 		BoxCallable knot = (BoxCallable) name;
 
@@ -3030,126 +4681,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitBinaryyranibExpr(Binaryyranib expr) {
-
-		Object left = evaluate(expr.left);
-		Object right = evaluate(expr.right);
-
-		switch (expr.operatorForward.type) {
-		case NOTEQUALS:
-			return !isEqual(left, right);
-		case EQUALSNOT:
-			return !isEqual(left, right);
-		case EQUALSEQUALS:
-			return isEqual(left, right);
-		case MINUSEQUALS:
-
-			return null;
-		case PLUSEQUALS:
-
-			return null;
-		case EQUALSMINUS:
-
-			return null;
-		case EQUALSPLUS:
-
-			return null;
-		case GREATERTHEN:
-			return null;
-		case GREATERTHENEQUAL:
-			return null;
-		case LESSTHEN:
-			return null;
-		case LESSTHENEQUAL:
-			return null;
-		case MINUS:
-			if (left instanceof Integer) {
-				if (right instanceof Integer) {
-					return addIntegerInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addIntegerDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addIntegerBin(left, Bin.times(new Bin(-1), (Bin) right));
-				}
-			} else if (left instanceof Double) {
-				if (right instanceof Integer) {
-					return addDoubleInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addDoubleDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addDoubleBin(left, Bin.times(new Bin(-1), (Bin) right));
-				}
-			} else if (left instanceof Bin) {
-				if (right instanceof Integer) {
-					return addBinInteger(left, -1 * (Integer) right);
-				} else if (right instanceof Double) {
-					return addBinDouble(left, -1 * (Double) right);
-				} else if (right instanceof Bin) {
-					return addBinBin(left, Bin.times(new Bin(-1), (Bin) right));
-				}
-			}
-
-			return null;
-
-		case PLUS:
-			if (left instanceof Integer) {
-				if (right instanceof Integer) {
-					return addIntegerInteger(left, right);
-				} else if (right instanceof Double) {
-					return addIntegerDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addIntegerBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				}
-			} else if (left instanceof Double) {
-				if (right instanceof Integer) {
-					return addDoubleInteger(left, right);
-				} else if (right instanceof Double) {
-					return addDoubleDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addDoubleBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				}
-			} else if (left instanceof Bin) {
-				if (right instanceof Integer) {
-					return addBinInteger(left, right);
-				} else if (right instanceof Double) {
-					return addBinDouble(left, right);
-				} else if (right instanceof Bin) {
-					return addBinBin(left, right);
-				} else if (right instanceof String) {
-					return addObjectString(left, right);
-				}
-			} else if (left instanceof String) {
-				return addObjectString(left, right);
-
-			}
-			return null;
-
-		case FORWARDSLASH:
-			return null;
-		case BACKSLASH:
-			return null;
-		case TIMES:
-			return null;
-
-		case POWER:
-			return null;
-		case YROOT:
-			return null;
-
-		case DNA:
-			return null;
-		case AND:
-			return null;
-		case RO:
-			return null;
-		case OR:
-			return null;
-		default:
-			return null;
-		}
+		return null;
 	}
 
 	@Override
