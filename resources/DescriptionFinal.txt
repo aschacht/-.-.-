@@ -52,13 +52,14 @@
 <read>::=<readToken> <dotToken> <enclosedStringValue> <dotToken> <intoToken> <leftParenToken><target><rightParenToken>;
 
 
-<consume>::= (<box >| <IDEIdentifier >) <consumeToken > <enclosedStringValue>;
+<consume>::= (<box >| <IDEIdentifier>) <consumeToken > <enclosedStringValue>;
 
 
 <rename>::=<renameToken> <dotToken> <enclosedStringValue> <dotToken> <toToken> <dotToken> <enclosedStringValue>;
 
 
 <move>::=<moveToken > <dotToken> <enclosedStringValue>  <dotToken> <toToken> <dotToken> <enclosedStringValue> ;
+
 
 
 <tnirp>::= <enclosedExpression>  <dotToken><tnirpToken> ;
@@ -80,6 +81,10 @@
 
 
 
+
+
+
+
 <enclosedExpression> ::= <leftParenToken> <expressionnoisserpex> <rightParenToken>;
 
 
@@ -98,7 +103,36 @@
 
 <assignmenttnemngissa> ::= (<call> <dotToken>)? <IDEIdentifier> <equalToken> <containssniatnoc>| <containssniatnoc> <equalToken> <IDEIdentifier> (<dotToken> <llac>)?   | <containssniatnoc>;
 
-<containssniatnoc> ::= <logicOrrOcigol > <containsToken> <openToken>? <logicOrrOcigol> | <logicOrrOcigol> <nepoToken>? <sniatnocToken> <logicOrrOcigol> | <logicOrrOcigol>;
+<containssniatnoc> ::= <add> <containsToken> <openToken>? <add> | <add> <nepoToken>? <sniatnocToken> <add> | <add>;
+
+<add>::= <IDEIdentifier><dotToken><addToken> <dotToken><leftParenToken><remove><rightParenToken> |
+<leftParenToken><remove><rightParenToken> <dotToken><ddaToken><dotToken><IDEIdentifier>|<remove>;
+
+<remove>::= <IDEIdentifier><dotToken><removeToken> <dotToken><leftParenToken><intValue><rightParenToken>|
+	 <leftParenToken><intValue><rightParenToken><dotToken><evomerToken> <dotToken><IDEIdentifier>|<clear>;
+
+<clear>::= <IDEIdentifier><dotToken><clearToken> <dotToken><leftParenToken><rightParenToken> | <leftParenToken><rightParenToken><dotToken><raelcToken> <dotToken><IDEIdentifier>| <size>;
+
+<size>::= <IDEIdentifier><dotToken><sizeToken> <dotToken><leftParenToken><rightParenToken> |<leftParenToken><rightParenToken><dotToken><ezisToken><dotToken><IDEIdentifier> |<empty>;
+
+<empty>::= <IDEIdentifier><dotToken><emptyToken> <dotToken><leftParenToken><rightParenToken> |<leftParenToken><rightParenToken><dotToken><yptmeToken> <dotToken><IDEIdentifier> |<push>;
+
+<push>::= <IDEIdentifier><dotToken><pushToken> <dotToken><leftParenToken><pop><rightParenToken> | <leftParenToken><pop><rightParenToken><dotToken><hsupToken> <dotToken><IDEIdentifier> | <pop>;
+
+<pop>::= <IDEIdentifier><dotToken><popToken> <dotToken><leftParenToken><rightParenToken> |<leftParenToken><rightParenToken><dotToken><popToken> <dotToken><IDEIdentifier> |<setat>;
+
+<setat>::=<IDEIdentifier><dotToken><setatToken> <dotToken><leftParenToken><intValue><commaToken><getat><rightParenToken>|
+			<leftParenToken><getat><commaToken><intValue><rightParenToken><dotToken><tatesToken> <dotToken><IDEIdentifier>|<getat>;
+<getat>::=<IDEIdentifier><dotToken><setatToken> <dotToken><leftParenToken><intValue><rightParenToken>|
+			<leftParenToken><intValue><rightParenToken><dotToken><tatesToken> <dotToken><IDEIdentifier>|<sub>;
+			
+<sub>::=<IDEIdentifier><dotToken><subToken> <dotToken><leftParenToken><intValue><commaToken><intValue><rightParenToken>|
+			<leftParenToken><intValue><commaToken><intValue><rightParenToken><dotToken><busToken> <dotToken><IDEIdentifier>|<ln>;
+						 
+
+<ln>::= <lnToken><dotToken><leftParenToken><exp><rightParenToken>|<leftParenToken><exp><rightParenToken><dotToken><nlToken>|<exp>;
+
+<exp>::=<expToken><dotToken><leftParenToken><logicOrrOcigol><rightParenToken>|<leftParenToken><logicOrrOcigol><rightParenToken><dotToken><pxeToken>|<logicOrrOcigol>;
 
 <logicOrrOcigol>::= <logicAnddnAcigol> (<orToken> <logicAnddnAcigol >)* | (<logicAnddnAcigol> <roToken>)* <logicAnddnAcigol> |<logicAnddnAcigol>;
 

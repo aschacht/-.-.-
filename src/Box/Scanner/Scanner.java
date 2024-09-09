@@ -47,6 +47,34 @@ public class Scanner {
 		keywords.put("#GATTAH", TokenType.GATTAH);
 		keywords.put("#gattah", TokenType.GATTAH);
 
+		keywords.put("add", TokenType.ADD);
+		keywords.put("remove", TokenType.REMOVE);
+		keywords.put("clear", TokenType.CLEAR);
+		keywords.put("size", TokenType.SIZE);
+		keywords.put("empty", TokenType.EMPTY);
+		keywords.put("push", TokenType.PUSH);
+		keywords.put("pop", TokenType.POP);
+		keywords.put("setat", TokenType.SETAT);
+		keywords.put("getat", TokenType.GETAT);
+		keywords.put("sub", TokenType.SUB);
+		keywords.put("ln", TokenType.LN);
+		keywords.put("exp", TokenType.EXP);
+		keywords.put("dda", TokenType.DDA);
+		keywords.put("evomer", TokenType.EVOMER);
+		keywords.put("raelc", TokenType.RAELC);
+		keywords.put("ezis", TokenType.EZIS);
+		keywords.put("ytpme", TokenType.YTPME);
+		keywords.put("hsup", TokenType.HSUP);
+		keywords.put("tates", TokenType.TATES);
+		keywords.put("tateg", TokenType.TATEG);
+		keywords.put("bus", TokenType.BUS);
+		keywords.put("nl", TokenType.NL);
+		keywords.put("pxe", TokenType.PXE);
+
+		
+		
+		
+		
 		keywords.put("true", TokenType.TRUE);
 		keywords.put("false", TokenType.FALSE);
 		keywords.put("print", TokenType.PRINT);
@@ -146,16 +174,14 @@ public class Scanner {
 
 		switch (c) {
 		case '#':
-			if(current+6< source.length()) {
-			CharSequence subSequence = source.subSequence(current-1, current+6);
-			
-			
-			
+			if (current + 6 < source.length()) {
+				CharSequence subSequence = source.subSequence(current - 1, current + 6);
+
 				TokenTypeEnum tag = keywords.get(subSequence);
 
-				if (tag != null && tag == TokenType.HATTAG && isAlpha(peekI(6)) ) {
-					int count=6;
-					while(count!=0) {
+				if (tag != null && tag == TokenType.HATTAG && isAlpha(peekI(6))) {
+					int count = 6;
+					while (count != 0) {
 						advance();
 						count--;
 					}
@@ -168,11 +194,11 @@ public class Scanner {
 						gat = checkIfKewordHattagorgattaH(tokens);
 					}
 					start = current;
-				}else {
-					
+				} else {
+
 					addToken(TokenType.HASH, tokens);
-				} 
-			}else
+				}
+			} else
 				addToken(TokenType.HASH, tokens);
 
 			break;
@@ -237,10 +263,17 @@ public class Scanner {
 			}
 			break;
 		case '*':
-			addToken(TokenType.TIMES, tokens);
+			if (match('=')) {
+				addToken(TokenType.TIMESEQUAL, tokens);
+			} else
+				addToken(TokenType.TIMES, tokens);
 			break;
+
 		case '^':
-			addToken(TokenType.POWER, tokens);
+			if (match('=')) {
+				addToken(TokenType.POWEREQUAL, tokens);
+			} else
+				addToken(TokenType.POWER, tokens);
 			break;
 		case '!':
 			if (match('=')) {
@@ -263,6 +296,16 @@ public class Scanner {
 				addToken(TokenType.EQUALGREATERTHEN, tokens);
 			} else if (match('<')) {
 				addToken(TokenType.EQUALLESSTHEN, tokens);
+			} else if (match('*')) {
+				addToken(TokenType.EQUALTIMES, tokens);
+			} else if (match('%')) {
+				addToken(TokenType.EQUALMOD, tokens);
+			} else if (match('/')) {
+				addToken(TokenType.EQUALDIVIDEFORWARD, tokens);
+			} else if (match('\\')) {
+				addToken(TokenType.EQUALDIVIDEBACKWARD, tokens);
+			} else if (match('^')) {
+				addToken(TokenType.EQUALPOWER, tokens);
 			} else {
 				addToken(TokenType.ASIGNMENTEQUALS, tokens);
 
@@ -296,12 +339,14 @@ public class Scanner {
 			}
 			break;
 		case '/':
-			if (match('/'))
+			if (match('/')) {
 				while (peek() != '\n' && !isAtEnd())
 					advance();
-			else
+			} else if (match('=')) {
+				addToken(TokenType.EQUALDIVIDEFORWARD, tokens);
+			} else {
 				addToken(TokenType.FORWARDSLASH, tokens);
-
+			}
 			break;
 		case '_':
 
@@ -309,8 +354,19 @@ public class Scanner {
 
 			break;
 		case '\\':
-			addToken(TokenType.BACKSLASH, tokens);
+			if (match('=')) {
+				addToken(TokenType.EQUALDIVIDEBACKWARD, tokens);
+			} else
+				addToken(TokenType.BACKSLASH, tokens);
 			break;
+		case '%':
+			if (match('=')) {
+				addToken(TokenType.MODEQUAL, tokens);
+			} else
+
+				addToken(TokenType.MOD, tokens);
+			break;
+
 		case ';':
 			addToken(TokenType.SEMICOLON, tokens);
 			break;
@@ -748,17 +804,14 @@ public class Scanner {
 			return '\0';
 		return source.charAt(current);
 	}
-	
-	private char peekI(int index) {
-		
-			if (isAtEnd())
-				return '\0';
-			return source.charAt(current+index);
 
+	private char peekI(int index) {
+
+		if (isAtEnd())
+			return '\0';
+		return source.charAt(current + index);
 
 	}
-	
-	
 
 	private boolean match(char c) {
 		if (isAtEnd())

@@ -21,18 +21,22 @@ import Parser.Expr;
 import Parser.Stmt;
 import Parser.Declaration.FunDecl;
 import Parser.Declaration.StmtDecl;
+import Parser.Expr.Additive;
+import Parser.Expr.Addittidda;
 import Parser.Expr.Assignment;
 import Parser.Expr.Assignmenttnemgissa;
 import Parser.Expr.Binary;
 import Parser.Expr.Binaryyranib;
 import Parser.Expr.BoxClosed;
 import Parser.Expr.BoxOpen;
+import Parser.Expr.Bus;
 import Parser.Expr.Call;
 import Parser.Expr.Callllac;
 import Parser.Expr.Contains;
 import Parser.Expr.Cup;
 import Parser.Expr.CupClosed;
 import Parser.Expr.CupOpen;
+import Parser.Expr.Evitidda;
 import Parser.Expr.Expressiontmts;
 import Parser.Expr.Factorial;
 import Parser.Expr.Get;
@@ -47,13 +51,24 @@ import Parser.Expr.Log;
 import Parser.Expr.Loggol;
 import Parser.Expr.Mono;
 import Parser.Expr.Monoonom;
+import Parser.Expr.NoPaCoOOoCaPoN;
+import Parser.Expr.NonParamContOp;
 import Parser.Expr.Onom;
+import Parser.Expr.ParCoOppOoCraP;
+import Parser.Expr.ParamContOp;
+import Parser.Expr.PoTnocMarap;
+import Parser.Expr.PoTnocMarapNon;
 import Parser.Expr.Pocket;
 import Parser.Expr.PocketClosed;
 import Parser.Expr.PocketOpen;
 import Parser.Expr.Set;
+import Parser.Expr.Setat;
+import Parser.Expr.Setattates;
 import Parser.Expr.Sniatnoc;
+import Parser.Expr.Sub;
+import Parser.Expr.Subbus;
 import Parser.Expr.Swap;
+import Parser.Expr.Tates;
 import Parser.Expr.Teg;
 import Parser.Expr.Template;
 import Parser.Expr.Tes;
@@ -114,7 +129,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	}
 
 	public Environment globals = new Environment();
-	private Environment environment = globals;
+	Environment environment = globals;
 	private Map<Expr, Integer> locals = new WesMap<>();
 	private boolean fromCall = false;
 	private boolean forward;
@@ -126,12 +141,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		globals.define("clock", null, new BoxCallable() {
 
 			@Override
-			public Object call(Interpreter interpreter) {
-
-				return (double) System.currentTimeMillis() / 1000.0;
-			}
-
-			@Override
 			public int arity() {
 
 				return 0;
@@ -140,6 +149,17 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			@Override
 			public String toString() {
 				return "<native fn>";
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> arguments) {
+				return (double) System.currentTimeMillis() / 1000.0;
+			}
+
+			@Override
+			public BoxFunction findMethod(String lexeme) {
+				// TODO Auto-generated method stub
+				return null;
 			}
 
 		});
@@ -181,10 +201,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	}
 
 	public Object evaluate(Stmt stmt) {
-		if (stmt instanceof Stmt.Expression) {
-			return ((Stmt.Expression) stmt).expression.accept(this);
-		}
-		return null;
+
+		return stmt.accept(this);
 
 	}
 
@@ -228,14 +246,18 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitExpressionStmt(Stmt.Expression stmt) {
-
-		return evaluate(stmt.expression);
+		if (forward)
+			return evaluate(stmt.expression);
+		else if (stmt.noisserpxe != null)
+			return evaluate(stmt.noisserpxe);
+		else
+			return null;
 	}
 
 	@Override
 	public Object visitAssignmentExpr(Assignment expr) {
 		if (forward) {
-			Object value = expr.value;
+			Object value = evaluate(expr.value);
 			Integer distance = locals.get(expr);
 			if (distance != null)
 				environment.assignAt(distance, expr.name, expr.value, value, this);
@@ -318,6 +340,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitBinaryExpr(Binary expr) {
 		Object left = null;
 		Object right = null;
+
 		if (expr.left instanceof Pocket || expr.left instanceof Cup) {
 			left = evaluate(expr.left);
 			right = evaluate(expr.right);
@@ -339,50 +362,579 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			return !isEqual(left, right);
 		case EQUALSEQUALS:
 			return isEqual(left, right);
-		case MINUSEQUALS:
-			return null;
-		case PLUSEQUALS:
-			return null;
+
 		case GREATERTHEN:
 			return greaterthen(left, right);
 		case GREATERTHENEQUAL:
-			return null;
+			return greaterequalthen(left, right);
 		case LESSTHEN:
 			return lessthen(left, right);
 		case LESSTHENEQUAL:
-			return null;
+			return lessequalthen(left, right);
+		case EQUALLESSTHEN:
+			return greaterequalthen(left, right);
+		case EQUALGREATERTHEN:
+			return lessequalthen(left, right);
+
 		case MINUS:
 
 			return sub(left, right);
+		case EQUALSMINUS:
+			return sub(left, right, expr.left, expr.operator);
+		case MINUSEQUALS:
+			return sub(left, right, expr.right, expr.operator);
 
+		case EQUALSPLUS:
+			return add(left, right, expr.left, expr.operator);
+		case PLUSEQUALS:
+			return add(left, right, expr.right, expr.operator);
 		case PLUS:
 			return add(left, right);
+		case MOD:
+			return mod(left, right);
+		case MODEQUAL:
+			return mod(left, right, expr.right, expr.operator);
+		case EQUALMOD:
+			return mod(left, right, expr.left, expr.operator);
 
 		case FORWARDSLASH:
 			return div(left, right);
 		case BACKSLASH:
-			return div(right, left);
+			Object div = div(right, left);
+			return div;
+		case EQUALDIVIDEFORWARD:
+			return div(right, left, expr.left, expr.operator);
+		case EQUALDIVIDEBACKWARD:
+			return div(right, left, expr.right, expr.operator);
 
 		case TIMES:
 			return times(left, right);
+		case TIMESEQUAL:
+			return times(left, right, expr.right, expr.operator);
+		case EQUALTIMES:
+			return times(left, right, expr.left, expr.operator);
 
 		case POWER:
 			return power(left, right);
+		case EQUALPOWER:
+			return power(left, right, expr.left, expr.operator);
+		case POWEREQUAL:
+			return power(left, right, expr.right, expr.operator);
 		case YROOT:
+			return null;
+		case TOORY:
 			return null;
 
 		case DNA:
-			return null;
+			if (!forward)
+				return and(left, right);
+			else
+				return null;
 		case AND:
-			return null;
+			if (forward)
+				return and(left, right);
+			else
+				return null;
 		case RO:
-			return null;
+			if (!forward)
+				return or(left, right);
+			else
+				return false;
 		case OR:
-			return null;
+			if (forward)
+				return or(left, right);
+			else
+				return false;
 		default:
 			return null;
 		}
 
+	}
+
+	private Object power(Object left, Object right, Expr left2, Token operator) {
+		Object toreturn = null;
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				toreturn = powerIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = powerIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = powerIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = powerArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				toreturn = timesDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = timesDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = timesDoubleBin(left, right);
+			} else if (right instanceof String) {
+				toreturn = timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = powerArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				toreturn = timesBinInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = timesBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = timesBinBin(left, right);
+			} else if (right instanceof String) {
+				toreturn = timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = powerArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof String) {
+			if (right instanceof Integer) {
+				toreturn = timesObjectString(right, left);
+			} else if (right instanceof Double) {
+				toreturn = timesObjectString(right, left);
+			} else if (right instanceof Bin) {
+				toreturn = timesObjectString(right, left);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = addStringArray(left, right);
+			}
+
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				toreturn = powerArrayListArrayList(left, right, 1);
+			else
+				toreturn = powerBinaryArrayList(left, right, 1);
+		}
+		if (left2 instanceof Variable)
+			setGlobalOrCurrentEnvironmentVariable(toreturn, ((Variable) left2));
+		else
+			throw new RuntimeError(operator, "either left or right must be a variable.");
+
+		return toreturn;
+	}
+
+	private Object mod(Object left, Object right, Expr right2, Token operator) {
+		Object toreturn = null;
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				toreturn = modIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = modIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = modIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = modArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				toreturn = modDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = modDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = modDoubleBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = modArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				toreturn = modBinInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = modBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = modBinBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = modArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				toreturn = modArrayListArrayList(left, right, 1);
+			else
+				toreturn = modBinaryArrayList(left, right, 1);
+		}
+
+		if (right2 instanceof Variable)
+			setGlobalOrCurrentEnvironmentVariable(toreturn, ((Variable) right2));
+		else
+			throw new RuntimeError(operator, "either left or right must be a variable.");
+
+		return toreturn;
+	}
+
+	private Object mod(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return modIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return modIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return modIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return modArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return modDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return modDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return modDoubleBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return modArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return modBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return modBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return modBinBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return modArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return modArrayListArrayList(left, right, 1);
+			else
+				return modBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+
+	private Object times(Object left, Object right, Expr right2, Token operator) {
+		Object toreturn = null;
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				toreturn = timesIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = timesIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = timesIntegerBin(left, right);
+			} else if (right instanceof String) {
+				toreturn = timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = timesArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				toreturn = timesDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = timesDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = timesDoubleBin(left, right);
+			} else if (right instanceof String) {
+				toreturn = timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = timesArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				toreturn = timesBinInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = timesBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = timesBinBin(left, right);
+			} else if (right instanceof String) {
+				toreturn = timesObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = timesArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof String) {
+			if (right instanceof Integer) {
+				toreturn = timesObjectString(right, left);
+			} else if (right instanceof Double) {
+				toreturn = timesObjectString(right, left);
+			} else if (right instanceof Bin) {
+				toreturn = timesObjectString(right, left);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = addStringArray(left, right);
+			}
+
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				toreturn = timesArrayListArrayList(left, right, 1);
+			else
+				toreturn = timesBinaryArrayList(left, right, 1);
+		}
+		if (right2 instanceof Variable)
+			setGlobalOrCurrentEnvironmentVariable(toreturn, ((Variable) right2));
+		else
+			throw new RuntimeError(operator, "either left or right must be a variable.");
+
+		return toreturn;
+	}
+
+	private Object div(Object right, Object left, Object lef, Token operator) {
+		Object toreturn = null;
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				toreturn = divIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = divIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = divIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = divArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				toreturn = divDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = divDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = divDoubleBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = divArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				toreturn = divBinInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = divBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = divBinBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = divArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				toreturn = divArrayListArrayList(left, right, 1);
+			else
+				toreturn = divBinaryArrayList(left, right, 1);
+		}
+
+		if (lef instanceof Variable)
+			setGlobalOrCurrentEnvironmentVariable(toreturn, ((Variable) lef));
+		else
+			throw new RuntimeError(operator, "either left or right must be a variable.");
+
+		return toreturn;
+	}
+
+	private Object add(Object left, Object right, Expr left2, Token operator) {
+		Object toreturn = null;
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				toreturn = addIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = addIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = addIntegerBin(left, right);
+			} else if (right instanceof String) {
+				toreturn = addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				toreturn = addDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = addDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = addDoubleBin(left, right);
+			} else if (right instanceof String) {
+				toreturn = addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				toreturn = addBinInteger(left, right);
+			} else if (right instanceof Double) {
+				toreturn = addBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = addBinBin(left, right);
+			} else if (right instanceof String) {
+				toreturn = addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+
+				toreturn = addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof String) {
+			if (right instanceof Integer) {
+				toreturn = addObjectString(left, right);
+			} else if (right instanceof Double) {
+				toreturn = addObjectString(left, right);
+			} else if (right instanceof Bin) {
+				toreturn = addObjectString(left, right);
+			} else if (right instanceof String) {
+				toreturn = addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = addStringArray(left, right);
+			}
+
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				toreturn = addArrayListArrayList(left, right, 1);
+			else
+				toreturn = addBinaryArrayList(left, right, 1);
+		}
+
+		if (left2 instanceof Variable)
+			setGlobalOrCurrentEnvironmentVariable(toreturn, ((Variable) left2));
+		else
+			throw new RuntimeError(operator, "either left or right must be a variable.");
+
+		return toreturn;
+	}
+
+	private Object sub(Object left, Object right, Object left2, Token operator) {
+		Object toreturn = null;
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				toreturn = addIntegerInteger(left, -1 * (Integer) right);
+			} else if (right instanceof Double) {
+				toreturn = addIntegerDouble(left, -1 * (Double) right);
+			} else if (right instanceof Bin) {
+				toreturn = addIntegerBin(left, Bin.times(new Bin(-1), (Bin) right));
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = addArrayBinaryList(left, right, -1);
+
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				toreturn = addDoubleInteger(left, -1 * (Integer) right);
+			} else if (right instanceof Double) {
+				toreturn = addDoubleDouble(left, -1 * (Double) right);
+			} else if (right instanceof Bin) {
+				toreturn = addDoubleBin(left, Bin.times(new Bin(-1), (Bin) right));
+			} else if (right instanceof ArrayList<?>) {
+
+				toreturn = addArrayBinaryList(left, right, -1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				toreturn = addBinInteger(left, -1 * (Integer) right);
+			} else if (right instanceof Double) {
+				toreturn = addBinDouble(left, -1 * (Double) right);
+			} else if (right instanceof Bin) {
+				toreturn = addBinBin(left, Bin.times(new Bin(-1), (Bin) right));
+			} else if (right instanceof ArrayList<?>) {
+				toreturn = addArrayBinaryList(left, right, -1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				toreturn = addArrayListArrayList(left, right, -1);
+			else
+				toreturn = addBinaryArrayList(left, right, -1);
+		}
+
+		if (left2 instanceof Variable)
+			setGlobalOrCurrentEnvironmentVariable(toreturn, ((Variable) left2));
+		else
+			throw new RuntimeError(operator, "either left or right must be a variable.");
+
+		return toreturn;
+	}
+
+	private Object and(Object left, Object right) {
+		ArrayList<Boolean> bolArr = new ArrayList<>();
+		if (left instanceof Boolean && right instanceof Boolean) {
+			return (Boolean) left && (Boolean) right;
+		} else if (left == null && right == null) {
+			return false;
+		} else if (left instanceof Boolean && right == null) {
+			return (Boolean) left;
+		} else if (left == null && right instanceof Boolean) {
+			return (Boolean) right;
+		} else if (left instanceof ArrayList<?> && right == null) {
+			return left;
+		} else if (left == null && right instanceof ArrayList<?>) {
+			return right;
+		} else if (left instanceof ArrayList<?> && right instanceof Boolean) {
+			ArrayList<?> arr = ((ArrayList<?>) left);
+			for (Object object : arr) {
+				if (object instanceof Boolean) {
+					bolArr.add((Boolean) object && (Boolean) right);
+				} else if (object instanceof ArrayList<?>) {
+					bolArr.add((Boolean) and(object, right) && (Boolean) right);
+				}
+			}
+			return bolArr;
+		} else if (left instanceof Boolean && right instanceof ArrayList<?>) {
+			ArrayList<?> arr = ((ArrayList<?>) right);
+			for (Object object : arr) {
+				if (object instanceof Boolean) {
+					bolArr.add((Boolean) left && (Boolean) object);
+				} else if (object instanceof ArrayList<?>) {
+					bolArr.add((Boolean) and(left, object) && (Boolean) left);
+				}
+			}
+			return bolArr;
+		} else if (left instanceof ArrayList<?> && right instanceof ArrayList<?>) {
+			ArrayList<?> arr = ((ArrayList<?>) left);
+			ArrayList<?> arr1 = ((ArrayList<?>) right);
+			for (Object object : arr) {
+				for (Object object1 : arr1) {
+					if (object instanceof Boolean && object1 instanceof Boolean) {
+						bolArr.add((Boolean) object && (Boolean) object1);
+					} else if (object instanceof Boolean && object1 instanceof ArrayList<?>) {
+						bolArr.add((Boolean) object && (Boolean) and(object, object1));
+					} else if (object instanceof ArrayList<?> && object1 instanceof Boolean) {
+						bolArr.add((Boolean) and(object, object1) && (Boolean) object1);
+					} else if (object instanceof ArrayList<?> && object1 instanceof ArrayList<?>) {
+						bolArr.add((Boolean) and(object, object1) && (Boolean) and(object, object1));
+					}
+				}
+			}
+			return bolArr;
+
+		}
+		return null;
+	}
+
+	private Object or(Object left, Object right) {
+		ArrayList<Boolean> bolArr = new ArrayList<>();
+		if (left instanceof Boolean && right instanceof Boolean) {
+			return (Boolean) left && (Boolean) right;
+		} else if (left == null && right == null) {
+			return false;
+		} else if (left instanceof Boolean && right == null) {
+			return (Boolean) left;
+		} else if (left == null && right instanceof Boolean) {
+			return (Boolean) right;
+		} else if (left instanceof ArrayList<?> && right == null) {
+			return left;
+		} else if (left == null && right instanceof ArrayList<?>) {
+			return right;
+		} else if (left instanceof ArrayList<?> && right instanceof Boolean) {
+			ArrayList<?> arr = ((ArrayList<?>) left);
+			for (Object object : arr) {
+				if (object instanceof Boolean) {
+					bolArr.add((Boolean) object || (Boolean) right);
+				} else if (object instanceof ArrayList<?>) {
+					bolArr.add((Boolean) and(object, right) || (Boolean) right);
+				}
+			}
+			return bolArr;
+		} else if (left instanceof Boolean && right instanceof ArrayList<?>) {
+			ArrayList<?> arr = ((ArrayList<?>) right);
+			for (Object object : arr) {
+				if (object instanceof Boolean) {
+					bolArr.add((Boolean) left || (Boolean) object);
+				} else if (object instanceof ArrayList<?>) {
+					bolArr.add((Boolean) and(left, object) || (Boolean) left);
+				}
+			}
+			return bolArr;
+		} else if (left instanceof ArrayList<?> && right instanceof ArrayList<?>) {
+			ArrayList<?> arr = ((ArrayList<?>) left);
+			ArrayList<?> arr1 = ((ArrayList<?>) right);
+			for (Object object : arr) {
+				for (Object object1 : arr1) {
+					if (object instanceof Boolean && object1 instanceof Boolean) {
+						bolArr.add((Boolean) object || (Boolean) object1);
+					} else if (object instanceof Boolean && object1 instanceof ArrayList<?>) {
+						bolArr.add((Boolean) object || (Boolean) and(object, object1));
+					} else if (object instanceof ArrayList<?> && object1 instanceof Boolean) {
+						bolArr.add((Boolean) and(object, object1) || (Boolean) object1);
+					} else if (object instanceof ArrayList<?> && object1 instanceof ArrayList<?>) {
+						bolArr.add((Boolean) and(object, object1) || (Boolean) and(object, object1));
+					}
+				}
+			}
+			return bolArr;
+
+		}
+		return null;
 	}
 
 	private Object times(Object left, Object right) {
@@ -640,6 +1192,89 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 		return null;
 	}
+
+	private Object greaterequalthen(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return gteIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return gteIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return gteIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return gteArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return gteDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return gteDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return gteDoubleBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return gteArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return gteBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return gteBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return gteBinBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+
+				return gteArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return gteArrayListArrayList(left, right, 1);
+			else
+				return gteBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+
+	private Object lessequalthen(Object left, Object right) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return lteIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return lteIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return lteIntegerBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return lteArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return lteDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return lteDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return lteDoubleBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return lteArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return lteBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return lteBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return lteBinBin(left, right);
+			} else if (right instanceof ArrayList<?>) {
+
+				return lteArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return lteArrayListArrayList(left, right, 1);
+			else
+				return lteBinaryArrayList(left, right, 1);
+		}
+		return null;
+	}
+
 	private Object lessthen(Object left, Object right) {
 		if (left instanceof Integer) {
 			if (right instanceof Integer) {
@@ -669,7 +1304,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			} else if (right instanceof Bin) {
 				return ltBinBin(left, right);
 			} else if (right instanceof ArrayList<?>) {
-				
+
 				return ltArrayBinaryList(left, right, 1);
 			}
 		} else if (left instanceof ArrayList<?>) {
@@ -845,65 +1480,188 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return arr2;
 
 	}
+
 	private ArrayList<?> gtArrayBinaryList(Object left, Object right, int i) {
 		ArrayList<?> arr = (ArrayList<?>) right;
 		ArrayList<Object> arr2 = new ArrayList<>();
-		
+
 		if (left instanceof Integer) {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
-					
+
 					arr2.add((Integer) left > (i * (Integer) object));
 				} else if (object instanceof Double) {
 					arr2.add((Integer) left > (i * (Double) object));
-					
+
 				} else if (object instanceof Bin) {
 					arr2.add((Integer) left > ((Bin) object).toInteger());
-					
+
 				} else if (object instanceof ArrayList<?>) {
 					arr2.add(gtArrayBinaryList(left, object, i));
-					
+
 				}
 			}
-			
+
 		} else if (left instanceof Double) {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
-					
+
 					arr2.add((Double) left > (i * (Integer) object));
 				} else if (object instanceof Double) {
 					arr2.add((Double) left > (i * (Double) object));
-					
+
 				} else if (object instanceof Bin) {
 					arr2.add(((Double) left) > ((Bin) object).toInteger());
-					
+
 				} else if (object instanceof ArrayList<?>) {
 					arr2.add(gtArrayBinaryList(left, object, i));
-					
+
 				}
 			}
-			
+
 		} else if (left instanceof Bin) {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
-					
+
 					arr2.add(((Bin) left).toInteger() > Bin.times(new Bin(i), new Bin((Integer) object)));
-					
+
 				} else if (object instanceof Double) {
 					arr2.add(((Bin) left).toInteger() > Bin.times(new Bin(i), new Bin(((Double) object).intValue())));
-					
+
 				} else if (object instanceof Bin) {
 					arr2.add(((Bin) left).toInteger() > Bin.times(new Bin(i), (Bin) object));
-					
+
 				} else if (object instanceof ArrayList<?>) {
 					arr2.add(gtArrayBinaryList(left, object, i));
-					
+
 				}
 			}
-			
+
 		}
 		return arr2;
-		
+
+	}
+
+	private ArrayList<?> gteArrayBinaryList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) left >= (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) left >= (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) left >= ((Bin) object).toInteger());
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) left >= (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Double) left >= (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) left) >= ((Bin) object).toInteger());
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(((Bin) left).toInteger() >= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) left).toInteger() >= Bin.times(new Bin(i), new Bin(((Double) object).intValue())));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) left).toInteger() >= Bin.times(new Bin(i), (Bin) object));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(gtArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> lteArrayBinaryList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) left <= (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) left <= (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) left <= ((Bin) object).toInteger());
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) left <= (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Double) left <= (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) left) <= ((Bin) object).toInteger());
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(((Bin) left).toInteger() <= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) left).toInteger() <= Bin.times(new Bin(i), new Bin(((Double) object).intValue())));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) left).toInteger() <= Bin.times(new Bin(i), (Bin) object));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
 	}
 
 	private ArrayList<?> powerArrayBinaryList(Object left, Object right, int i) {
@@ -1118,6 +1876,66 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
+	private ArrayList<?> modArrayBinaryList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (left instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) left % (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) left % (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) left % Bin.times(new Bin(i), new Bin((Integer) object)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(modArrayBinaryList(left, object, i));
+
+				}
+			}
+		} else if (left instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) left % (i * (Integer) object));
+				} else if (object instanceof Double) {
+					arr2.add((Double) left % (i * (Double) object));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) left).intValue() % Bin.times(new Bin(i), new Bin((Integer) object)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(modArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		} else if (left instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(((Bin) left).toInteger() % Bin.times(new Bin(i), new Bin((Integer) object)));
+
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) left).toInteger() % Bin.times(new Bin(i), new Bin(((Double) object).intValue())));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) left).toInteger() % Bin.times(new Bin(i), (Bin) object));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(modArrayBinaryList(left, object, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
 	private ArrayList<?> addBinaryArrayList(Object left, Object right, int i) {
 		ArrayList<?> arr = (ArrayList<?>) left;
 		ArrayList<Object> arr2 = new ArrayList<>();
@@ -1179,13 +1997,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 		} else if (right instanceof String) {
 			String str = "";
-			str+="[";
+			str += "[";
 			for (int j = 0; j < arr.size(); j++) {
 				if (arr.get(j) instanceof Integer) {
 					if (j == arr.size() - 1)
-						str += (Double) arr.get(j);
+						str += (Integer) arr.get(j);
 					else
-						str += (Double) arr.get(j) + ", ";
+						str += (Integer) arr.get(j) + ", ";
 
 				} else if (arr.get(j) instanceof Double) {
 					if (j == arr.size() - 1)
@@ -1199,19 +2017,18 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 						str += (Boolean) arr.get(j) + ", ";
 				} else if (arr.get(j) instanceof Bin) {
 					if (j == arr.size() - 1)
-						str += new Bin(((Double) arr.get(j)).intValue()).toString();
+						str += ((Bin) arr.get(j)).toString();
 					else
-						str += new Bin(((Double) arr.get(j)).intValue()).toString() + ", ";
-						} else if (arr.get(j) instanceof ArrayList<?>) {
+						str += ((Bin) arr.get(j)).toString() + ", ";
+				} else if (arr.get(j) instanceof ArrayList<?>) {
 					if (j == arr.size() - 1)
 						str += arr.get(j).toString();
 					else
 						str += arr.get(j).toString() + ", ";
 				}
-				
-				
+
 			}
-			str+="]";
+			str += "]";
 			str = str + right;
 			arr2.add(str);
 		}
@@ -1279,65 +2096,188 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return arr2;
 
 	}
-	private ArrayList<?> ltBinaryArrayList(Object left, Object right, int i) {
+
+	private ArrayList<?> gteBinaryArrayList(Object left, Object right, int i) {
 		ArrayList<?> arr = (ArrayList<?>) left;
 		ArrayList<Object> arr2 = new ArrayList<>();
-		
+
 		if (right instanceof Integer) {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
-					
-					arr2.add((Integer) object < (i * (Integer) right));
+
+					arr2.add((Integer) object >= (i * (Integer) right));
 				} else if (object instanceof Double) {
-					arr2.add((Integer) object < (i * (Double) right));
-					
+					arr2.add((Integer) object >= (i * (Double) right));
+
 				} else if (object instanceof Bin) {
-					arr2.add((Integer) object < Bin.times(new Bin(i), new Bin((Integer) right)));
-					
+					arr2.add((Integer) object >= Bin.times(new Bin(i), new Bin((Integer) right)));
+
 				} else if (object instanceof ArrayList<?>) {
-					arr2.add(ltBinaryArrayList(object, right, i));
-					
+					arr2.add(gteBinaryArrayList(object, right, i));
+
 				}
 			}
-			
+
 		} else if (right instanceof Double) {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
-					
-					arr2.add((Double) object < (i * (Integer) right));
+
+					arr2.add((Double) object >= (i * (Integer) right));
 				} else if (object instanceof Double) {
-					arr2.add((Double) object < (i * (Double) right));
-					
+					arr2.add((Double) object >= (i * (Double) right));
+
 				} else if (object instanceof Bin) {
-					arr2.add(((Double) object) < Bin.times(new Bin(i), new Bin((Integer) right)));
-					
+					arr2.add(((Double) object) >= Bin.times(new Bin(i), new Bin((Integer) right)));
+
 				} else if (object instanceof ArrayList<?>) {
-					arr2.add(ltBinaryArrayList(object, right, i));
-					
+					arr2.add(gteBinaryArrayList(object, right, i));
+
 				}
 			}
-			
+
 		} else if (right instanceof Bin) {
 			for (Object object : arr) {
 				if (object instanceof Integer) {
-					
-					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), new Bin((Integer) right)));
-					
+
+					arr2.add(((Bin) object).toInteger() >= Bin.times(new Bin(i), new Bin((Integer) right)));
+
 				} else if (object instanceof Double) {
-					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), new Bin(((Double) right).intValue())));
-					
+					arr2.add(((Bin) object).toInteger() >= Bin.times(new Bin(i), new Bin(((Double) right).intValue())));
+
 				} else if (object instanceof Bin) {
-					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), (Bin) right));
-					
+					arr2.add(((Bin) object).toInteger() >= Bin.times(new Bin(i), (Bin) right));
+
 				} else if (object instanceof ArrayList<?>) {
-					arr2.add(ltBinaryArrayList(object, right, i));
-					
+					arr2.add(gteBinaryArrayList(object, right, i));
+
 				}
 			}
-			
+
 		}
 		return arr2;
-		
+
+	}
+
+	private ArrayList<?> lteBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) object <= (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) object <= (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) object <= Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(lteBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) object <= (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object <= (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) object) <= Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(lteBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(((Bin) object).toInteger() <= Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) object).toInteger() <= Bin.times(new Bin(i), new Bin(((Double) right).intValue())));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) object).toInteger() <= Bin.times(new Bin(i), (Bin) right));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(lteBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> ltBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) object < (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Integer) object < (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add((Integer) object < Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) object < (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object < (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) object) < Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), new Bin(((Double) right).intValue())));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) object).toInteger() < Bin.times(new Bin(i), (Bin) right));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(ltBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
 	}
 
 	private ArrayList<?> timesBinaryArrayList(Object left, Object right, int i) {
@@ -1474,10 +2414,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					arr2.add(Math.pow(((Integer) object).doubleValue(),
 							((Integer) (i * (Integer) right)).doubleValue()));
 				} else if (object instanceof Double) {
-					arr2.add(Math.pow(((Integer) object).doubleValue(), (Double) (i * (Double) right)));
+					arr2.add(Math.pow((Double) object, (Integer) (i * (Integer) right)));
 
 				} else if (object instanceof Bin) {
-					arr2.add(Math.pow(new Bin((Integer) object).toDouble(),
+					arr2.add(Math.pow((Double) object,
 							(new Bin(Bin.times(new Bin(i), new Bin((Integer) right)))).toDouble()));
 
 				} else if (object instanceof ArrayList<?>) {
@@ -1520,6 +2460,67 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 				} else if (object instanceof ArrayList<?>) {
 					arr2.add(powerBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> modBinaryArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+
+		if (right instanceof Integer) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Integer) object % (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object % (i * (Integer) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) object).toInteger() % Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(modBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Double) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add((Double) object % (i * (Integer) right));
+				} else if (object instanceof Double) {
+					arr2.add((Double) object % (i * (Double) right));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Double) object) % Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(modBinaryArrayList(object, right, i));
+
+				}
+			}
+
+		} else if (right instanceof Bin) {
+			for (Object object : arr) {
+				if (object instanceof Integer) {
+
+					arr2.add(((Bin) object).toInteger() % Bin.times(new Bin(i), new Bin((Integer) right)));
+
+				} else if (object instanceof Double) {
+					arr2.add(((Bin) object).toInteger() % Bin.times(new Bin(i), new Bin(((Double) right).intValue())));
+
+				} else if (object instanceof Bin) {
+					arr2.add(((Bin) object).toInteger() % Bin.times(new Bin(i), (Bin) right));
+
+				} else if (object instanceof ArrayList<?>) {
+					arr2.add(modBinaryArrayList(object, right, i));
 
 				}
 			}
@@ -1753,7 +2754,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 						arr2.add((Double) object1 > (i * (Double) object));
 
 					} else if (object instanceof Bin) {
-						arr2.add(((Double) object1).intValue()>Bin.times(new Bin(i), new Bin((Integer) object)));
+						arr2.add(((Double) object1).intValue() > Bin.times(new Bin(i), new Bin((Integer) object)));
 
 					} else if (object instanceof ArrayList<?>) {
 
@@ -1775,6 +2776,187 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return arr2;
 
 	}
+
+	private ArrayList<?> gteArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Integer) object1 >= (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Integer) object1 >= (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add((Integer) object1 >= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(gteBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 >= (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 >= (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1) >= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(gteBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(((Bin) object1).toInteger() >= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof Double) {
+						arr2.add(((Bin) object1).toInteger() >= Bin.times(new Bin(i),
+								new Bin(((Double) object).intValue())));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Bin) object1).toInteger() >= Bin.times(new Bin(i), (Bin) object));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(gteBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 >= (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 >= (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1).intValue() >= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+
+								arr2.add(gteBinaryArrayList(object2, object3, i));
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+		return arr2;
+
+	}
+
+	private ArrayList<?> lteArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Integer) object1 <= (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Integer) object1 <= (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add((Integer) object1 <= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(lteBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 <= (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 <= (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1) <= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(lteBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(((Bin) object1).toInteger() <= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof Double) {
+						arr2.add(((Bin) object1).toInteger() <= Bin.times(new Bin(i),
+								new Bin(((Double) object).intValue())));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Bin) object1).toInteger() <= Bin.times(new Bin(i), (Bin) object));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(lteBinaryArrayList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 <= (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 <= (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1).intValue() <= Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+
+								arr2.add(lteBinaryArrayList(object2, object3, i));
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+		return arr2;
+
+	}
+
 	private ArrayList<?> ltArrayListArrayList(Object left, Object right, int i) {
 		ArrayList<?> arr = (ArrayList<?>) right;
 		ArrayList<?> arr1 = (ArrayList<?>) left;
@@ -1783,86 +2965,86 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			if (object1 instanceof Integer) {
 				for (Object object : arr) {
 					if (object instanceof Integer) {
-						
+
 						arr2.add((Integer) object1 < (i * (Integer) object));
 					} else if (object instanceof Double) {
 						arr2.add((Integer) object1 < (i * (Double) object));
-						
+
 					} else if (object instanceof Bin) {
 						arr2.add((Integer) object1 < Bin.times(new Bin(i), new Bin((Integer) object)));
-						
+
 					} else if (object instanceof ArrayList<?>) {
 						arr2.add(ltBinaryArrayList(object1, object, i));
-						
+
 					}
 				}
-				
+
 			} else if (object1 instanceof Double) {
 				for (Object object : arr) {
 					if (object instanceof Integer) {
-						
+
 						arr2.add((Double) object1 < (i * (Integer) object));
 					} else if (object instanceof Double) {
 						arr2.add((Double) object1 < (i * (Double) object));
-						
+
 					} else if (object instanceof Bin) {
 						arr2.add(((Double) object1) < Bin.times(new Bin(i), new Bin((Integer) object)));
-						
+
 					} else if (object instanceof ArrayList<?>) {
 						arr2.add(ltBinaryArrayList(object1, object, i));
-						
+
 					}
 				}
-				
+
 			} else if (object1 instanceof Bin) {
 				for (Object object : arr) {
 					if (object instanceof Integer) {
-						
+
 						arr2.add(((Bin) object1).toInteger() < Bin.times(new Bin(i), new Bin((Integer) object)));
-						
+
 					} else if (object instanceof Double) {
 						arr2.add(((Bin) object1).toInteger() < Bin.times(new Bin(i),
 								new Bin(((Double) object).intValue())));
-						
+
 					} else if (object instanceof Bin) {
 						arr2.add(((Bin) object1).toInteger() < Bin.times(new Bin(i), (Bin) object));
-						
+
 					} else if (object instanceof ArrayList<?>) {
 						arr2.add(ltBinaryArrayList(object1, object, i));
-						
+
 					}
 				}
-				
+
 			} else if (object1 instanceof ArrayList<?>) {
 				for (Object object : arr) {
 					if (object instanceof Integer) {
-						
+
 						arr2.add((Double) object1 < (i * (Integer) object));
 					} else if (object instanceof Double) {
 						arr2.add((Double) object1 < (i * (Double) object));
-						
+
 					} else if (object instanceof Bin) {
-						arr2.add(((Double) object1)<Bin.times(new Bin(i), new Bin((Integer) object)));
-						
+						arr2.add(((Double) object1) < Bin.times(new Bin(i), new Bin((Integer) object)));
+
 					} else if (object instanceof ArrayList<?>) {
-						
+
 						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
 						ArrayList<?> temparr1 = ((ArrayList<?>) object);
-						
+
 						for (Object object2 : temparr0) {
 							for (Object object3 : temparr1) {
-								
+
 								arr2.add(ltBinaryArrayList(object2, object3, i));
 							}
 						}
-						
+
 					}
 				}
-				
+
 			}
 		}
 		return arr2;
-		
+
 	}
 
 	private ArrayList<?> timesArrayListArrayList(Object left, Object right, int i) {
@@ -2087,6 +3269,103 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
+	private ArrayList<?> modArrayListArrayList(Object left, Object right, int i) {
+		ArrayList<?> arr = (ArrayList<?>) right;
+		ArrayList<?> arr1 = (ArrayList<?>) left;
+		ArrayList<Object> arr2 = new ArrayList<>();
+		for (Object object1 : arr1) {
+			if (object1 instanceof Integer) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Integer) object1 % (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Integer) object1 % (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Integer) object1) % Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(modArrayBinaryList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Double) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add((Double) object1 % (i * (Integer) object));
+					} else if (object instanceof Double) {
+						arr2.add((Double) object1 % (i * (Double) object));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Double) object1) % Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(modArrayBinaryList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof Bin) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(((Bin) object1).toInteger() % Bin.times(new Bin(i), new Bin((Integer) object)));
+
+					} else if (object instanceof Double) {
+						arr2.add(((Bin) object1).toInteger()
+								% Bin.times(new Bin(i), new Bin(((Double) object).intValue())));
+
+					} else if (object instanceof Bin) {
+						arr2.add(((Bin) object1).toInteger() % Bin.times(new Bin(i), (Bin) object));
+
+					} else if (object instanceof ArrayList<?>) {
+						arr2.add(modArrayBinaryList(object1, object, i));
+
+					}
+				}
+
+			} else if (object1 instanceof ArrayList<?>) {
+				for (Object object : arr) {
+					if (object instanceof Integer) {
+
+						arr2.add(modBinaryArrayList(object1, object, i));
+					} else if (object instanceof Double) {
+						arr2.add(modBinaryArrayList(object1, object, i));
+
+					} else if (object instanceof Bin) {
+						arr2.add(modBinaryArrayList(object1, object, i));
+					} else if (object instanceof ArrayList<?>) {
+
+						ArrayList<?> temparr0 = ((ArrayList<?>) object1);
+						ArrayList<?> temparr1 = ((ArrayList<?>) object);
+
+						for (Object object2 : temparr0) {
+							for (Object object3 : temparr1) {
+
+								if (object2 instanceof ArrayList<?> && !(object3 instanceof ArrayList<?>))
+									arr2.add(modBinaryArrayList(object2, object3, i));
+								else if (object3 instanceof ArrayList<?> && !(object2 instanceof ArrayList<?>))
+									arr2.add(modBinaryArrayList(object2, object3, i));
+								else if (object3 instanceof ArrayList<?> && (object2 instanceof ArrayList<?>))
+									arr2.add(modBinaryArrayList(object2, object3, i));
+								else
+									arr2.add(mod(object2, object3));
+
+							}
+						}
+
+					}
+				}
+
+			}
+		}
+		return arr2;
+
+	}
+
 	private ArrayList<?> divArrayListArrayList(Object left, Object right, int i) {
 		ArrayList<?> arr = (ArrayList<?>) right;
 		ArrayList<?> arr1 = (ArrayList<?>) left;
@@ -2187,30 +3466,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
-	private ArrayList<?> addArrayUnaryList(Object right, int i) {
-		ArrayList<?> arr = (ArrayList<?>) right;
-		ArrayList<Object> arr2 = new ArrayList<>();
-
-		for (Object object : arr) {
-			if (object instanceof Integer) {
-
-				arr2.add((Integer) object + i);
-			} else if (object instanceof Double) {
-				arr2.add((Double) object + i);
-
-			} else if (object instanceof Bin) {
-				arr2.add(Bin.add(new Bin(i), new Bin((Integer) object)));
-
-			} else if (object instanceof ArrayList<?>) {
-				arr2.add(addArrayUnaryList(object, i));
-
-			}
-		}
-
-		return arr2;
-
-	}
-
 	private Object addStringArray(Object left, Object right) {
 		ArrayList<?> arr = ((ArrayList<?>) right);
 		String str = "";
@@ -2293,6 +3548,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtIntegerInteger(Object left, Object right) {
 		return ((Integer) left) > ((Integer) right);
 	}
+
+	private Object gteIntegerInteger(Object left, Object right) {
+		return ((Integer) left) >= ((Integer) right);
+	}
+
+	private Object lteIntegerInteger(Object left, Object right) {
+		return ((Integer) left) <= ((Integer) right);
+	}
+
 	private Object ltIntegerInteger(Object left, Object right) {
 		return ((Integer) left) < ((Integer) right);
 	}
@@ -2309,55 +3573,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return ((Integer) left) / ((Integer) right);
 	}
 
-	private Object addArrayInteger(Object left, Object right) {
-		ArrayList<?> arr = ((ArrayList<?>) left);
-		for (Object object : arr) {
-			if (object instanceof Integer) {
-				object = ((Integer) object) + ((Integer) right);
-			} else if (object instanceof Double) {
-				object = ((Double) object) + ((Integer) right);
-			} else if (object instanceof Bin) {
-				object = Bin.add(((Bin) object), new Bin((Integer) right));
-			} else if (object instanceof String) {
-				object = ((String) object) + ((Integer) right);
-			}
-		}
-
-		return arr;
-	}
-
-	private Object addArrayDouble(Object left, Object right) {
-		ArrayList<?> arr = ((ArrayList<?>) left);
-		for (Object object : arr) {
-			if (object instanceof Integer) {
-				object = ((Integer) object) + ((Double) right);
-			} else if (object instanceof Double) {
-				object = ((Double) object) + ((Double) right);
-			} else if (object instanceof Bin) {
-				object = Bin.add(((Bin) object), new Bin(((Double) right).intValue()));
-			} else if (object instanceof String) {
-				object = ((String) object) + ((Double) right);
-			}
-		}
-
-		return arr;
-	}
-
-	private Object addArrayBin(Object left, Object right) {
-		ArrayList<?> arr = ((ArrayList<?>) left);
-		for (Object object : arr) {
-			if (object instanceof Integer) {
-				object = Bin.add(new Bin((Integer) object), ((Bin) right));
-			} else if (object instanceof Double) {
-				object = Bin.add(new Bin((Integer) object), ((Bin) right));
-			} else if (object instanceof Bin) {
-				object = Bin.add(((Bin) object), (Bin) right);
-			} else if (object instanceof String) {
-				object = ((String) object) + ((Bin) right);
-			}
-		}
-
-		return arr;
+	private Object modIntegerInteger(Object left, Object right) {
+		return ((Integer) left) % ((Integer) right);
 	}
 
 	private Object addDoubleInteger(Object left, Object right) {
@@ -2367,6 +3584,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtDoubleInteger(Object left, Object right) {
 		return ((Double) left) > ((Integer) right);
 	}
+
+	private Object gteDoubleInteger(Object left, Object right) {
+		return ((Double) left) >= ((Integer) right);
+	}
+
+	private Object lteDoubleInteger(Object left, Object right) {
+		return ((Double) left) <= ((Integer) right);
+	}
+
 	private Object ltDoubleInteger(Object left, Object right) {
 		return ((Double) left) < ((Integer) right);
 	}
@@ -2379,6 +3605,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return ((Double) left) / ((Integer) right);
 	}
 
+	private Object modDoubleInteger(Object left, Object right) {
+		return ((Double) left) % ((Integer) right);
+	}
+
 	private Object addDoubleDouble(Object left, Object right) {
 		return ((Double) left) + ((Double) right);
 	}
@@ -2386,6 +3616,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtDoubleDouble(Object left, Object right) {
 		return ((Double) left) > ((Double) right);
 	}
+
+	private Object gteDoubleDouble(Object left, Object right) {
+		return ((Double) left) >= ((Double) right);
+	}
+
+	private Object lteDoubleDouble(Object left, Object right) {
+		return ((Double) left) <= ((Double) right);
+	}
+
 	private Object ltDoubleDouble(Object left, Object right) {
 		return ((Double) left) < ((Double) right);
 	}
@@ -2398,6 +3637,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return ((Double) left) / ((Double) right);
 	}
 
+	private Object modDoubleDouble(Object left, Object right) {
+		return ((Double) left) % ((Double) right);
+	}
+
 	private Object addIntegerDouble(Object left, Object right) {
 		return ((Integer) left) + ((Double) right);
 	}
@@ -2405,6 +3648,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtIntegerDouble(Object left, Object right) {
 		return ((Integer) left) > ((Double) right);
 	}
+
+	private Object gteIntegerDouble(Object left, Object right) {
+		return ((Integer) left) >= ((Double) right);
+	}
+
+	private Object lteIntegerDouble(Object left, Object right) {
+		return ((Integer) left) <= ((Double) right);
+	}
+
 	private Object ltIntegerDouble(Object left, Object right) {
 		return ((Integer) left) < ((Double) right);
 	}
@@ -2421,6 +3673,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return ((Integer) left) / ((Double) right);
 	}
 
+	private Object modIntegerDouble(Object left, Object right) {
+		return ((Integer) left) % ((Double) right);
+	}
+
 	private Object addDoubleBin(Object left, Object right) {
 		return Bin.add(new Bin(((Double) left).intValue()), ((Bin) right));
 	}
@@ -2428,6 +3684,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtDoubleBin(Object left, Object right) {
 		return ((Double) left).intValue() > ((Bin) right).toInteger();
 	}
+
+	private Object gteDoubleBin(Object left, Object right) {
+		return ((Double) left).intValue() >= ((Bin) right).toInteger();
+	}
+
+	private Object lteDoubleBin(Object left, Object right) {
+		return ((Double) left).intValue() <= ((Bin) right).toInteger();
+	}
+
 	private Object ltDoubleBin(Object left, Object right) {
 		return ((Double) left).intValue() < ((Bin) right).toInteger();
 	}
@@ -2440,6 +3705,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return Bin.divide(new Bin(((Double) left).intValue()), ((Bin) right));
 	}
 
+	private Object modDoubleBin(Object left, Object right) {
+		return ((Double) left) % ((Bin) right).toDouble();
+	}
+
 	private Object addIntegerBin(Object left, Object right) {
 		return Bin.add(new Bin((Integer) left), ((Bin) right));
 	}
@@ -2447,6 +3716,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtIntegerBin(Object left, Object right) {
 		return ((Integer) left) > ((Bin) right).toInteger();
 	}
+
+	private Object gteIntegerBin(Object left, Object right) {
+		return ((Integer) left) >= ((Bin) right).toInteger();
+	}
+
+	private Object lteIntegerBin(Object left, Object right) {
+		return ((Integer) left) <= ((Bin) right).toInteger();
+	}
+
 	private Object ltIntegerBin(Object left, Object right) {
 		return ((Integer) left) < ((Bin) right).toInteger();
 	}
@@ -2463,6 +3741,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return Bin.divide((new Bin((Integer) left)), ((Bin) right));
 	}
 
+	private Object modIntegerBin(Object left, Object right) {
+		return ((Integer) left) % ((Bin) right).toInteger();
+	}
+
 	private Object addBinInteger(Object left, Object right) {
 		return Bin.add((Bin) left, new Bin((Integer) right));
 	}
@@ -2470,6 +3752,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtBinInteger(Object left, Object right) {
 		return ((Bin) left).toInteger() > (Integer) right;
 	}
+
+	private Object gteBinInteger(Object left, Object right) {
+		return ((Bin) left).toInteger() >= (Integer) right;
+	}
+
+	private Object lteBinInteger(Object left, Object right) {
+		return ((Bin) left).toInteger() <= (Integer) right;
+	}
+
 	private Object ltBinInteger(Object left, Object right) {
 		return ((Bin) left).toInteger() < (Integer) right;
 	}
@@ -2482,6 +3773,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return Bin.divide((Bin) left, new Bin((Integer) right));
 	}
 
+	private Object modBinInteger(Object left, Object right) {
+		return ((Bin) left).toInteger() % ((Integer) right);
+	}
+
 	private Object addBinDouble(Object left, Object right) {
 		return Bin.add((Bin) left, new Bin(((Double) right).intValue()));
 	}
@@ -2489,6 +3784,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtBinDouble(Object left, Object right) {
 		return ((Bin) left).toInteger() > ((Double) right);
 	}
+
+	private Object gteBinDouble(Object left, Object right) {
+		return ((Bin) left).toInteger() >= ((Double) right);
+	}
+
+	private Object lteBinDouble(Object left, Object right) {
+		return ((Bin) left).toInteger() <= ((Double) right);
+	}
+
 	private Object ltBinDouble(Object left, Object right) {
 		return ((Bin) left).toInteger() < ((Double) right);
 	}
@@ -2501,6 +3805,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return Bin.divide((Bin) left, new Bin(((Double) right).intValue()));
 	}
 
+	private Object modBinDouble(Object left, Object right) {
+		return ((Bin) left).toInteger() % ((Double) right);
+	}
+
 	private Object addBinBin(Object left, Object right) {
 		return Bin.add((Bin) left, (Bin) right);
 	}
@@ -2508,6 +3816,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Object gtBinBin(Object left, Object right) {
 		return ((Bin) left).toInteger() > ((Bin) right).toInteger();
 	}
+
+	private Object gteBinBin(Object left, Object right) {
+		return ((Bin) left).toInteger() >= ((Bin) right).toInteger();
+	}
+
+	private Object lteBinBin(Object left, Object right) {
+		return ((Bin) left).toInteger() <= ((Bin) right).toInteger();
+	}
+
 	private Object ltBinBin(Object left, Object right) {
 		return ((Bin) left).toInteger() < ((Bin) right).toInteger();
 	}
@@ -2518,6 +3835,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	private Object divBinBin(Object left, Object right) {
 		return Bin.divide((Bin) left, (Bin) right);
+	}
+
+	private Object modBinBin(Object left, Object right) {
+		return ((Bin) left).toInteger() % ((Bin) right).toInteger();
 	}
 
 	private Object addObjectString(Object left, Object right) {
@@ -2564,27 +3885,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 		} else if (left instanceof ArrayList<?>) {
 			left = reformatArrayListDataForJustValues((ArrayList<?>) left);
-		} else if (left instanceof PocketInstance) {
-			Token identifier = new Token(TokenType.IDENTIFIER,
-					((Pocket) ((PocketInstance) left).expr).identifier.lexeme + "varravargssgra", null, null, null,
-					((Pocket) ((PocketInstance) left).expr).identifier.column,
-					((Pocket) ((PocketInstance) left).expr).identifier.line,
-					((Pocket) ((PocketInstance) left).expr).identifier.start,
-					((Pocket) ((PocketInstance) left).expr).identifier.finish);
-
-			Expr.Variable variable = new Expr.Variable(identifier);
-			left = lookUpVariableByName(variable);
-		} else if (left instanceof CupInstance) {
-			Token identifier = new Token(TokenType.IDENTIFIER,
-					((Cup) ((CupInstance) left).expr).identifier.lexeme + "varravargssgra", null, null, null,
-					((Cup) ((CupInstance) left).expr).identifier.column,
-					((Cup) ((CupInstance) left).expr).identifier.line,
-					((Cup) ((CupInstance) left).expr).identifier.start,
-					((Cup) ((CupInstance) left).expr).identifier.finish);
-
-			Expr.Variable variable = new Expr.Variable(identifier);
-			left = lookUpVariableByName(variable);
-		}
+		} else
+			left = findValueOfInstanceFromIdentifier(left);
 		return left;
 	}
 
@@ -2664,20 +3966,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		return Math.pow(x, theRight) - remainder;
 	}
 
-	private boolean isPrime(int num) {
-		if (num < 1) {
-			return false;
-		}
-		if (num == 1) {
-			return true;
-		}
-		for (int i = 2; i <= num / 2; i++) {
-			if ((num % i) == 0)
-				return false;
-		}
-		return true;
-	}
-
 	@Override
 	public Object visitLiteralExpr(Literal expr) {
 
@@ -2745,6 +4033,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 				Object pocketInstance = isPocketInstance(right, valueToAssign);
 				Object cupInstance = isCupInstance(right, valueToAssign);
+				Object knotInstance = isKnotInstance(right, valueToAssign);
+				Object tonkInstance = isTonkInstance(right, valueToAssign);
 				Object boxInstance = isBoxInstance(right, valueToAssign);
 
 				if (pocketInstance != null)
@@ -2753,6 +4043,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return cupInstance;
 				else if (boxInstance != null)
 					return boxInstance;
+				else if (knotInstance != null)
+					return knotInstance;
+				else if (tonkInstance != null)
+					return tonkInstance;
 
 			}
 			return right;
@@ -2784,6 +4078,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 				Object pocketInstance = isPocketInstance(right, valueToAssign);
 				Object cupInstance = isCupInstance(right, valueToAssign);
+				Object knotInstance = isKnotInstance(right, valueToAssign);
+				Object tonkInstance = isTonkInstance(right, valueToAssign);
 				Object boxInstance = isBoxInstance(right, valueToAssign);
 
 				if (pocketInstance != null)
@@ -2792,6 +4088,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return cupInstance;
 				else if (boxInstance != null)
 					return boxInstance;
+				else if (knotInstance != null)
+					return knotInstance;
+				else if (tonkInstance != null)
+					return tonkInstance;
 			}
 			return right;
 		default:
@@ -2821,12 +4121,14 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 			Expr.Box expr2 = (Expr.Box) ((BoxInstance) right).expr;
-			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
-					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
-					expr2.identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
+//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
+//					expr2.identifier.finish);
+			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
+					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
-			Integer distance = locals.get(variable);
+			locals.get(variable);
 			setGlobalOrCurrentEnvironmentVariable(arr, variable);
 
 			return arr;
@@ -2856,9 +4158,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 			Expr.Cup expr2 = (Cup) ((CupInstance) right).expr;
-			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
-					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
-					expr2.identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
+//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
+//					expr2.identifier.finish);
+			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
+					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
 			setGlobalOrCurrentEnvironmentVariable(arr, variable);
@@ -2872,8 +4176,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private void lookUpVariableAddToArray(ArrayList<Object> arr, Object evaluate) {
 		if (evaluate instanceof CupInstance) {
 			Cup cup = (Expr.Cup) ((CupInstance) evaluate).expr;
-			Token identifier = new Token(TokenType.IDENTIFIER, cup.identifier.lexeme + "varravargssgra", null, null,
-					null, cup.identifier.column, cup.identifier.line, cup.identifier.start, cup.identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, cup.identifier.lexeme + "varravargssgra", null, null,
+//					null, cup.identifier.column, cup.identifier.line, cup.identifier.start, cup.identifier.finish);
+			Token identifier = new Token(TokenType.IDENTIFIER, cup.identifier.lexeme, null, null, null,
+					cup.identifier.column, cup.identifier.line, cup.identifier.start, cup.identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
 			Object lookUpVariableByName = lookUpVariableByName(variable);
@@ -2882,16 +4188,22 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			Pocket pocket = (Expr.Pocket) ((PocketInstance) evaluate).expr;
 			Token identifier = new Token(TokenType.IDENTIFIER,
 
-					pocket.identifier.lexeme + "varravargssgra", null, null, null, pocket.identifier.column,
-					pocket.identifier.line, pocket.identifier.start, pocket.identifier.finish);
+					pocket.identifier.lexeme, null, null, null, pocket.identifier.column, pocket.identifier.line,
+					pocket.identifier.start, pocket.identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER,
+//					
+//					pocket.identifier.lexeme + "varravargssgra", null, null, null, pocket.identifier.column,
+//					pocket.identifier.line, pocket.identifier.start, pocket.identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
 			Object lookUpVariableByName = lookUpVariableByName(variable);
 			arr.add(lookUpVariableByName);
 		} else if (evaluate instanceof BoxInstance) {
 			Parser.Expr.Box box = (Expr.Box) ((BoxInstance) evaluate).expr;
-			Token identifier = new Token(TokenType.IDENTIFIER, box.identifier.lexeme + "varravargssgra", null, null,
-					null, box.identifier.column, box.identifier.line, box.identifier.start, box.identifier.finish);
+			Token identifier = new Token(TokenType.IDENTIFIER, box.identifier.lexeme, null, null, null,
+					box.identifier.column, box.identifier.line, box.identifier.start, box.identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, box.identifier.lexeme + "varravargssgra", null, null,
+//					null, box.identifier.column, box.identifier.line, box.identifier.start, box.identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
 			Object lookUpVariableByName = lookUpVariableByName(variable);
@@ -2923,9 +4235,83 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 			Expr.Pocket expr2 = (Pocket) ((PocketInstance) right).expr;
-			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
-					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
-					expr2.identifier.finish);
+			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
+					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
+//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
+//					expr2.identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			setGlobalOrCurrentEnvironmentVariable(arr, variable);
+
+			return arr;
+		} else {
+			return null;
+		}
+	}
+
+	private Object isKnotInstance(Object right, int valueToAssign) {
+		if (right instanceof PocketInstance) {
+			Environment previous = environment;
+			ArrayList<Object> arr = new ArrayList<>();
+			try {
+				environment = new Environment(environment);
+				Object evaluate = null;
+				for (int i = 0; i < ((KnotInstance) right).body.size(); i++) {
+					Object at = ((KnotInstance) right).body.get(i);
+					addOrSubtractAndAssign(at, valueToAssign);
+					if (at instanceof Stmt.Expression) {
+						evaluate = evaluate(((Stmt.Expression) at));
+						if (evaluate != null)
+							lookUpVariableAddToArray(arr, evaluate);
+					}
+				}
+			} finally {
+				this.environment = previous;
+			}
+
+			Expr.Knot expr2 = (Knot) ((KnotInstance) right).expr;
+			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
+					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
+//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
+//					expr2.identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			setGlobalOrCurrentEnvironmentVariable(arr, variable);
+
+			return arr;
+		} else {
+			return null;
+		}
+	}
+
+	private Object isTonkInstance(Object right, int valueToAssign) {
+		if (right instanceof PocketInstance) {
+			Environment previous = environment;
+			ArrayList<Object> arr = new ArrayList<>();
+			try {
+				environment = new Environment(environment);
+				Object evaluate = null;
+				for (int i = 0; i < ((TonkInstance) right).body.size(); i++) {
+					Object at = ((TonkInstance) right).body.get(i);
+					addOrSubtractAndAssign(at, valueToAssign);
+					if (at instanceof Stmt.Expression) {
+						evaluate = evaluate(((Stmt.Expression) at));
+						if (evaluate != null)
+							lookUpVariableAddToArray(arr, evaluate);
+					}
+				}
+			} finally {
+				this.environment = previous;
+			}
+
+			Expr.Tonk expr2 = (Tonk) ((TonkInstance) right).expr;
+			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
+					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
+//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
+//					expr2.identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
 			setGlobalOrCurrentEnvironmentVariable(arr, variable);
@@ -3156,7 +4542,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		} else if (lookUpVariableByName instanceof Double) {
 			double value = ((Double) lookUpVariableByName) * valueToAssign;
-			Integer distance = locals.get(variable);
+			locals.get(variable);
 			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		} else if (lookUpVariableByName instanceof Bin) {
 			Integer value = Bin.times(((Bin) lookUpVariableByName), new Bin(valueToAssign));
@@ -3356,6 +4742,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 				Object pocketInstance = isPocketInstance(left, valueToAssign);
 				Object cupInstance = isCupInstance(left, valueToAssign);
+				Object knotInstance = isKnotInstance(left, valueToAssign);
+				Object tonkInstance = isTonkInstance(left, valueToAssign);
 				Object boxInstance = isBoxInstance(left, valueToAssign);
 
 				if (pocketInstance != null)
@@ -3364,6 +4752,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return cupInstance;
 				else if (boxInstance != null)
 					return boxInstance;
+				else if (knotInstance != null)
+					return knotInstance;
+				else if (tonkInstance != null)
+					return tonkInstance;
 			}
 			return left;
 		case MINUSMINUS:
@@ -3393,6 +4785,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 				Object pocketInstance = isPocketInstance(left, valueToAssign);
 				Object cupInstance = isCupInstance(left, valueToAssign);
+				Object knotInstance = isKnotInstance(left, valueToAssign);
+				Object tonkInstance = isTonkInstance(left, valueToAssign);
 				Object boxInstance = isBoxInstance(left, valueToAssign);
 
 				if (pocketInstance != null)
@@ -3401,6 +4795,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return cupInstance;
 				else if (boxInstance != null)
 					return boxInstance;
+				else if (knotInstance != null)
+					return knotInstance;
+				else if (tonkInstance != null)
+					return tonkInstance;
 			}
 			return left;
 		default:
@@ -3426,16 +4824,22 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (expr2 instanceof Expr.Variable) {
 			setGlobalOrCurrentEnvironmentVariable(value, (Variable) expr2);
 		} else if (expr2 instanceof Pocket) {
-			Token identifier = new Token(TokenType.IDENTIFIER, ((Pocket) expr2).identifier.lexeme + "varravargssgra",
-					null, null, null, ((Pocket) expr2).identifier.column, ((Pocket) expr2).identifier.line,
+			Token identifier = new Token(TokenType.IDENTIFIER, ((Pocket) expr2).identifier.lexeme, null, null, null,
+					((Pocket) expr2).identifier.column, ((Pocket) expr2).identifier.line,
 					((Pocket) expr2).identifier.start, ((Pocket) expr2).identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, ((Pocket) expr2).identifier.lexeme + "varravargssgra",
+//					null, null, null, ((Pocket) expr2).identifier.column, ((Pocket) expr2).identifier.line,
+//					((Pocket) expr2).identifier.start, ((Pocket) expr2).identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
 			setGlobalOrCurrentEnvironmentVariable(value, variable);
 		} else if (expr2 instanceof Cup) {
-			Token identifier = new Token(TokenType.IDENTIFIER, ((Cup) expr2).identifier.lexeme + "varravargssgra", null,
-					null, null, ((Cup) expr2).identifier.column, ((Cup) expr2).identifier.line,
-					((Cup) expr2).identifier.start, ((Cup) expr2).identifier.finish);
+			Token identifier = new Token(TokenType.IDENTIFIER, ((Cup) expr2).identifier.lexeme, null, null, null,
+					((Cup) expr2).identifier.column, ((Cup) expr2).identifier.line, ((Cup) expr2).identifier.start,
+					((Cup) expr2).identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER, ((Cup) expr2).identifier.lexeme + "varravargssgra", null,
+//					null, null, ((Cup) expr2).identifier.column, ((Cup) expr2).identifier.line,
+//					((Cup) expr2).identifier.start, ((Cup) expr2).identifier.finish);
 
 			Expr.Variable variable = new Expr.Variable(identifier);
 			setGlobalOrCurrentEnvironmentVariable(value, variable);
@@ -3443,7 +4847,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	}
 
-	private void setGlobalOrCurrentEnvironmentVariable(Object value, Expr.Variable variable) {
+	void setGlobalOrCurrentEnvironmentVariable(Object value, Expr.Variable variable) {
 		Integer distance = locals.get(variable);
 		if (distance != null)
 			environment.assignAt(distance, variable.name, value, value, this);
@@ -3649,10 +5053,14 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Void visitMoveStmt(Move stmt) {
 		if (forward) {
-			File file = new File((String) evaluate(stmt.OringialfilePathAndFile));
+			String evaluate = (String) evaluate(stmt.OringialfilePathAndFile);
+			String[] split = evaluate.split("/");
+			String fn = split[split.length - 1];
+			File file = new File(evaluate);
 
-			if (file.renameTo(new File((String) evaluate(stmt.newfilePath)))) {
-				file.delete();
+			String evaluate2 = (String) evaluate(stmt.newfilePath);
+			if (file.renameTo(new File(evaluate2 + "/" + fn))) {
+
 				System.out.println("File moved successfully");
 			} else {
 				System.out.println("Failed to move the file");
@@ -3699,72 +5107,19 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					}
 				}
 				folderPath = folderPath.substring(0, folderPath.length() - 1);
-				File myObj = new File(filePathAndName);
-				File myObjFolderPath = new File(folderPath);
-				myObjFolderPath.mkdir();
 
-				if (myObj.createNewFile()) {
-					evaluate(stmt.objecttosave);
-					String str = "";
-					if (stmt.objecttosave instanceof Expr.Box) {
-						Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
-								((Expr.Box) stmt.objecttosave));
-						str = boxInstance.toString();
 
-					} else if (stmt.objecttosave instanceof Expr.Cup) {
-						Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
-								((Expr.Cup) stmt.objecttosave));
-						str = cupInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Pocket) {
-						Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
-								((Expr.Pocket) stmt.objecttosave));
-						str = pocketInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Knot) {
-						Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
-								((Expr.Knot) stmt.objecttosave));
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Variable) {
-						Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
-								((Expr.Variable) stmt.objecttosave));
-						str = knotInstance.toString();
-					}
-
-					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
-					writer.write(str);
-
-					writer.close();
-
-				} else {
-					evaluate(stmt.objecttosave);
-					String str = "";
-					if (stmt.objecttosave instanceof Expr.Box) {
-						Object boxInstance = lookUpVariable(((Expr.Box) stmt.objecttosave).identifier,
-								((Expr.Box) stmt.objecttosave));
-						str = boxInstance.toString();
-
-					} else if (stmt.objecttosave instanceof Expr.Cup) {
-						Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objecttosave).identifier,
-								((Expr.Cup) stmt.objecttosave));
-						str = cupInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Pocket) {
-						Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objecttosave).identifier,
-								((Expr.Pocket) stmt.objecttosave));
-						str = pocketInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Knot) {
-						Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objecttosave).identifier,
-								((Expr.Knot) stmt.objecttosave));
-						str = knotInstance.toString();
-					} else if (stmt.objecttosave instanceof Expr.Variable) {
-						Object knotInstance = lookUpVariable(((Expr.Variable) stmt.objecttosave).name,
-								((Expr.Variable) stmt.objecttosave));
-						str = knotInstance.toString();
-					}
+				String str = "";
+				Object boxInstance = evaluate(stmt.objecttosave);
+				if (boxInstance != null) {
+					str = boxInstance.toString();
 
 					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
 					writer.write(str);
 
 					writer.close();
 				}
+
 			} catch (IOException e) {
 				System.out.println("An error occurred.");
 				e.printStackTrace();
@@ -3784,33 +5139,16 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					data += myReader.nextLine();
 
 				}
-				evaluate(stmt.objectToReadInto);
-				if (stmt.objectToReadInto instanceof Expr.Box) {
-					Object boxInstance = lookUpVariable(((Expr.Box) stmt.objectToReadInto).identifier,
-							((Expr.Box) stmt.objectToReadInto));
-					if (boxInstance instanceof Instance) {
-						((Instance) boxInstance).setAt(data, 0);
-					}
-
-				} else if (stmt.objectToReadInto instanceof Expr.Cup) {
-					Object cupInstance = lookUpVariable(((Expr.Cup) stmt.objectToReadInto).identifier,
-							((Expr.Cup) stmt.objectToReadInto));
-					if (cupInstance instanceof Instance) {
-						((Instance) cupInstance).setAt(data, 0);
-					}
-				} else if (stmt.objectToReadInto instanceof Expr.Pocket) {
-					Object pocketInstance = lookUpVariable(((Expr.Pocket) stmt.objectToReadInto).identifier,
-							((Expr.Pocket) stmt.objectToReadInto));
-					if (pocketInstance instanceof Instance) {
-						((Instance) pocketInstance).setAt(data, 0);
-					}
-				} else if (stmt.objectToReadInto instanceof Expr.Knot) {
-					Object knotInstance = lookUpVariable(((Expr.Knot) stmt.objectToReadInto).identifier,
-							((Expr.Knot) stmt.objectToReadInto));
-					if (knotInstance instanceof Instance) {
-						((Instance) knotInstance).setAt(data, 0);
-					}
+				
+				if (stmt.objectToReadInto instanceof Expr.Variable) {
+					Object value = evaluate(new Expr.Literal(data));
+					Integer distance = locals.get((Expr.Variable)stmt.objectToReadInto);
+					if (distance != null)
+						environment.assignAt(distance, ((Expr.Variable)stmt.objectToReadInto).name, value, value, this);
+					else
+						globals.assign(((Expr.Variable)stmt.objectToReadInto).name, value, value, this);
 				}
+			
 				myReader.close();
 			} catch (FileNotFoundException e) {
 				System.out.println("An error occurred.");
@@ -3837,10 +5175,14 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Void visitEvomStmt(Evom stmt) {
 		if (!forward) {
-			File file = new File((String) evaluate(stmt.OringialfilePathAndFile));
+			String evaluate = (String) evaluate(stmt.OringialfilePathAndFile);
+			String[] split = evaluate.split("/");
+			String fn = split[split.length - 1];
+			File file = new File(evaluate);
 
-			if (file.renameTo(new File((String) evaluate(stmt.newfilePath)))) {
-				file.delete();
+			String evaluate2 = (String) evaluate(stmt.newfilePath);
+			if (file.renameTo(new File(evaluate2 + "/" + fn))) {
+
 				System.out.println("File moved successfully");
 			} else {
 				System.out.println("Failed to move the file");
@@ -3985,7 +5327,25 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitLlacExpr(Llac expr) {
+		if (!forward) {
+			Object callee = evaluate(expr.callee);
+			List<Object> arguments = new ArrayList<>();
+			for (Expr argument : expr.arguments) {
+				arguments.add(evaluate(argument));
+			}
 
+			if (!(callee instanceof BoxCallable)) {
+				throw new RuntimeError(expr.calleeToken, "Can only call functions and classes.");
+			}
+
+			BoxCallable function = (BoxCallable) callee;
+			if (arguments.size() != function.arity()) {
+				throw new RuntimeError(expr.calleeToken,
+						"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
+			}
+
+			return function.call(this, arguments);
+		}
 		return null;
 	}
 
@@ -4019,13 +5379,135 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitIfStmt(If stmt) {
 		if (forward) {
+			executeIfStmt(stmt);
 		}
 		return null;
+	}
+
+	private void executeIfStmt(If stmt) {
+		Object evaluate = evaluate(stmt.ifPocket);
+
+		evaluate = findValueOfInstanceFromIdentifier(evaluate);
+		if (evaluate instanceof ArrayList<?> && ((ArrayList) evaluate).size() == 1) {
+			Object poc = ((ArrayList<?>) evaluate).get(0);
+			if (poc instanceof Boolean) {
+				if (((Boolean) poc) == true) {
+					evaluate(stmt.ifCup);
+				} else {
+					if (stmt.elseIfStmt != null) {
+						executeIfStmt((Stmt.If) stmt.elseIfStmt);
+					} else if (stmt.elseCup != null) {
+						evaluate(stmt.elseCup);
+					}
+				}
+			}
+		}
+	}
+
+	private Object findValueOfInstanceFromIdentifier(Object evaluate) {
+		if (evaluate instanceof PocketInstance) {
+			Token identifier = new Token(TokenType.IDENTIFIER,
+					((Pocket) ((PocketInstance) evaluate).expr).identifier.lexeme, null, null, null,
+					((Pocket) ((PocketInstance) evaluate).expr).identifier.column,
+					((Pocket) ((PocketInstance) evaluate).expr).identifier.line,
+					((Pocket) ((PocketInstance) evaluate).expr).identifier.start,
+					((Pocket) ((PocketInstance) evaluate).expr).identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER,
+//					((Pocket) ((PocketInstance) evaluate).expr).identifier.lexeme + "varravargssgra", null, null, null,
+//					((Pocket) ((PocketInstance) evaluate).expr).identifier.column,
+//					((Pocket) ((PocketInstance) evaluate).expr).identifier.line,
+//					((Pocket) ((PocketInstance) evaluate).expr).identifier.start,
+//					((Pocket) ((PocketInstance) evaluate).expr).identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			evaluate = lookUpVariableByName(variable);
+		} else if (evaluate instanceof CupInstance) {
+			Token identifier = new Token(TokenType.IDENTIFIER, ((Cup) ((CupInstance) evaluate).expr).identifier.lexeme,
+					null, null, null, ((Cup) ((CupInstance) evaluate).expr).identifier.column,
+					((Cup) ((CupInstance) evaluate).expr).identifier.line,
+					((Cup) ((CupInstance) evaluate).expr).identifier.start,
+					((Cup) ((CupInstance) evaluate).expr).identifier.finish);
+//			Token identifier = new Token(TokenType.IDENTIFIER,
+//					((Cup) ((CupInstance) evaluate).expr).identifier.lexeme + "varravargssgra", null, null, null,
+//					((Cup) ((CupInstance) evaluate).expr).identifier.column,
+//					((Cup) ((CupInstance) evaluate).expr).identifier.line,
+//					((Cup) ((CupInstance) evaluate).expr).identifier.start,
+//					((Cup) ((CupInstance) evaluate).expr).identifier.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			evaluate = lookUpVariableByName(variable);
+		}
+		return evaluate;
+	}
+
+	private Object findValueOfInstanceFromReifitnedi(Object evaluate) {
+		if (evaluate instanceof PocketInstance) {
+			Token identifier = new Token(TokenType.IDENTIFIER,
+					((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.lexeme, null, null, null,
+					((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.column,
+					((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.line,
+					((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.start,
+					((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.finish);
+//			((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.lexeme + "varravargssgra", null, null, null,
+//			((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.column,
+//			((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.line,
+//			((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.start,
+//			((Pocket) ((PocketInstance) evaluate).expr).reifitnedi.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			evaluate = lookUpVariableByName(variable);
+		} else if (evaluate instanceof CupInstance) {
+			Token identifier = new Token(TokenType.IDENTIFIER, ((Cup) ((CupInstance) evaluate).expr).reifitnedi.lexeme,
+					null, null, null, ((Cup) ((CupInstance) evaluate).expr).reifitnedi.column,
+					((Cup) ((CupInstance) evaluate).expr).reifitnedi.line,
+					((Cup) ((CupInstance) evaluate).expr).reifitnedi.start,
+					((Cup) ((CupInstance) evaluate).expr).reifitnedi.finish);
+//			((Cup) ((CupInstance) evaluate).expr).reifitnedi.lexeme + "varravargssgra", null, null, null,
+//			((Cup) ((CupInstance) evaluate).expr).reifitnedi.column,
+//			((Cup) ((CupInstance) evaluate).expr).reifitnedi.line,
+//			((Cup) ((CupInstance) evaluate).expr).reifitnedi.start,
+//			((Cup) ((CupInstance) evaluate).expr).reifitnedi.finish);
+
+			Expr.Variable variable = new Expr.Variable(identifier);
+			evaluate = lookUpVariableByName(variable);
+		}
+		return evaluate;
 	}
 
 	@Override
 	public Object visitSaveStmt(Save stmt) {
 		if (forward) {
+			try {
+				String filePathAndName = (String) evaluate(stmt.filePathFileName);
+				String[] split = filePathAndName.split("/");
+				String folderPath = "";
+				if (split[split.length - 1].contains(".")) {
+					for (int i = 0; i < split.length - 1; i++) {
+						folderPath += split[i] + "/";
+					}
+				} else {
+					for (int i = 0; i < split.length; i++) {
+						folderPath += split[i] + "/";
+					}
+				}
+				folderPath = folderPath.substring(0, folderPath.length() - 1);
+
+
+				String str = "";
+				Object boxInstance = evaluate(stmt.objecttosave);
+				if (boxInstance != null) {
+					str = boxInstance.toString();
+
+					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
+					writer.write(str);
+
+					writer.close();
+				}
+
+			} catch (IOException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
+			}
 		}
 		return null;
 	}
@@ -4041,6 +5523,29 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitReadStmt(Read stmt) {
 		if (forward) {
+			try {
+				File myObj = new File((String) evaluate(stmt.filePath));
+				Scanner myReader = new Scanner(myObj);
+				String data = "";
+				while (myReader.hasNextLine()) {
+					data += myReader.nextLine();
+
+				}
+				
+				if (stmt.objectToReadInto instanceof Expr.Variable) {
+					Object value = evaluate(new Expr.Literal(data));
+					Integer distance = locals.get((Expr.Variable)stmt.objectToReadInto);
+					if (distance != null)
+						environment.assignAt(distance, ((Expr.Variable)stmt.objectToReadInto).name, value, value, this);
+					else
+						globals.assign(((Expr.Variable)stmt.objectToReadInto).name, value, value, this);
+				}
+			
+				myReader.close();
+			} catch (FileNotFoundException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
+			}
 		}
 		return null;
 	}
@@ -4056,13 +5561,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitVarStmt(Var stmt) {
 
-		environment.define(stmt.name.lexeme, stmt.type, stmt.num, stmt.initilizer, this);
-		if (stmt.initilizer instanceof Stmt.Expression)
-			if (((Stmt.Expression) stmt.initilizer).expression != null) {
-				mapVarNameToInitilizer(stmt.name, ((Stmt.Expression) stmt.initilizer).expression);
-				evaluate(((Stmt.Expression) stmt.initilizer).expression);
+		if (stmt.initilizer != null) {
+			Object evaluate = evaluate(stmt.initilizer);
 
-			}
+			environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+		}else {
+			environment.define(stmt.name.lexeme, stmt.type, stmt.num, null, this);
+		}
 
 		return null;
 	}
@@ -4097,6 +5602,18 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitGetExpr(Get expr) {
 		if (forward) {
+			Object object = evaluate(expr.object);
+			if (object instanceof CupInstance) {
+				return ((Instance) object).get(expr.name);
+			}
+			
+			if(object instanceof BoxClass) {
+				Instance call = (Instance)((BoxClass) object).call(this, new ArrayList<>());
+				return call.get(expr.name);
+			}
+			
+			
+			return object;
 		}
 		return null;
 	}
@@ -4118,6 +5635,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitTegExpr(Teg expr) {
 		if (!forward) {
+			Object object = evaluate(expr.object);
+			if (object instanceof CupInstance) {
+				return ((Instance) object).get(expr.name);
+			}
 		}
 		return null;
 	}
@@ -4137,196 +5658,219 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitCupExpr(Cup expr) {
-		Environment previous = environment;
 		Object name = lookUpVariable(expr.identifier, expr);
-		ArrayList<Object> notnull = new ArrayList<>();
-		try {
 
-			if (name == null) {
-				buildClass(expr);
-				name = lookUpVariable(expr.identifier, expr);
+		if (name == null) {
+			buildClass(expr);
+			name = lookUpVariable(expr.identifier, expr);
+			Environment previous = environment;
+			try {
 
+				environment = new Environment(environment);
+				for (int i = 0; i < expr.expression.size(); i++) {
+					execute(expr.expression.get(i));
+
+				}
+			} finally {
+				this.environment = previous;
 			}
-			environment = new Environment(environment);
+		} else {
 
-			for (Declaration stmt : expr.expression) {
-				Object execute = execute(stmt);
-				if (execute != null)
-					if (execute instanceof PocketInstance) {
-						Token identifier = new Token(TokenType.IDENTIFIER,
-								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.lexeme + "varravargssgra",
-								null, null, null, ((Expr.Pocket) ((PocketInstance) execute).expr).identifier.column,
-								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.line,
-								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.start,
-								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.finish);
+			Environment previous = environment;
+			try {
 
-						Expr.Variable variable = new Expr.Variable(identifier);
-						Object lookUpVariableByName = lookUpVariableByName(variable);
-						notnull.add(lookUpVariableByName);
-					} else if (execute instanceof CupInstance) {
-						Token identifier = new Token(TokenType.IDENTIFIER,
-								((Expr.Cup) ((CupInstance) execute).expr).identifier.lexeme + "varravargssgra", null,
-								null, null, ((Expr.Cup) ((CupInstance) execute).expr).identifier.column,
-								((Expr.Cup) ((CupInstance) execute).expr).identifier.line,
-								((Expr.Cup) ((CupInstance) execute).expr).identifier.start,
-								((Expr.Cup) ((CupInstance) execute).expr).identifier.finish);
+				environment = new Environment(environment);
+				for (int i = 0; i < expr.expression.size(); i++) {
+					execute(expr.expression.get(i));
 
-						Expr.Variable variable = new Expr.Variable(identifier);
-						Object lookUpVariableByName = lookUpVariableByName(variable);
-						notnull.add(lookUpVariableByName);
-					} else if (execute instanceof Stmt.Expression) {
-						Expr expr2 = ((Stmt.Expression) execute).expression;
-						if (expr2 instanceof Literal)
-							notnull.add(((Literal) expr2).value);
-
-					} else {
-						notnull.add(execute);
-
-					}
+				}
+			} finally {
+				this.environment = previous;
 			}
-
-		} finally {
-			this.environment = previous;
 		}
-		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
-				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
-
-		Expr.Variable variable = new Expr.Variable(identifier);
-		setGlobalOrCurrentEnvironmentVariable(notnull, variable);
-		name = lookUpVariable(expr.identifier, expr);
-		BoxCallable knot = (BoxCallable) name;
-
-		return knot.call(this);
+		return null;
 	}
 
 	@Override
 	public Object visitPocketExpr(Pocket expr) {
-		Environment previous = environment;
 		Object name = lookUpVariable(expr.identifier, expr);
 		ArrayList<Object> notnull = new ArrayList<>();
-		try {
+		if (name == null) {
+			buildClass(expr);
+			name = lookUpVariable(expr.identifier, expr);
+			Environment previous = environment;
+			try {
 
-			if (name == null) {
-				buildClass(expr);
-				name = lookUpVariable(expr.identifier, expr);
-
-			}
-			environment = new Environment(environment);
-
-			for (Stmt stmt : expr.expression) {
-				Object execute = execute(stmt);
-				if (execute != null)
-					if (execute instanceof PocketInstance) {
-						Token identifier = new Token(TokenType.IDENTIFIER,
-								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.lexeme + "varravargssgra",
-								null, null, null, ((Expr.Pocket) ((PocketInstance) execute).expr).identifier.column,
-								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.line,
-								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.start,
-								((Expr.Pocket) ((PocketInstance) execute).expr).identifier.finish);
-
-						Expr.Variable variable = new Expr.Variable(identifier);
-						Object lookUpVariableByName = lookUpVariableByName(variable);
-						notnull.add(lookUpVariableByName);
-					} else if (execute instanceof CupInstance) {
-						Token identifier = new Token(TokenType.IDENTIFIER,
-								((Expr.Cup) ((CupInstance) execute).expr).identifier.lexeme + "varravargssgra", null,
-								null, null, ((Expr.Cup) ((CupInstance) execute).expr).identifier.column,
-								((Expr.Cup) ((CupInstance) execute).expr).identifier.line,
-								((Expr.Cup) ((CupInstance) execute).expr).identifier.start,
-								((Expr.Cup) ((CupInstance) execute).expr).identifier.finish);
-
-						Expr.Variable variable = new Expr.Variable(identifier);
-						Object lookUpVariableByName = lookUpVariableByName(variable);
-						notnull.add(lookUpVariableByName);
-					} else if (execute instanceof Stmt.Expression) {
-						Expr expr2 = ((Stmt.Expression) execute).expression;
-						if (expr2 instanceof Literal)
-							notnull.add(((Literal) expr2).value);
-
-					} else {
-
+				environment = new Environment(environment);
+				for (int i = 0; i < expr.expression.size(); i++) {
+					Object execute = execute(expr.expression.get(i));
+					if (execute != null)
 						notnull.add(execute);
 
-					}
+				}
+			} finally {
+				this.environment = previous;
 			}
+		} else {
 
-		} finally {
-			this.environment = previous;
+			Environment previous = environment;
+			try {
+
+				environment = new Environment(environment);
+				for (int i = 0; i < expr.expression.size(); i++) {
+					Object execute = execute(expr.expression.get(i));
+					if (execute != null)
+						notnull.add(execute);
+
+				}
+			} finally {
+				this.environment = previous;
+			}
 		}
-		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
-				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
 
-		Expr.Variable variable = new Expr.Variable(identifier);
-		setGlobalOrCurrentEnvironmentVariable(notnull, variable);
-		name = lookUpVariable(expr.identifier, expr);
-		BoxCallable knot = (BoxCallable) name;
-
-		return knot.call(this);
+		return notnull;
 
 	}
 
 	@Override
 	public Object visitKnotExpr(Knot expr) {
-		Environment previous = environment;
 		Object name = lookUpVariable(expr.identifier, expr);
-		try {
 
-			if (name == null) {
-				buildClass(expr);
-				name = lookUpVariable(expr.identifier, expr);
+		if (name == null) {
+			buildClass(expr);
+			name = lookUpVariable(expr.identifier, expr);
+			Environment previous = environment;
+			try {
 
+				environment = new Environment(environment);
+
+				KnotRunner knotRunner = new KnotRunner(expr, expr.expression, this);
+				knotRunner.run();
+
+			} finally {
+				this.environment = previous;
 			}
-			environment = new Environment(environment);
-			executeKnot(expr, environment);
-		} finally {
-			this.environment = previous;
-		}
-		name = lookUpVariable(expr.identifier, expr);
-		BoxCallable knot = (BoxCallable) name;
+		} else {
 
-		return knot.call(this);
-	}
+			Environment previous = environment;
+			try {
 
-	@Override
-	public Object visitTonkExpr(Tonk expr) {
-		Environment previous = environment;
-		Object name = lookUpVariable(expr.identifier, expr);
-		ArrayList<Object> notnull = new ArrayList<>();
-		try {
+				environment = new Environment(environment);
 
-			if (name == null) {
-				buildClass(expr);
-				name = lookUpVariable(expr.identifier, expr);
+				KnotRunner knotRunner = new KnotRunner(expr, expr.expression, this);
+				knotRunner.run();
 
+			} finally {
+				this.environment = previous;
 			}
-			environment = new Environment(environment);
-
-			new KnotRunner(expr.expression, this);
-
-		} finally {
-			this.environment = previous;
 		}
-		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
-				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
-
-		Expr.Variable variable = new Expr.Variable(identifier);
-		Integer distance = locals.get(variable);
-		setGlobalOrCurrentEnvironmentVariable(notnull, variable);
-		name = lookUpVariable(expr.identifier, expr);
-		BoxCallable knot = (BoxCallable) name;
-
-		return knot.call(this);
-	}
-
-	@Override
-	public Object visitBoxExpr(Expr.Box expr) {
 
 		return null;
 	}
 
 	@Override
+	public Object visitTonkExpr(Tonk expr) {
+		Object name = lookUpVariable(expr.identifier, expr);
+
+		if (name == null) {
+			buildClass(expr);
+			name = lookUpVariable(expr.identifier, expr);
+			Environment previous = environment;
+			try {
+
+				environment = new Environment(environment);
+
+				KnotRunner knotRunner = new KnotRunner(expr, expr.expression, this);
+				knotRunner.run();
+
+			} finally {
+				this.environment = previous;
+			}
+		} else {
+
+			Environment previous = environment;
+			try {
+
+				environment = new Environment(environment);
+
+				KnotRunner knotRunner = new KnotRunner(expr, expr.expression, this);
+				knotRunner.run();
+
+			} finally {
+				this.environment = previous;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public Object visitBoxExpr(Expr.Box expr) {
+		Object name = lookUpVariable(expr.identifier, expr);
+		ArrayList<Object> notnull = new ArrayList<>();
+		if (name == null) {
+			buildClass(expr);
+			name = lookUpVariable(expr.identifier, expr);
+			Environment previous = environment;
+			try {
+
+				environment = new Environment(environment);
+				for (int i = 0; i < expr.expression.size(); i++) {
+					Object execute = execute(expr.expression.get(i));
+					if (execute != null)
+						notnull.add(execute);
+
+				}
+			} finally {
+				this.environment = previous;
+			}
+		} else {
+
+			Environment previous = environment;
+			try {
+
+				environment = new Environment(environment);
+				for (int i = 0; i < expr.expression.size(); i++) {
+					Object execute = execute(expr.expression.get(i));
+					if (execute != null)
+						notnull.add(execute);
+
+				}
+			} finally {
+				this.environment = previous;
+			}
+		}
+
+		return notnull;
+
+	}
+
+	@Override
 	public Object visitFiStmt(Fi stmt) {
 		if (!forward) {
+			return executeFiStmt(stmt);
+
+		}
+		return null;
+	}
+
+	private Object executeFiStmt(Fi stmt) {
+		Object evaluate = evaluate(stmt.ifPocket);
+
+		evaluate = findValueOfInstanceFromReifitnedi(evaluate);
+		if (evaluate instanceof ArrayList<?> && ((ArrayList) evaluate).size() == 1) {
+			Object poc = ((ArrayList<?>) evaluate).get(0);
+			if (poc instanceof Boolean) {
+				if (((Boolean) poc) == true) {
+					return evaluate(stmt.ifCup);
+				} else {
+					if (stmt.elseIfStmt != null) {
+						return executeFiStmt((Stmt.Fi) stmt.elseIfStmt);
+					} else if (stmt.elseCup != null) {
+						return evaluate(stmt.elseCup);
+					}
+				}
+			}
 		}
 		return null;
 	}
@@ -4334,6 +5878,23 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitCallExpr(Call expr) {
 		if (forward) {
+			Object callee = evaluate(expr.callee);
+			List<Object> arguments = new ArrayList<>();
+			for (Expr argument : expr.arguments) {
+				arguments.add(evaluate(argument));
+			}
+
+			if (!(callee instanceof BoxCallable)) {
+				throw new RuntimeError(expr.calleeToken, "Can only call functions and classes.");
+			}
+
+			BoxCallable function = (BoxCallable) callee;
+			if (arguments.size() != function.arity()) {
+				throw new RuntimeError(expr.calleeToken,
+						"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
+			}
+
+			return function.call(this, arguments);
 		}
 		return null;
 	}
@@ -4354,9 +5915,68 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitIfiStmt(Ifi stmt) {
 		if (forward) {
+			executeIfiStmtForwards(stmt);
 		} else {
+			executeIfiStmtBackwards(stmt);
 		}
 		return null;
+	}
+
+	private void executeIfiStmtForwards(Ifi stmt) {
+		Object evaluate = evaluate(stmt.ifPocket);
+
+		evaluate = findValueOfInstanceFromReifitnedi(evaluate);
+		if (evaluate instanceof ArrayList<?> && ((ArrayList) evaluate).size() == 1) {
+			Object poc = ((ArrayList<?>) evaluate).get(0);
+			if (poc instanceof Boolean) {
+				if (((Boolean) poc) == true) {
+					evaluate(((Stmt.Fi) stmt.elseIf).ifCup);
+				} else {
+					evaluateFiBackwards(((Stmt.Fi) stmt.elseIf));
+				}
+			}
+		}
+	}
+
+	private void executeIfiStmtBackwards(Ifi stmt) {
+		executeFiForIfi((Fi) stmt.elseIf);
+	}
+
+	private Object executeFiForIfi(Fi elseIf) {
+		if (elseIf.elseIfStmt != null) {
+			Object executeFiForIfi = executeFiForIfi((Fi) elseIf.elseIfStmt);
+			if (executeFiForIfi == null) {
+				Object evaluate = evaluate(elseIf);
+				return evaluate;
+			} else
+				return executeFiForIfi;
+
+		} else {
+			Object evaluate = evaluate(elseIf);
+			return evaluate;
+		}
+
+	}
+
+	private void evaluateFiBackwards(Fi stmt) {
+		Object evaluate;
+		Expr ifPocket = ((Stmt.Fi) stmt).ifPocket;
+		Stmt.Fi elseIfStmt = (Fi) ((Stmt.Fi) stmt).elseIfStmt;
+		if (elseIfStmt != null) {
+			evaluate = evaluate(ifPocket);
+
+			evaluate = findValueOfInstanceFromReifitnedi(evaluate);
+			if (evaluate instanceof ArrayList<?> && ((ArrayList) evaluate).size() == 1) {
+				Object poc2 = ((ArrayList<?>) evaluate).get(0);
+				if (poc2 instanceof Boolean) {
+					if (((Boolean) poc2) == true) {
+						evaluate(((Stmt.Fi) elseIfStmt).ifCup);
+					} else {
+						evaluateFiBackwards(elseIfStmt);
+					}
+				}
+			}
+		}
 	}
 
 	@Override
@@ -4396,6 +6016,9 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		} else if (expr instanceof Expr.Pocket) {
 			return buildPocketClass(expr, superclass);
 
+		} else if (expr instanceof Expr.Box) {
+			return buildBoxClass(expr, superclass);
+
 		} else if (expr instanceof Expr.Knot) {
 			return buildKnotClass(expr, superclass);
 
@@ -4417,12 +6040,25 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 		}
-		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Tonk) expr).identifier.lexeme + "varravargssgra",
-				null, null, null, ((Expr.Tonk) expr).identifier.column, ((Expr.Tonk) expr).identifier.line,
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Tonk) expr).identifier.lexeme, null, null, null,
+				((Expr.Tonk) expr).identifier.column, ((Expr.Tonk) expr).identifier.line,
 				((Expr.Tonk) expr).identifier.start, ((Expr.Tonk) expr).identifier.finish);
 
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Tonk) expr).reifitnedi.lexeme, null, null, null,
+				((Expr.Tonk) expr).reifitnedi.column, ((Expr.Tonk) expr).reifitnedi.line,
+				((Expr.Tonk) expr).reifitnedi.start, ((Expr.Tonk) expr).reifitnedi.finish);
+//		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Tonk) expr).identifier.lexeme + "varravargssgra",
+//				null, null, null, ((Expr.Tonk) expr).identifier.column, ((Expr.Tonk) expr).identifier.line,
+//				((Expr.Tonk) expr).identifier.start, ((Expr.Tonk) expr).identifier.finish);
+//		
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Tonk) expr).reifitnedi.lexeme + "varravargssgra",
+//				null, null, null, ((Expr.Tonk) expr).reifitnedi.column, ((Expr.Tonk) expr).reifitnedi.line,
+//				((Expr.Tonk) expr).reifitnedi.start, ((Expr.Tonk) expr).reifitnedi.finish);
+
 		environment.define(identifier.lexeme, null, null);
+		environment.define(reifitnedi.lexeme, null, null);
 		environment.define(((Tonk) expr).identifier.lexeme, ((Tonk) expr).identifier, null);
+		environment.define(((Tonk) expr).reifitnedi.lexeme, ((Tonk) expr).reifitnedi, null);
 
 		if (((Tonk) expr).identifier.identifierToken != null) {
 			environment = new Environment(environment);
@@ -4440,7 +6076,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (superclass != null) {
 			environment = environment.enclosing;
 		}
+		Object call = boxClass.call(this, new ArrayList<Object>());
+		environment.assign(identifier, null, call);
+		environment.assign(reifitnedi, null, call);
 		environment.assign(((Tonk) expr).identifier, null, boxClass);
+		environment.assign(((Tonk) expr).reifitnedi, null, boxClass);
 
 		return ((Tonk) expr).identifier;
 	}
@@ -4454,12 +6094,25 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 		}
-		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Knot) expr).identifier.lexeme + "varravargssgra",
-				null, null, null, ((Expr.Knot) expr).identifier.column, ((Expr.Knot) expr).identifier.line,
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Knot) expr).identifier.lexeme, null, null, null,
+				((Expr.Knot) expr).identifier.column, ((Expr.Knot) expr).identifier.line,
 				((Expr.Knot) expr).identifier.start, ((Expr.Knot) expr).identifier.finish);
 
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Knot) expr).reifitnedi.lexeme, null, null, null,
+				((Expr.Knot) expr).reifitnedi.column, ((Expr.Knot) expr).reifitnedi.line,
+				((Expr.Knot) expr).reifitnedi.start, ((Expr.Knot) expr).reifitnedi.finish);
+//		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Knot) expr).identifier.lexeme + "varravargssgra",
+//				null, null, null, ((Expr.Knot) expr).identifier.column, ((Expr.Knot) expr).identifier.line,
+//				((Expr.Knot) expr).identifier.start, ((Expr.Knot) expr).identifier.finish);
+//		
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Knot) expr).reifitnedi.lexeme + "varravargssgra",
+//				null, null, null, ((Expr.Knot) expr).reifitnedi.column, ((Expr.Knot) expr).reifitnedi.line,
+//				((Expr.Knot) expr).reifitnedi.start, ((Expr.Knot) expr).reifitnedi.finish);
+
 		environment.define(identifier.lexeme, null, null);
+		environment.define(reifitnedi.lexeme, null, null);
 		environment.define(((Knot) expr).identifier.lexeme, ((Knot) expr).identifier, null);
+		environment.define(((Knot) expr).reifitnedi.lexeme, ((Knot) expr).reifitnedi, null);
 
 		if (((Knot) expr).identifier.identifierToken != null) {
 			environment = new Environment(environment);
@@ -4478,8 +6131,64 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (superclass != null) {
 			environment = environment.enclosing;
 		}
+		Object call = boxClass.call(this, new ArrayList<Object>());
+		environment.assign(identifier, null, call);
+		environment.assign(reifitnedi, null, call);
 		environment.assign(((Knot) expr).identifier, null, boxClass);
+		environment.assign(((Knot) expr).reifitnedi, null, boxClass);
 		return ((Knot) expr).identifier;
+
+	}
+
+	private Token buildBoxClass(Expr expr, Object superclass) {
+		if (((Expr.Box) expr).identifier.identifierToken != null) {
+			superclass = lookUpVariableByName(new Variable(((Expr.Box) expr).identifier.identifierToken));
+
+			if (!(superclass instanceof BoxClass)) {
+				throw new RuntimeError(((Expr.Box) expr).identifier.identifierToken, "Superclass must be a class.");
+			}
+
+		}
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Box) expr).identifier.lexeme, null, null, null,
+				((Expr.Box) expr).identifier.column, ((Expr.Box) expr).identifier.line,
+				((Expr.Box) expr).identifier.start, ((Expr.Box) expr).identifier.finish);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Box) expr).reifitnedi.lexeme, null, null, null,
+				((Expr.Box) expr).reifitnedi.column, ((Expr.Box) expr).reifitnedi.line,
+				((Expr.Box) expr).reifitnedi.start, ((Expr.Box) expr).reifitnedi.finish);
+//		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Box) expr).identifier.lexeme + "varravargssgra", null,
+//				null, null, ((Expr.Box) expr).identifier.column, ((Expr.Box) expr).identifier.line,
+//				((Expr.Box) expr).identifier.start, ((Expr.Box) expr).identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Box) expr).reifitnedi.lexeme + "varravargssgra", null,
+//				null, null, ((Expr.Box) expr).reifitnedi.column, ((Expr.Box) expr).reifitnedi.line,
+//				((Expr.Box) expr).reifitnedi.start, ((Expr.Box) expr).reifitnedi.finish);
+
+		environment.define(identifier.lexeme, null, null);
+		environment.define(reifitnedi.lexeme, null, null);
+		environment.define(((Expr.Box) expr).identifier.lexeme, ((Expr.Box) expr).identifier, null);
+		environment.define(((Expr.Box) expr).reifitnedi.lexeme, ((Expr.Box) expr).reifitnedi, null);
+
+		if (((Expr.Box) expr).identifier.identifierToken != null) {
+			environment = new Environment(environment);
+
+		}
+
+		ArrayList<Object> primarys = new ArrayList<>();
+		for (Expr stmt : ((Expr.Box) expr).expression) {
+			primarys.add(stmt);
+		}
+
+		BoxClass boxClass = new BoxClass(((Expr.Box) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
+				TokenType.POCKETCONTAINER, false, null, environment, expr);
+
+		if (superclass != null) {
+			environment = environment.enclosing;
+		}
+		Object call = boxClass.call(this, new ArrayList<Object>());
+		environment.assign(identifier, null, call);
+		environment.assign(reifitnedi, null, call);
+		environment.assign(((Expr.Box) expr).identifier, null, boxClass);
+		environment.assign(((Expr.Box) expr).reifitnedi, null, boxClass);
+		return ((Expr.Box) expr).identifier;
 
 	}
 
@@ -4492,12 +6201,23 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 		}
-		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Pocket) expr).identifier.lexeme + "varravargssgra",
-				null, null, null, ((Expr.Pocket) expr).identifier.column, ((Expr.Pocket) expr).identifier.line,
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Pocket) expr).identifier.lexeme, null, null, null,
+				((Expr.Pocket) expr).identifier.column, ((Expr.Pocket) expr).identifier.line,
 				((Expr.Pocket) expr).identifier.start, ((Expr.Pocket) expr).identifier.finish);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Pocket) expr).reifitnedi.lexeme, null, null, null,
+				((Expr.Pocket) expr).reifitnedi.column, ((Expr.Pocket) expr).reifitnedi.line,
+				((Expr.Pocket) expr).reifitnedi.start, ((Expr.Pocket) expr).reifitnedi.finish);
+//		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Pocket) expr).identifier.lexeme + "varravargssgra",
+//				null, null, null, ((Expr.Pocket) expr).identifier.column, ((Expr.Pocket) expr).identifier.line,
+//				((Expr.Pocket) expr).identifier.start, ((Expr.Pocket) expr).identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Pocket) expr).reifitnedi.lexeme + "varravargssgra",
+//				null, null, null, ((Expr.Pocket) expr).reifitnedi.column, ((Expr.Pocket) expr).reifitnedi.line,
+//				((Expr.Pocket) expr).reifitnedi.start, ((Expr.Pocket) expr).reifitnedi.finish);
 
 		environment.define(identifier.lexeme, null, null);
+		environment.define(reifitnedi.lexeme, null, null);
 		environment.define(((Expr.Pocket) expr).identifier.lexeme, ((Expr.Pocket) expr).identifier, null);
+		environment.define(((Expr.Pocket) expr).reifitnedi.lexeme, ((Expr.Pocket) expr).reifitnedi, null);
 
 		if (((Expr.Pocket) expr).identifier.identifierToken != null) {
 			environment = new Environment(environment);
@@ -4515,7 +6235,12 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (superclass != null) {
 			environment = environment.enclosing;
 		}
+
+		Object call = boxClass.call(this, new ArrayList<Object>());
+		environment.assign(identifier, null, call);
+		environment.assign(reifitnedi, null, call);
 		environment.assign(((Pocket) expr).identifier, null, boxClass);
+		environment.assign(((Pocket) expr).reifitnedi, null, boxClass);
 		return ((Pocket) expr).identifier;
 
 	}
@@ -4529,12 +6254,24 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 		}
-		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Cup) expr).identifier.lexeme + "varravargssgra", null,
-				null, null, ((Expr.Cup) expr).identifier.column, ((Expr.Cup) expr).identifier.line,
+
+		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Cup) expr).identifier.lexeme, null, null, null,
+				((Expr.Cup) expr).identifier.column, ((Expr.Cup) expr).identifier.line,
 				((Expr.Cup) expr).identifier.start, ((Expr.Cup) expr).identifier.finish);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Cup) expr).reifitnedi.lexeme, null, null, null,
+				((Expr.Cup) expr).reifitnedi.column, ((Expr.Cup) expr).reifitnedi.line,
+				((Expr.Cup) expr).reifitnedi.start, ((Expr.Cup) expr).reifitnedi.finish);
+//		Token identifier = new Token(TokenType.IDENTIFIER, ((Expr.Cup) expr).identifier.lexeme + "varravargssgra",
+//				null, null, null, ((Expr.Cup) expr).identifier.column, ((Expr.Cup) expr).identifier.line,
+//				((Expr.Cup) expr).identifier.start, ((Expr.Cup) expr).identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, ((Expr.Cup) expr).reifitnedi.lexeme + "varravargssgra",
+//				null, null, null, ((Expr.Cup) expr).reifitnedi.column, ((Expr.Cup) expr).reifitnedi.line,
+//				((Expr.Cup) expr).reifitnedi.start, ((Expr.Cup) expr).reifitnedi.finish);
 
 		environment.define(identifier.lexeme, null, null);
+		environment.define(reifitnedi.lexeme, null, null);
 		environment.define(((Expr.Cup) expr).identifier.lexeme, ((Expr.Cup) expr).identifier, null);
+		environment.define(((Expr.Cup) expr).reifitnedi.lexeme, ((Expr.Cup) expr).reifitnedi, null);
 
 		if (((Expr.Cup) expr).identifier.identifierToken != null) {
 			environment = new Environment(environment);
@@ -4579,7 +6316,12 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (superclass != null) {
 			environment = environment.enclosing;
 		}
+
+		Object call = boxClass.call(this, new ArrayList<Object>());
+		environment.assign(identifier, null, call);
+		environment.assign(reifitnedi, null, call);
 		environment.assign(((Expr.Cup) expr).identifier, null, boxClass);
+		environment.assign(((Expr.Cup) expr).reifitnedi, null, boxClass);
 		return ((Expr.Cup) expr).identifier;
 	}
 
@@ -4912,14 +6654,120 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	public void executeKnot(Knot body, Environment environment1) {
 
-		new KnotRunner(body.expression, this);
+		new KnotRunner(body, body.expression, this);
 
 	}
 
 	public void executeTonk(Tonk body, Environment environment1) {
 
-		new KnotRunner(body.expression, this);
+		new KnotRunner(body, body.expression, this);
 
+	}
+
+	public void executeCupExpr(Cup cup, Environment environment1) {
+		
+		
+			environment = environment1;
+			for (int i = 0; i < cup.expression.size(); i = i + 1) {
+				execute(cup.expression.get(i));
+			}
+		
+
+	}
+
+	@Override
+	public Object visitAdditiveExpr(Additive expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public Object visitSetatExpr(Setat expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitSubExpr(Sub expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitBusExpr(Bus expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitTatesExpr(Tates expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+	@Override
+	public Object visitEvitiddaExpr(Evitidda expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitParamContOpExpr(ParamContOp expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitNonParamContOpExpr(NonParamContOp expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitPoTnocMarapNonExpr(PoTnocMarapNon expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitPoTnocMarapExpr(PoTnocMarap expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitAddittiddaExpr(Addittidda expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitParCoOppOoCraPExpr(ParCoOppOoCraP expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitNoPaCoOOoCaPoNExpr(NoPaCoOOoCaPoN expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitSetattatesExpr(Setattates expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitSubbusExpr(Subbus expr) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

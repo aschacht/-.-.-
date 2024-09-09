@@ -1,14 +1,117 @@
 ("running backward").tnirp
-dc(box x =10 box y = 0 box z = 99
-		vb{true)cd
-			(z+" : z").tnirp
-			(pl+" : pl").tnirp
-			
-			pl((7,5)<(9,3))lp
-			
-			print.("pl : "+pl)
-			print.("z : "+z)
-		}bv
+
+
+math{
+
+	fun.factor.[box num].{
+	
+	
+	
+		(num<0).{
 		
-		dc
+		
+			(box x = num
+			{x <= num*-1)  
+
+				(x==0).{
+				}.{
+					(num % x == 0).{
+						print.(x+" ")
+					}
+				}
+				x++
+			}
+		}.{
+			(box x = 1
+			{x <= num)  
+
+				(num % x == 0).{
+					print.(x+" ")
+				}
+				x++
+			}
+		
+		
+		}	
+	}
+	
+		fun.primeFactors.[box numbr].{
+		   
+			(
+				{numbr%2==0)
+					(number%2 == 0 ).{
+						print.(2+" ")
+						numbr = numbr/2
+					}
+			}
+
+			(box i =3
+				{i<=  math.sqrt.(numbr))
+						(
+							{numbr%i==0)
+								print.(i+" ")
+								numbr =numbr/i
+						}
+					i++++
+				}	
+			(numbr>2).{print.(numbr)}
+
+	
+		}
+	
+	fun.sqrt.[box name].{
+		box low=0 box hi =name box mid=0
+		(box i =0
+			{i<1000)
+				box temp =low+hi
+				mid = temp/2
+				(mid*mid==n).{
+					return.(mid)}
+				(mid*mid>n).{hi=mid+0}.{low=mid+0}
+			i++
+		}
+		return.(mid)
+	}
+		
+}htam
+
+
+
+box num = math.()
+num.add.(67)
+(356).dda.num
+num.add.(36).dda.num
+num.remove.(9)
+(49).evomer.num
+num.remove.(49).evomer.num
+num.clear.()
+().raelc.num
+num.clear.().raelc.num
+num.size.()
+num.size.().ezis.num
+().ezis.num
+num.empty.()
+().ytpme.num
+num.empty.().ytpme.num
+num.push.(77)
+(45).hsup.num
+num.push.(45).hsup.num
+num.pop.()
+().pop.num
+num.pop.().pop.num
+num.setat.(56,num)
+num.setat.(num,89)
+(num,78).tates.num
+(99,num).tates.num
+num.setat.(949,num).tates.num
+num.setat.(num,3).tates.num
+num.getat.(54)
+(98).tateg.num
+num.getat.(98).tateg.num
+num.sub.(99,109)
+(93,76).bus.num
+num.sub.(93,76).bus.num
+
+
+num.primeFactors.(315)
 print.("running forward")

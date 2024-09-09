@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Box.Interpreter.KnotRunner.Conditions;
+import Box.Token.Token;
+import Box.Token.TokenType;
 import Parser.Expr;
+import Parser.Expr.Tonk;
 import Parser.Stmt;
 
 public class KnotRunner {
@@ -133,35 +136,19 @@ public class KnotRunner {
 	Conditions pockets = new Conditions();
 	private Interpreter interp;
 
-	public KnotRunner(List<Stmt> expression, Interpreter interp) {
+	public KnotRunner(Expr expr, List<Stmt> expression, Interpreter interp) {
 		this.expression = expression;
 		this.interp = interp;
 		findConditions();
-//		System.out.println();
-//		System.out.println(pockets.toString());
-//		System.out.println();
-//		System.out.println(condForward.toString());
-//		System.out.println();
-//		System.out.println(condBackward.toString());
+		findandRunSetup();
+	}
+
+	public ArrayList<Object> run() {
 		int count = 0;
 		if (!interp.isForward())
 			count = expression.size() - 1;
 
-		findandRunSetup();
-
-		boolean firstForward = false;
-		boolean firstBack = true;
-		int firstForwardCount = 0;
-		int firstBackCount = 0;
-		if (interp.isForward()) {
-			firstForward = false;
-			firstBack = true;
-			firstForwardCount = condForward.size();
-		} else {
-			firstForward = true;
-			firstBack = false;
-			firstBackCount = condBackward.size();
-		}
+		ArrayList<Object> notnull = new ArrayList<>();
 		while (true) {
 			if (expression.get(count) instanceof Stmt.Expression) {
 				if (((Stmt.Expression) expression.get(count)).expression instanceof Expr.CupClosed && interp.isForward()) {
@@ -191,10 +178,10 @@ public class KnotRunner {
 						}
 
 				} else {
-					interp.execute(expression.get(count));
+					notnull.add(interp.execute(expression.get(count)));
 				}
 			} else {
-				interp.execute(expression.get(count));
+				notnull.add(interp.execute(expression.get(count)));
 			}
 			if (interp.isForward())
 				count++;
@@ -205,7 +192,7 @@ public class KnotRunner {
 			if (count < 0)
 				break;
 		}
-
+		return notnull;
 	}
 
 	private void findandRunSetup() {

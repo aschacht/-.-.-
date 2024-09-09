@@ -1,0 +1,44 @@
+//add to Binary
+
+	public void reverse() {
+		Expr temp = left;
+		this.left = this.right;
+		this.right = temp;
+		
+		if(this.left instanceof Expr.Binary) {
+			((Expr.Binary) this.left).reverse();
+		}
+		if(this.right instanceof Expr.Binary) {
+			((Expr.Binary) this.right).reverse();
+		}
+		
+	}
+	
+	
+	
+	//add to Expr
+	
+		@Override
+    public boolean equals(Object obj) {
+		if (this instanceof Variable) {
+        return obj instanceof Variable && ((Variable)this).name.lexeme.equals(((Variable) obj).name.lexeme)
+        		&&((Variable)this).name.type == ((Variable) obj).name.type
+        		&&((Variable)this).name.line == ((Variable) obj).name.line&&
+        				((Variable)this).name.column == ((Variable) obj).name.column&&
+        						((Variable)this).name.start == ((Variable) obj).name.start&&
+        								((Variable)this).name.finish == ((Variable) obj).name.finish;
+		}
+		return super.equals(obj);
+		}
+	
+
+		@Override
+		public int hashCode() {
+			if (this instanceof Variable) {
+			return Objects.hash(((Variable)this).name.lexeme,((Variable)this).name.type,((Variable)this).name.line,((Variable)this).name.column,((Variable)this).name.start,((Variable)this).name.finish);
+			}
+			return super.hashCode();
+		}
+	
+		
+		

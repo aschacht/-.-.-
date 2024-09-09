@@ -88,15 +88,7 @@ public class Environment {
 								lookUpVariable = interpreter.lookUpVariable(((Expr.Box) exprValue).identifier,
 										((Expr.Box) exprValue));
 							}
-							if (lookUpVariable instanceof Instance) {
-								ArrayList<Object> newContents = new ArrayList<>();
-								newContents.add(lookUpVariable);
-								((BoxClass) ((Instance) objetToset).boxClass).contents = newContents;
-							} else {
-								ArrayList<Object> newContents = new ArrayList<>();
-								newContents.add(value);
-								((BoxClass) ((Instance) objetToset).boxClass).contents = newContents;
-							}
+							
 						} else if (((Instance) objetToset).boxClass instanceof BoxContainerClass) {
 							Object lookUpVariable = null;
 							if (exprValue instanceof Expr.Variable) {
@@ -112,15 +104,7 @@ public class Environment {
 								lookUpVariable = interpreter.lookUpVariable(((Expr.Box) exprValue).identifier,
 										((Expr.Box) exprValue));
 							}
-							if (lookUpVariable instanceof Instance) {
-								ArrayList<Object> newContents = new ArrayList<>();
-								newContents.add(lookUpVariable);
-								((BoxContainerClass) ((Instance) objetToset).boxClass).contents = newContents;
-							} else {
-								ArrayList<Object> newContents = new ArrayList<>();
-								newContents.add(value);
-								((BoxClass) ((Instance) objetToset).boxClass).contents = newContents;
-							}
+							
 						}
 					} else {
 						values.put(name.lexeme, value);

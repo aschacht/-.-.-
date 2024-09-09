@@ -3,19 +3,36 @@ package Parser;
 import java.util.List;
 import java.util.ArrayList;
 import Box.Token.Token;
+import java.util.Objects;
+import Box.Token.TokenType;
 
 public abstract class Stmt extends Declaration {
+public abstract void reverse();
 public static class Expression extends Stmt {
-	 public Expression(Expr expression) {
+	 public Expression(Expr expression , Expr noisserpxe) {
 	this.expression = expression;
+	this.noisserpxe = noisserpxe;
 	}
+
+	public  Expression(Expression other) {
+	this.expression = other.expression;
+	this.noisserpxe = other.noisserpxe;
+	}
+
 
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitExpressionStmt(this);
 	}
 
+	@Override
+	public void reverse() {
+	this.expression.reverse();
+	this.noisserpxe.reverse();
+	}
+
 	public  Expr expression;
+	public  Expr noisserpxe;
 	}
 public static class If extends Stmt {
 	 public If(Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup) {
@@ -25,9 +42,25 @@ public static class If extends Stmt {
 	this.elseCup = elseCup;
 	}
 
+	public  If(If other) {
+	this.ifPocket = other.ifPocket;
+	this.ifCup = other.ifCup;
+	this.elseIfStmt = other.elseIfStmt;
+	this.elseCup = other.elseCup;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitIfStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.ifPocket.reverse();
+	this.ifCup.reverse();
+	this.elseIfStmt.reverse();
+	this.elseCup.reverse();
 	}
 
 	public  Expr ifPocket;
@@ -41,9 +74,20 @@ public static class Print extends Stmt {
 	this.expression = expression;
 	}
 
+	public  Print(Print other) {
+	this.keyword = other.keyword;
+	this.expression = other.expression;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitPrintStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
 	}
 
 	public  Token keyword;
@@ -56,9 +100,22 @@ public static class Save extends Stmt {
 	this.objecttosave = objecttosave;
 	}
 
+	public  Save(Save other) {
+	this.keyword = other.keyword;
+	this.filePathFileName = other.filePathFileName;
+	this.objecttosave = other.objecttosave;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitSaveStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathFileName.reverse();
+	this.objecttosave.reverse();
 	}
 
 	public  Token keyword;
@@ -72,9 +129,22 @@ public static class Read extends Stmt {
 	this.objectToReadInto = objectToReadInto;
 	}
 
+	public  Read(Read other) {
+	this.keyword = other.keyword;
+	this.filePath = other.filePath;
+	this.objectToReadInto = other.objectToReadInto;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitReadStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePath.reverse();
+	this.objectToReadInto.reverse();
 	}
 
 	public  Token keyword;
@@ -88,9 +158,22 @@ public static class Rename extends Stmt {
 	this.filenewname = filenewname;
 	}
 
+	public  Rename(Rename other) {
+	this.keyword = other.keyword;
+	this.filePathAndName = other.filePathAndName;
+	this.filenewname = other.filenewname;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitRenameStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathAndName.reverse();
+	this.filenewname.reverse();
 	}
 
 	public  Token keyword;
@@ -104,9 +187,22 @@ public static class Move extends Stmt {
 	this.newfilePath = newfilePath;
 	}
 
+	public  Move(Move other) {
+	this.keyword = other.keyword;
+	this.OringialfilePathAndFile = other.OringialfilePathAndFile;
+	this.newfilePath = other.newfilePath;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitMoveStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.OringialfilePathAndFile.reverse();
+	this.newfilePath.reverse();
 	}
 
 	public  Token keyword;
@@ -119,31 +215,55 @@ public static class Return extends Stmt {
 	this.expression = expression;
 	}
 
+	public  Return(Return other) {
+	this.keyword = other.keyword;
+	this.expression = other.expression;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitReturnStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
 	}
 
 	public  Token keyword;
 	public  Expr expression;
 	}
 public static class Var extends Stmt {
-	 public Var(Token name , Token type, int num , Stmt initilizer) {
+	 public Var(Token name , Token type, int num , Expr initilizer) {
 	this.name = name;
 	this.type = type;
 	this.num = num;
 	this.initilizer = initilizer;
 	}
 
+	public  Var(Var other) {
+	this.name = other.name;
+	this.type = other.type;
+	this.num = other.num;
+	this.initilizer = other.initilizer;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitVarStmt(this);
 	}
 
+	@Override
+	public void reverse() {
+	this.initilizer.reverse();
+	}
+
 	public  Token name;
 	public  Token type;
 	public  int num;
-	public  Stmt initilizer;
+	public  Expr initilizer;
 	}
 public static class TemplatVar extends Stmt {
 	 public TemplatVar(Token name, Token superclass) {
@@ -151,9 +271,19 @@ public static class TemplatVar extends Stmt {
 	this.superclass = superclass;
 	}
 
+	public  TemplatVar(TemplatVar other) {
+	this.name = other.name;
+	this.superclass = other.superclass;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitTemplatVarStmt(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token name;
@@ -166,9 +296,22 @@ public static class Expel extends Stmt {
 	this.filePath = filePath;
 	}
 
+	public  Expel(Expel other) {
+	this.keyword = other.keyword;
+	this.toExpell = other.toExpell;
+	this.filePath = other.filePath;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitExpelStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.toExpell.reverse();
+	this.filePath.reverse();
 	}
 
 	public  Token keyword;
@@ -182,9 +325,22 @@ public static class Consume extends Stmt {
 	this.filePath = filePath;
 	}
 
+	public  Consume(Consume other) {
+	this.keyword = other.keyword;
+	this.boxToFill = other.boxToFill;
+	this.filePath = other.filePath;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitConsumeStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.boxToFill.reverse();
+	this.filePath.reverse();
 	}
 
 	public  Token keyword;
@@ -197,9 +353,21 @@ public static class Ifi extends Stmt {
 	this.elseIf = elseIf;
 	}
 
+	public  Ifi(Ifi other) {
+	this.ifPocket = other.ifPocket;
+	this.elseIf = other.elseIf;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitIfiStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.ifPocket.reverse();
+	this.elseIf.reverse();
 	}
 
 	public  Expr ifPocket;
@@ -212,9 +380,21 @@ public static class StmttmtS extends Stmt {
 	this.keywordBackward = keywordBackward;
 	}
 
+	public  StmttmtS(StmttmtS other) {
+	this.keywordForward = other.keywordForward;
+	this.expression = other.expression;
+	this.keywordBackward = other.keywordBackward;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitStmttmtSStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
 	}
 
 	public  Token keywordForward;
@@ -229,9 +409,23 @@ public static class Saveevas extends Stmt {
 	this.keywordBackward = keywordBackward;
 	}
 
+	public  Saveevas(Saveevas other) {
+	this.keywordForward = other.keywordForward;
+	this.filePathFileName = other.filePathFileName;
+	this.objecttosave = other.objecttosave;
+	this.keywordBackward = other.keywordBackward;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitSaveevasStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathFileName.reverse();
+	this.objecttosave.reverse();
 	}
 
 	public  Token keywordForward;
@@ -247,9 +441,23 @@ public static class Readdaer extends Stmt {
 	this.keywordBackward = keywordBackward;
 	}
 
+	public  Readdaer(Readdaer other) {
+	this.keywordForward = other.keywordForward;
+	this.filePath = other.filePath;
+	this.objectToReadInto = other.objectToReadInto;
+	this.keywordBackward = other.keywordBackward;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitReaddaerStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePath.reverse();
+	this.objectToReadInto.reverse();
 	}
 
 	public  Token keywordForward;
@@ -265,9 +473,23 @@ public static class Renameemaner extends Stmt {
 	this.keywordBackward = keywordBackward;
 	}
 
+	public  Renameemaner(Renameemaner other) {
+	this.keywordForward = other.keywordForward;
+	this.filePathAndName = other.filePathAndName;
+	this.filenewname = other.filenewname;
+	this.keywordBackward = other.keywordBackward;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitRenameemanerStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathAndName.reverse();
+	this.filenewname.reverse();
 	}
 
 	public  Token keywordForward;
@@ -283,9 +505,23 @@ public static class Moveevom extends Stmt {
 	this.keywordBackward = keywordBackward;
 	}
 
+	public  Moveevom(Moveevom other) {
+	this.keywordForward = other.keywordForward;
+	this.OringialfilePathAndFile = other.OringialfilePathAndFile;
+	this.newfilePath = other.newfilePath;
+	this.keywordBackward = other.keywordBackward;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitMoveevomStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.OringialfilePathAndFile.reverse();
+	this.newfilePath.reverse();
 	}
 
 	public  Token keywordForward;
@@ -300,9 +536,21 @@ public static class Stmtnoisserpxe extends Stmt {
 	this.noisserpxeToken = noisserpxeToken;
 	}
 
+	public  Stmtnoisserpxe(Stmtnoisserpxe other) {
+	this.statementToken = other.statementToken;
+	this.expression = other.expression;
+	this.noisserpxeToken = other.noisserpxeToken;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitStmtnoisserpxeStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
 	}
 
 	public  Token statementToken;
@@ -317,9 +565,22 @@ public static class Rav extends Stmt {
 	this.initilizer = initilizer;
 	}
 
+	public  Rav(Rav other) {
+	this.name = other.name;
+	this.type = other.type;
+	this.num = other.num;
+	this.initilizer = other.initilizer;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitRavStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.initilizer.reverse();
 	}
 
 	public  Token name;
@@ -333,9 +594,20 @@ public static class Nruter extends Stmt {
 	this.expression = expression;
 	}
 
+	public  Nruter(Nruter other) {
+	this.keyword = other.keyword;
+	this.expression = other.expression;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitNruterStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
 	}
 
 	public  Token keyword;
@@ -348,9 +620,22 @@ public static class Evom extends Stmt {
 	this.newfilePath = newfilePath;
 	}
 
+	public  Evom(Evom other) {
+	this.keyword = other.keyword;
+	this.OringialfilePathAndFile = other.OringialfilePathAndFile;
+	this.newfilePath = other.newfilePath;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitEvomStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.OringialfilePathAndFile.reverse();
+	this.newfilePath.reverse();
 	}
 
 	public  Token keyword;
@@ -364,9 +649,22 @@ public static class Emaner extends Stmt {
 	this.filenewname = filenewname;
 	}
 
+	public  Emaner(Emaner other) {
+	this.keyword = other.keyword;
+	this.filePathAndName = other.filePathAndName;
+	this.filenewname = other.filenewname;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitEmanerStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathAndName.reverse();
+	this.filenewname.reverse();
 	}
 
 	public  Token keyword;
@@ -380,9 +678,22 @@ public static class Daer extends Stmt {
 	this.objectToReadInto = objectToReadInto;
 	}
 
+	public  Daer(Daer other) {
+	this.keyword = other.keyword;
+	this.filePath = other.filePath;
+	this.objectToReadInto = other.objectToReadInto;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitDaerStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePath.reverse();
+	this.objectToReadInto.reverse();
 	}
 
 	public  Token keyword;
@@ -396,9 +707,22 @@ public static class Evas extends Stmt {
 	this.objecttosave = objecttosave;
 	}
 
+	public  Evas(Evas other) {
+	this.keyword = other.keyword;
+	this.filePathFileName = other.filePathFileName;
+	this.objecttosave = other.objecttosave;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitEvasStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathFileName.reverse();
+	this.objecttosave.reverse();
 	}
 
 	public  Token keyword;
@@ -411,9 +735,20 @@ public static class Tnirp extends Stmt {
 	this.expression = expression;
 	}
 
+	public  Tnirp(Tnirp other) {
+	this.keyword = other.keyword;
+	this.expression = other.expression;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitTnirpStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
 	}
 
 	public  Token keyword;
@@ -427,9 +762,25 @@ public static class Fi extends Stmt {
 	this.elseCup = elseCup;
 	}
 
+	public  Fi(Fi other) {
+	this.ifPocket = other.ifPocket;
+	this.ifCup = other.ifCup;
+	this.elseIfStmt = other.elseIfStmt;
+	this.elseCup = other.elseCup;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitFiStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.ifPocket.reverse();
+	this.ifCup.reverse();
+	this.elseIfStmt.reverse();
+	this.elseCup.reverse();
 	}
 
 	public  Expr ifPocket;

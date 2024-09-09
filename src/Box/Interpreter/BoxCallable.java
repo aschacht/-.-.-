@@ -8,22 +8,17 @@ import Box.Token.TokenType;
 import Parser.Expr;
 import Parser.Expr.Pocket;
 
-public abstract class BoxCallable {
+public interface BoxCallable {
 
-	public List<Object> contents;
-	public TokenType type;
-	public Object call(Interpreter interpreter){
-		
-		return null;
-	}
-	public Instance instance(Interpreter interp) {
-		return null;
-		
-	}
+	
+	
+	public Object call(Interpreter interpreter,List<Object> arguments);
+	
 
-	int arity() {
-		return 0;
-	}
+	int arity() ;
+
+
+	public BoxFunction findMethod(String lexeme);
 	
 	
 	

@@ -45,14 +45,6 @@ public enum RunTimeTypes {
 					}else if(((BoxClass)((Instance)lookUpVariable).boxClass).type == TokenType.POCKETCONTAINER ) {
 						return RunTimeTypes.Pocket;
 					}
-				}else if(((Instance)lookUpVariable).boxClass instanceof BoxContainerClass) {
-					if(((BoxContainerClass)((Instance)lookUpVariable).boxClass).type == TokenType.BOXCONTAINER ) {
-						return RunTimeTypes.Box;
-					}else if(((BoxContainerClass)((Instance)lookUpVariable).boxClass).type == TokenType.CUPCONTAINER ) {
-						return RunTimeTypes.Cup;
-					}else if(((BoxContainerClass)((Instance)lookUpVariable).boxClass).type == TokenType.POCKETCONTAINER ) {
-						return RunTimeTypes.Pocket;
-					}
 				}
 			}
 			

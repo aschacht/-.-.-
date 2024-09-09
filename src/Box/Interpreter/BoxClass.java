@@ -8,23 +8,26 @@ import Box.Syntax.ExprOLD;
 import Box.Syntax.ExprOLD.Literal;
 import Box.Token.Token;
 import Box.Token.TokenType;
+import Parser.Declaration.FunDecl;
 import Parser.Expr;
 import Parser.Stmt;
 import Parser.Stmt.Expression;
 
-public class BoxClass extends BoxCallable {
+public class BoxClass implements BoxCallable {
 
 	public String name;
 	private Map<String, BoxFunction> methods;
 	private BoxClass superclass;
-
+	public List<Object> contents;
+	public TokenType type;
 	private boolean enforce;
 
 	private TypesOfObject typesOfObject;
-	 Environment closure;
-	 Expr body;
+	Environment closure;
+	Expr body;
+
 	public BoxClass(String name, BoxClass superclass, ArrayList<Object> boxPrimarys, Map<String, BoxFunction> methods,
-			TokenType type, boolean enforce, TypesOfObject typesOfObject,Environment closure, Expr body) {
+			TokenType type, boolean enforce, TypesOfObject typesOfObject, Environment closure, Expr body) {
 		this.name = name;
 		this.superclass = superclass;
 		this.contents = boxPrimarys;
@@ -38,7 +41,6 @@ public class BoxClass extends BoxCallable {
 
 	}
 
-
 	@Override
 	public String toString() {
 		String contents = "";
@@ -47,12 +49,12 @@ public class BoxClass extends BoxCallable {
 			contents = name + "{ ";
 		if (type == TokenType.POCKETCONTAINER)
 			contents = name + "( ";
-		
+
 		for (Object object : this.contents) {
-			if(object !=null) {
-			contents += object.toString() + " ";
-			}else
-				contents+= "null ";
+			if (object != null) {
+				contents += object.toString() + " ";
+			} else
+				contents += "null ";
 		}
 		if (type == TokenType.CUPCONTAINER)
 			contents += " }" + sb.reverse().toString();
@@ -61,32 +63,6 @@ public class BoxClass extends BoxCallable {
 		return contents;
 	}
 
-	@Override
-	public Object call(Interpreter interpreter) {
-		Instance instance = null;
-		
-		if (body instanceof Expr.Knot) {
-			instance = new KnotTonkInstance(this,((Expr.Knot) body).expression,body);
-			
-		}else if (body instanceof Expr.Cup) {
-			instance = new CupInstance(this,((Expr.Cup) body).expression,body);
-			
-		}else if (body instanceof Expr.Pocket) {
-			instance = new PocketInstance(this,((Expr.Pocket) body).expression,body);
-			
-		}else if(body instanceof Expr.Tonk) {
-			instance = new KnotTonkInstance(this,((Expr.Tonk) body).expression,body);
-			
-		}
-		else if(body instanceof Expr.Box) {
-			instance = new BoxInstance(this,((Expr.Box) body).expression,body);
-			
-	}
-		return instance;
-	}
-	
-
-	
 
 	@Override
 	public int arity() {
@@ -109,110 +85,12 @@ public class BoxClass extends BoxCallable {
 	}
 
 	public void setContentsAt(Integer integer, Object expression) {
-		if (enforce) {
-			if (expression instanceof Instance) {
-
-				if (((Instance) expression).boxClass instanceof BoxClass) {
-					if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes
-							.getTypeBasedOfTokenType(((BoxClass) ((Instance) expression).boxClass).type)) {
-
-						if (integer == 0 && contents.size() - 1 == -1) {
-							this.contents.add(expression);
-						} else
-							this.contents.set(integer, expression);
-
-					}
-				} else if (((Instance) expression).boxClass instanceof BoxContainerClass) {
-					if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes
-							.getTypeBasedOfTokenType(((BoxContainerClass) ((Instance) expression).boxClass).type)) {
-
-						if (integer == 0 && contents.size() - 1 == -1) {
-							this.contents.add(expression);
-						} else
-							this.contents.set(integer, expression);
-
-					}
-				}
-			} else if (expression instanceof ExprOLD.Knot) {
-				
-			} else if (expression instanceof ExprOLD.Cup) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Cup) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof ExprOLD.Pocket) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Pocket) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof ExprOLD.Box) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Box) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof ExprOLD.Literal) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Int
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Double
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Bin
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.String
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Boolean
-						|| typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.NULL) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			} else if (expression instanceof ExprOLD.LiteralChar) {
-				if (typesOfObject.getRunTimeTypeForObject() == RunTimeTypes.Char) {
-
-					if (integer == 0 && contents.size() - 1 == -1) {
-						this.contents.add(expression);
-					} else
-						this.contents.set(integer, expression);
-
-				}
-			}
-
-		} else {
-			if (integer == 0 && contents.size() - 1 == -1) {
-				this.contents.add(expression);
-			} else
-				this.contents.set(integer, expression);
-
-		}
+	
 	}
 
 	public Object get(String lexeme) {
-		for (Object expr : contents) {
-			if (expr instanceof Instance) {
-				if ((((Instance) expr).boxClass) instanceof BoxClass) {
-					if (((BoxClass) ((Instance) expr).boxClass).name.equalsIgnoreCase(lexeme)) {
-						return expr;
-					}
-				} else if ((((Instance) expr).boxClass) instanceof BoxContainerClass) {
-					if (((BoxContainerClass) ((Instance) expr).boxClass).name.equalsIgnoreCase(lexeme)) {
-						return expr;
-					}
-				} else if ((((Instance) expr).boxClass) instanceof BoxKnotClass) {
-					if (((BoxKnotClass) ((Instance) expr).boxClass).name.equalsIgnoreCase(lexeme)) {
-						return expr;
-					}
-				}
-			}
+		if(methods.containsKey(lexeme)) {
+			return methods.get(lexeme);
 		}
 		return null;
 	}
@@ -234,11 +112,7 @@ public class BoxClass extends BoxCallable {
 
 	public boolean compairPrimarys(BoxContainerClass boxContainerClass) {
 		boolean contains = false;
-		for (Object object : boxContainerClass.contents) {
-			contains = contents.contains(object);
-			if (!contains)
-				break;
-		}
+		
 		return contains;
 	}
 
@@ -246,5 +120,30 @@ public class BoxClass extends BoxCallable {
 
 		return contents.size();
 	}
+
+	@Override
+	public Object call(Interpreter interpreter, List<Object> arguments) {
+		Instance instance = null;
+
+		if (body instanceof Expr.Knot) {
+			instance = new KnotInstance(this, ((Expr.Knot) body).expression, body);
+
+		} else if (body instanceof Expr.Cup) {
+			instance = new CupInstance(this, ((Expr.Cup) body).expression, body);
+
+		} else if (body instanceof Expr.Pocket) {
+			instance = new PocketInstance(this, ((Expr.Pocket) body).expression, body);
+
+		} else if (body instanceof Expr.Tonk) {
+			instance = new KnotInstance(this, ((Expr.Tonk) body).expression, body);
+
+		} else if (body instanceof Expr.Box) {
+			instance = new BoxInstance(this, ((Expr.Box) body).expression, body);
+
+		}
+		return instance;
+	}
+
+
 
 }

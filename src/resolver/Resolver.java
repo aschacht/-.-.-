@@ -16,18 +16,22 @@ import Parser.Fun;
 import Parser.Stmt;
 import Parser.Declaration.FunDecl;
 import Parser.Declaration.StmtDecl;
+import Parser.Expr.Additive;
+import Parser.Expr.Addittidda;
 import Parser.Expr.Assignment;
 import Parser.Expr.Assignmenttnemgissa;
 import Parser.Expr.Binary;
 import Parser.Expr.Binaryyranib;
 import Parser.Expr.BoxClosed;
 import Parser.Expr.BoxOpen;
+import Parser.Expr.Bus;
 import Parser.Expr.Call;
 import Parser.Expr.Callllac;
 import Parser.Expr.Contains;
 import Parser.Expr.Cup;
 import Parser.Expr.CupClosed;
 import Parser.Expr.CupOpen;
+import Parser.Expr.Evitidda;
 import Parser.Expr.Expressiontmts;
 import Parser.Expr.Factorial;
 import Parser.Expr.Get;
@@ -42,13 +46,24 @@ import Parser.Expr.Log;
 import Parser.Expr.Loggol;
 import Parser.Expr.Mono;
 import Parser.Expr.Monoonom;
+import Parser.Expr.NoPaCoOOoCaPoN;
+import Parser.Expr.NonParamContOp;
 import Parser.Expr.Onom;
+import Parser.Expr.ParCoOppOoCraP;
+import Parser.Expr.ParamContOp;
+import Parser.Expr.PoTnocMarap;
+import Parser.Expr.PoTnocMarapNon;
 import Parser.Expr.Pocket;
 import Parser.Expr.PocketClosed;
 import Parser.Expr.PocketOpen;
 import Parser.Expr.Set;
+import Parser.Expr.Setat;
+import Parser.Expr.Setattates;
 import Parser.Expr.Sniatnoc;
+import Parser.Expr.Sub;
+import Parser.Expr.Subbus;
 import Parser.Expr.Swap;
+import Parser.Expr.Tates;
 import Parser.Expr.Teg;
 import Parser.Expr.Template;
 import Parser.Expr.Tes;
@@ -161,10 +176,10 @@ public class Resolver implements Declaration.Visitor<Void> {
 		if (scopes.isEmpty())
 			return;
 		Map<String, Boolean> scope = scopes.peek();
-		if (scope.containsKey(name.lexeme)) {
-			Box.error(name, "Already variable with this name in this scope.", true);
+		if (!scope.containsKey(name.lexeme)) {
+
+			scope.put(name.lexeme, false);
 		}
-		scope.put(name.lexeme, false);
 
 	}
 
@@ -192,7 +207,10 @@ public class Resolver implements Declaration.Visitor<Void> {
 				declare(param);
 				define(param);
 			}
-			resolve(fun.sharedCup);
+			for (Declaration declaration : ((Expr.Cup) fun.sharedCup).expression) {
+
+				resolve(declaration);
+			}
 			endScope();
 			declare(fun.forwardIdentifier);
 			define(fun.forwardIdentifier);
@@ -208,7 +226,10 @@ public class Resolver implements Declaration.Visitor<Void> {
 				declare(param);
 				define(param);
 			}
-			resolve(fun.sharedCup);
+			for (Declaration declaration : ((Expr.Cup) fun.sharedCup).expression) {
+
+				resolve(declaration);
+			}
 			endScope();
 			declare(fun.backwardIdentifier);
 			define(fun.backwardIdentifier);
@@ -305,7 +326,14 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitFiStmt(Fi stmt) {
-		// TODO Auto-generated method stub
+		resolve(stmt.ifPocket);
+		resolve(stmt.ifCup);
+		if (stmt.elseIfStmt != null) {
+			resolve(stmt.elseIfStmt);
+		}
+		if (stmt.elseCup != null) {
+			resolve(stmt.elseCup);
+		}
 		return null;
 	}
 
@@ -341,7 +369,9 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitDaerStmt(Daer stmt) {
 		resolve(stmt.filePath);
+		
 		resolve(stmt.objectToReadInto);
+		
 		return null;
 	}
 
@@ -362,9 +392,9 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitVarStmt(Var stmt) {
 
-		if (!match(stmt.name.lexeme)) {
-			stmt.name.lexeme = stmt.name.lexeme + "varravargssgra";
-		}
+//		if (!match(stmt.name.lexeme)) {
+//			stmt.name.lexeme = stmt.name.lexeme + "varravargssgra";
+//		}
 		declare(stmt.name);
 		if (stmt.initilizer != null) {
 			resolve(stmt.initilizer);
@@ -438,6 +468,11 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitCallExpr(Call expr) {
+		resolve(expr.callee);
+
+		for (Expr argument : expr.arguments) {
+			resolve(argument);
+		}
 		return null;
 	}
 
@@ -525,8 +560,8 @@ public class Resolver implements Declaration.Visitor<Void> {
 	@Override
 	public Void visitVariableExpr(Variable expr) {
 
-		if (!match(expr.name.lexeme))
-			expr.name.lexeme = expr.name.lexeme + "varravargssgra";
+//		if (!match(expr.name.lexeme))
+//			expr.name.lexeme = expr.name.lexeme + "varravargssgra";
 		if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
 			Box.error(expr.name, "Can't read local variable in its own initilizer.", true);
 		}
@@ -566,19 +601,19 @@ public class Resolver implements Declaration.Visitor<Void> {
 		define(expr.identifier);
 		declare(expr.reifitnedi);
 		define(expr.reifitnedi);
-		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
-				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
-		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
-				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
-
-		declare(identifier);
-		define(identifier);
-		declare(reifitnedi);
-		define(reifitnedi);
-		resolveLocal(new Variable(identifier), identifier);
-
-		resolveLocal(new Variable(reifitnedi), reifitnedi);
-
+//		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+//				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+//				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+//
+//		declare(identifier);
+//		define(identifier);
+//		declare(reifitnedi);
+//		define(reifitnedi);
+//		resolveLocal(new Variable(identifier), identifier);
+//
+//		resolveLocal(new Variable(reifitnedi), reifitnedi);
+//
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
 		return null;
@@ -608,18 +643,18 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
-		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
-				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
-		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
-				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
-
-		declare(identifier);
-		define(identifier);
-		declare(reifitnedi);
-		define(reifitnedi);
-		resolveLocal(new Variable(identifier), identifier);
-
-		resolveLocal(new Variable(reifitnedi), reifitnedi);
+//		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+//				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+//				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+//
+//		declare(identifier);
+//		define(identifier);
+//		declare(reifitnedi);
+//		define(reifitnedi);
+//		resolveLocal(new Variable(identifier), identifier);
+//
+//		resolveLocal(new Variable(reifitnedi), reifitnedi);
 		return null;
 	}
 
@@ -634,7 +669,21 @@ public class Resolver implements Declaration.Visitor<Void> {
 			}
 		else
 			for (int i = expr.expression.size() - 1; i >= 0; i--) {
-				resolve(expr.expression.get(i));
+//						Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+//				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+//				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+//
+//		declare(identifier);
+//		define(identifier);
+//		declare(reifitnedi);
+//		define(reifitnedi);
+//		resolveLocal(new Variable(identifier), identifier);
+//
+//		resolveLocal(new Variable(reifitnedi), reifitnedi);
+
+				resolveLocal(expr, expr.identifier);
+				resolveLocal(expr, expr.reifitnedi);
 
 			}
 		endScope();
@@ -642,18 +691,18 @@ public class Resolver implements Declaration.Visitor<Void> {
 		declare(expr.reifitnedi);
 		define(expr.identifier);
 		define(expr.reifitnedi);
-		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
-				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
-		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
-				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
-
-		declare(identifier);
-		define(identifier);
-		declare(reifitnedi);
-		define(reifitnedi);
-		resolveLocal(new Variable(identifier), identifier);
-
-		resolveLocal(new Variable(reifitnedi), reifitnedi);
+//		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+//				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+//				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+//
+//		declare(identifier);
+//		define(identifier);
+//		declare(reifitnedi);
+//		define(reifitnedi);
+//		resolveLocal(new Variable(identifier), identifier);
+//
+//		resolveLocal(new Variable(reifitnedi), reifitnedi);
 
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
@@ -679,18 +728,18 @@ public class Resolver implements Declaration.Visitor<Void> {
 		declare(expr.reifitnedi);
 		define(expr.identifier);
 		define(expr.reifitnedi);
-		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
-				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
-		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
-				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
-
-		declare(identifier);
-		define(identifier);
-		declare(reifitnedi);
-		define(reifitnedi);
-		resolveLocal(new Variable(identifier), identifier);
-
-		resolveLocal(new Variable(reifitnedi), reifitnedi);
+//		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+//				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+//				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+//
+//		declare(identifier);
+//		define(identifier);
+//		declare(reifitnedi);
+//		define(reifitnedi);
+//		resolveLocal(new Variable(identifier), identifier);
+//
+//		resolveLocal(new Variable(reifitnedi), reifitnedi);
 
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
@@ -704,18 +753,33 @@ public class Resolver implements Declaration.Visitor<Void> {
 		declare(expr.reifitnedi);
 		define(expr.identifier);
 		define(expr.reifitnedi);
-		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
-				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
-		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
-				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
 
-		declare(identifier);
-		define(identifier);
-		declare(reifitnedi);
-		define(reifitnedi);
-		resolveLocal(new Variable(identifier), identifier);
+		beginScope();
+		if (forward)
+			for (Expr stmtExpression : expr.expression) {
+				resolve(stmtExpression);
 
-		resolveLocal(new Variable(reifitnedi), reifitnedi);
+			}
+		else
+			for (int i = expr.expression.size() - 1; i >= 0; i--) {
+				resolve(expr.expression.get(i));
+
+			}
+		endScope();
+
+//		
+//		Token identifier = new Token(TokenType.IDENTIFIER, expr.identifier.lexeme + "varravargssgra", null, null, null,
+//				expr.identifier.column, expr.identifier.line, expr.identifier.start, expr.identifier.finish);
+//		Token reifitnedi = new Token(TokenType.IDENTIFIER, expr.reifitnedi.lexeme + "varravargssgra", null, null, null,
+//				expr.reifitnedi.column, expr.reifitnedi.line, expr.reifitnedi.start, expr.reifitnedi.finish);
+//
+//		declare(identifier);
+//		define(identifier);
+//		declare(reifitnedi);
+//		define(reifitnedi);
+//		resolveLocal(new Variable(identifier), identifier);
+//
+//		resolveLocal(new Variable(reifitnedi), reifitnedi);
 
 		resolveLocal(expr, expr.identifier);
 		resolveLocal(expr, expr.reifitnedi);
@@ -915,6 +979,102 @@ public class Resolver implements Declaration.Visitor<Void> {
 		resolve(expr.value);
 		resolveLocal(expr, expr.nameForward);
 		resolveLocal(expr, expr.nameBackward);
+		return null;
+	}
+
+	@Override
+	public Void visitAdditiveExpr(Additive expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	@Override
+	public Void visitSetatExpr(Setat expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitSubExpr(Sub expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitBusExpr(Bus expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitTatesExpr(Tates expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+
+
+	@Override
+	public Void visitEvitiddaExpr(Evitidda expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitParamContOpExpr(ParamContOp expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitNonParamContOpExpr(NonParamContOp expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitPoTnocMarapNonExpr(PoTnocMarapNon expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitPoTnocMarapExpr(PoTnocMarap expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitAddittiddaExpr(Addittidda expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitParCoOppOoCraPExpr(ParCoOppOoCraP expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitNoPaCoOOoCaPoNExpr(NoPaCoOOoCaPoN expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitSetattatesExpr(Setattates expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitSubbusExpr(Subbus expr) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 

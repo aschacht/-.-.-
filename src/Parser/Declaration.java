@@ -42,6 +42,11 @@ public abstract class Declaration {
 	R visitFiStmt(Fi stmt);
 	R visitAssignmentExpr(Assignment expr);
 	R visitContainsExpr(Contains expr);
+	R visitAdditiveExpr(Additive expr);
+	R visitParamContOpExpr(ParamContOp expr);
+	R visitNonParamContOpExpr(NonParamContOp expr);
+	R visitSetatExpr(Setat expr);
+	R visitSubExpr(Sub expr);
 	R visitBinaryExpr(Binary expr);
 	R visitMonoExpr(Mono expr);
 	R visitLogExpr(Log expr);
@@ -57,6 +62,11 @@ public abstract class Declaration {
 	R visitPocketExpr(Pocket expr);
 	R visitBoxExpr(Box expr);
 	R visitMonoonomExpr(Monoonom expr);
+	R visitAddittiddaExpr(Addittidda expr);
+	R visitParCoOppOoCraPExpr(ParCoOppOoCraP expr);
+	R visitNoPaCoOOoCaPoNExpr(NoPaCoOOoCaPoN expr);
+	R visitSetattatesExpr(Setattates expr);
+	R visitSubbusExpr(Subbus expr);
 	R visitBinaryyranibExpr(Binaryyranib expr);
 	R visitLoggolExpr(Loggol expr);
 	R visitCallllacExpr(Callllac expr);
@@ -81,6 +91,11 @@ public abstract class Declaration {
 	R visitOnomExpr(Onom expr);
 	R visitYranibExpr(Yranib expr);
 	R visitYranuExpr(Yranu expr);
+	R visitBusExpr(Bus expr);
+	R visitTatesExpr(Tates expr);
+	R visitPoTnocMarapNonExpr(PoTnocMarapNon expr);
+	R visitPoTnocMarapExpr(PoTnocMarap expr);
+	R visitEvitiddaExpr(Evitidda expr);
 	R visitSniatnocExpr(Sniatnoc expr);
 	R visitTnemngissaExpr(Tnemngissa expr);
 	}
@@ -89,9 +104,18 @@ public static class FunDecl extends Declaration {
 	this.function = function;
 	}
 
+	public  FunDecl(FunDecl other) {
+	this.function = other.function;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitFunDeclDeclaration(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Fun function;
@@ -101,9 +125,19 @@ public static class StmtDecl extends Declaration {
 	this.statement = statement;
 	}
 
+	public  StmtDecl(StmtDecl other) {
+	this.statement = other.statement;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitStmtDeclDeclaration(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.statement.reverse();
 	}
 
 	public  Stmt statement;

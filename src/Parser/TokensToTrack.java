@@ -2,6 +2,8 @@ package Parser;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
+
 import Box.Token.Token;
 import Box.Token.TokenType;
 
@@ -32,28 +34,11 @@ public class TokensToTrack {
 		}
 	}
 
-	public void addSubTokens(ArrayList<Token> subTokens) {
-
-		Token eofToken = null;
-		if (subTokens.size() > 0)
-			eofToken = subTokens.get(subTokens.size() - 1);
-		else {
-			eofToken = new Token(TokenType.EOF, "EOF", null, null, null, 0, 9, 0, 0);
-		}
-
-		if (isParseForward() == false) {
-			ArrayList<Token> newBaseToken = new ArrayList<Token>();
-
-			newBaseToken.add(eofToken);
-			for (int i = 0; i < subTokens.size() - 1; i++) {
-				newBaseToken.add(subTokens.get(i));
-			}
-			stackBackward.add(newBaseToken);
-			currentStackBackward.add(newBaseToken.size() - 1);
+	public List<Token> getcurrentTokens() {
+		if (isParseForward() == true) {
+			return stackForward.get(stackForward.size() - 1);
 		} else {
-
-			stackForward.add(subTokens);
-			currentStackForward.add(0);
+			return	stackBackward.get(stackBackward.size() - 1);
 		}
 	}
 
@@ -84,6 +69,29 @@ public class TokensToTrack {
 		}
 	}
 
+	
+	public void resetReverseExpression() {
+		currentStackBackward = new ArrayList<>();
+		stackBackward = new ArrayList<>();
+		
+	}
+
+	public void reverseBackwards() {
+		Stack<Token> stack = new Stack<>();
+		for (Token arrayList :  (stackBackward.get(stackBackward.size() - 1))) {
+			stack.push(arrayList);
+		}
+		
+		ArrayList<Token> arr = new ArrayList<>();
+		while(!stack.empty()) {
+			arr.add(stack.pop());
+		}
+		
+		stackBackward.remove(stackBackward.size() - 1);
+		stackBackward.add(arr);
+		
+	}
+	
 	public void advance() {
 		if (backTracking) {
 			backTrackingCount++;
@@ -92,11 +100,15 @@ public class TokensToTrack {
 
 		if (isParseForward() == true) {
 			int currentLocal = currentStackForward.remove(currentStackForward.size() - 1);
+			
+			
+			
 			currentLocal++;
 			currentStackForward.add(currentLocal);
+			
 		} else {
 			int currentLocal = currentStackBackward.remove(currentStackBackward.size() - 1);
-			currentLocal--;
+			currentLocal++;
 			currentStackBackward.add(currentLocal);
 		}
 	}
@@ -212,7 +224,7 @@ public class TokensToTrack {
 			int currentLocal = currentStackForward.get(currentStackForward.size() - 1);
 			return currentLocal;
 		} else {
-			int currentLocal = currentStackBackward.get(currentStackBackward.size() - 1);
+			int currentLocal= currentStackBackward.get(currentStackBackward.size() - 1);
 			return currentLocal;
 		}
 	}

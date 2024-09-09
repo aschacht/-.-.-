@@ -1,47 +1,105 @@
 package Parser;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.ArrayList;
 import Box.Token.Token;
+import java.util.Objects;
+import Box.Token.TokenType;
 
 public abstract class Expr extends Declaration {
-	
-
- 
-	@Override
-    public boolean equals(Object obj) {
+public abstract void reverse();
+@Override
+	public boolean equals(Object obj) {
 		if (this instanceof Variable) {
-        return obj instanceof Variable && ((Variable)this).name.lexeme.equals(((Variable) obj).name.lexeme)
-        		&&((Variable)this).name.type == ((Variable) obj).name.type
-        		&&((Variable)this).name.line == ((Variable) obj).name.line&&
-        				((Variable)this).name.column == ((Variable) obj).name.column&&
-        						((Variable)this).name.start == ((Variable) obj).name.start&&
-        								((Variable)this).name.finish == ((Variable) obj).name.finish;
+			return obj instanceof Variable && ((Variable) this).name.lexeme.equals(((Variable) obj).name.lexeme)
+					&& ((Variable) this).name.type == ((Variable) obj).name.type
+					&& ((Variable) this).name.line == ((Variable) obj).name.line
+					&& ((Variable) this).name.column == ((Variable) obj).name.column
+					&& ((Variable) this).name.start == ((Variable) obj).name.start
+					&& ((Variable) this).name.finish == ((Variable) obj).name.finish;
+		} else if (this instanceof Pocket) {
+			return obj instanceof Pocket && ((Pocket) this).lexeme.equals(((Pocket) obj).lexeme)
+					&& ((Pocket) this).identifier.type == ((Pocket) obj).identifier.type
+					&& ((Pocket) this).identifier.line == ((Pocket) obj).identifier.line
+					&& ((Pocket) this).identifier.column == ((Pocket) obj).identifier.column
+					&& ((Pocket) this).identifier.start == ((Pocket) obj).identifier.start
+					&& ((Pocket) this).identifier.finish == ((Pocket) obj).identifier.finish;
+		}else if (this instanceof Cup) {
+			return obj instanceof Cup && ((Cup) this).lexeme.equals(((Cup) obj).lexeme)
+					&& ((Cup) this).identifier.type == ((Cup) obj).identifier.type
+					&& ((Cup) this).identifier.line == ((Cup) obj).identifier.line
+					&& ((Cup) this).identifier.column == ((Cup) obj).identifier.column
+					&& ((Cup) this).identifier.start == ((Cup) obj).identifier.start
+					&& ((Cup) this).identifier.finish == ((Cup) obj).identifier.finish;
+		}else if (this instanceof Box) {
+			return obj instanceof Box && ((Box) this).lexeme.equals(((Box) obj).lexeme)
+					&& ((Box) this).identifier.type == ((Box) obj).identifier.type
+					&& ((Box) this).identifier.line == ((Box) obj).identifier.line
+					&& ((Box) this).identifier.column == ((Box) obj).identifier.column
+					&& ((Box) this).identifier.start == ((Box) obj).identifier.start
+					&& ((Box) this).identifier.finish == ((Box) obj).identifier.finish;
+		}else if (this instanceof Knot) {
+			return obj instanceof Knot && ((Knot) this).lexeme.equals(((Knot) obj).lexeme)
+					&& ((Knot) this).identifier.type == ((Knot) obj).identifier.type
+					&& ((Knot) this).identifier.line == ((Knot) obj).identifier.line
+					&& ((Knot) this).identifier.column == ((Knot) obj).identifier.column
+					&& ((Knot) this).identifier.start == ((Knot) obj).identifier.start
+					&& ((Knot) this).identifier.finish == ((Knot) obj).identifier.finish;
+		}else if (this instanceof Tonk) {
+			return obj instanceof Tonk && ((Tonk) this).lexeme.equals(((Tonk) obj).lexeme)
+					&& ((Tonk) this).identifier.type == ((Tonk) obj).identifier.type
+					&& ((Tonk) this).identifier.line == ((Tonk) obj).identifier.line
+					&& ((Tonk) this).identifier.column == ((Tonk) obj).identifier.column
+					&& ((Tonk) this).identifier.start == ((Tonk) obj).identifier.start
+					&& ((Tonk) this).identifier.finish == ((Tonk) obj).identifier.finish;
 		}
 		return super.equals(obj);
-		}
-	
+	}
 
-		@Override
-		public int hashCode() {
-			if (this instanceof Variable) {
-			return Objects.hash(((Variable)this).name.lexeme,((Variable)this).name.type,((Variable)this).name.line,((Variable)this).name.column,((Variable)this).name.start,((Variable)this).name.finish);
-			}
-			return super.hashCode();
+	@Override
+	public int hashCode() {
+		if (this instanceof Variable) {
+			return Objects.hash(((Variable) this).name.lexeme, ((Variable) this).name.type, ((Variable) this).name.line,
+					((Variable) this).name.column, ((Variable) this).name.start, ((Variable) this).name.finish);
+		} else if (this instanceof Pocket) {
+			return Objects.hash(((Pocket) this).identifier.lexeme, ((Pocket) this).identifier.type, ((Pocket) this).identifier.line,
+					((Pocket) this).identifier.column, ((Pocket) this).identifier.start, ((Pocket) this).identifier.finish);
+		} else if (this instanceof Cup) {
+			return Objects.hash(((Cup) this).identifier.lexeme, ((Cup) this).identifier.type, ((Cup) this).identifier.line,
+					((Cup) this).identifier.column, ((Cup) this).identifier.start, ((Cup) this).identifier.finish);
+		}else if (this instanceof Box) {
+			return Objects.hash(((Box) this).identifier.lexeme, ((Box) this).identifier.type, ((Box) this).identifier.line,
+					((Box) this).identifier.column, ((Box) this).identifier.start, ((Box) this).identifier.finish);
+		}else if (this instanceof Knot) {
+			return Objects.hash(((Knot) this).identifier.lexeme, ((Knot) this).identifier.type, ((Knot) this).identifier.line,
+					((Knot) this).identifier.column, ((Knot) this).identifier.start, ((Knot) this).identifier.finish);
+		}else if (this instanceof Tonk) {
+			return Objects.hash(((Tonk) this).identifier.lexeme, ((Tonk) this).identifier.type, ((Tonk) this).identifier.line,
+					((Tonk) this).identifier.column, ((Tonk) this).identifier.start, ((Tonk) this).identifier.finish);
 		}
-	
-	
-	
+		return super.hashCode();
+	}
+
 public static class Assignment extends Expr {
 	 public Assignment(Token name , Expr value) {
 	this.name = name;
 	this.value = value;
 	}
 
+	public  Assignment(Assignment other) {
+	this.name = other.name;
+	this.value = other.value;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitAssignmentExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.value.reverse();
 	}
 
 	public  Token name;
@@ -54,14 +112,166 @@ public static class Contains extends Expr {
 	this.contents = contents;
 	}
 
+	public  Contains(Contains other) {
+	this.container = other.container;
+	this.open = other.open;
+	this.contents = other.contents;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitContainsExpr(this);
 	}
 
+	@Override
+	public void reverse() {
+	this.container.reverse();
+	this.contents.reverse();
+	}
+
 	public  Expr container;
 	public  boolean open;
 	public  Expr contents;
+	}
+public static class Additive extends Expr {
+	 public Additive(Expr callee , Token operator , Expr toadd) {
+	this.callee = callee;
+	this.operator = operator;
+	this.toadd = toadd;
+	}
+
+	public  Additive(Additive other) {
+	this.callee = other.callee;
+	this.operator = other.operator;
+	this.toadd = other.toadd;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitAdditiveExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	this.toadd.reverse();
+	}
+
+	public  Expr callee;
+	public  Token operator;
+	public  Expr toadd;
+	}
+public static class ParamContOp extends Expr {
+	 public ParamContOp(Expr callee , Token operator , Expr.Literal index) {
+	this.callee = callee;
+	this.operator = operator;
+	this.index = index;
+	}
+
+	public  ParamContOp(ParamContOp other) {
+	this.callee = other.callee;
+	this.operator = other.operator;
+	this.index = other.index;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitParamContOpExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	}
+
+	public  Expr callee;
+	public  Token operator;
+	public  Expr.Literal index;
+	}
+public static class NonParamContOp extends Expr {
+	 public NonParamContOp(Expr callee , Token operator) {
+	this.callee = callee;
+	this.operator = operator;
+	}
+
+	public  NonParamContOp(NonParamContOp other) {
+	this.callee = other.callee;
+	this.operator = other.operator;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitNonParamContOpExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	}
+
+	public  Expr callee;
+	public  Token operator;
+	}
+public static class Setat extends Expr {
+	 public Setat(Expr callee , Expr.Literal index , Expr toset) {
+	this.callee = callee;
+	this.index = index;
+	this.toset = toset;
+	}
+
+	public  Setat(Setat other) {
+	this.callee = other.callee;
+	this.index = other.index;
+	this.toset = other.toset;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitSetatExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	this.toset.reverse();
+	}
+
+	public  Expr callee;
+	public  Expr.Literal index;
+	public  Expr toset;
+	}
+public static class Sub extends Expr {
+	 public Sub(Expr callee , Expr.Literal start , Expr.Literal end) {
+	this.callee = callee;
+	this.start = start;
+	this.end = end;
+	}
+
+	public  Sub(Sub other) {
+	this.callee = other.callee;
+	this.start = other.start;
+	this.end = other.end;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitSubExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	}
+
+	public  Expr callee;
+	public  Expr.Literal start;
+	public  Expr.Literal end;
 	}
 public static class Binary extends Expr {
 	 public Binary(Expr left , Token operator , Expr right) {
@@ -70,9 +280,21 @@ public static class Binary extends Expr {
 	this.right = right;
 	}
 
+	public  Binary(Binary other) {
+	this.left = other.left;
+	this.operator = other.operator;
+	this.right = other.right;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitBinaryExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+if(this.operator.type == TokenType.AND || this.operator.type == TokenType.DNA||this.operator.type == TokenType.OR || this.operator.type == TokenType.RO){ Expr temp = left;		this.left = this.right;		this.right = temp;this.left.reverse();this.right.reverse();}
 	}
 
 	public  Expr left;
@@ -85,9 +307,20 @@ public static class Mono extends Expr {
 	this.operator = operator;
 	}
 
+	public  Mono(Mono other) {
+	this.value = other.value;
+	this.operator = other.operator;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitMonoExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.value.reverse();
 	}
 
 	public  Expr value;
@@ -100,9 +333,22 @@ public static class Log extends Expr {
 	this.value = value;
 	}
 
+	public  Log(Log other) {
+	this.operator = other.operator;
+	this.valueBase = other.valueBase;
+	this.value = other.value;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLogExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.valueBase.reverse();
+	this.value.reverse();
 	}
 
 	public  Token operator;
@@ -115,9 +361,20 @@ public static class Factorial extends Expr {
 	this.operator = operator;
 	}
 
+	public  Factorial(Factorial other) {
+	this.value = other.value;
+	this.operator = other.operator;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitFactorialExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.value.reverse();
 	}
 
 	public  Expr value;
@@ -129,9 +386,20 @@ public static class Unary extends Expr {
 	this.right = right;
 	}
 
+	public  Unary(Unary other) {
+	this.operator = other.operator;
+	this.right = other.right;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitUnaryExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.right.reverse();
 	}
 
 	public  Token operator;
@@ -144,9 +412,21 @@ public static class Call extends Expr {
 	this.arguments = arguments;
 	}
 
+	public  Call(Call other) {
+	this.callee = other.callee;
+	this.calleeToken = other.calleeToken;
+	this.arguments = other.arguments;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitCallExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
 	}
 
 	public  Expr callee;
@@ -159,9 +439,20 @@ public static class Get extends Expr {
 	this.name = name;
 	}
 
+	public  Get(Get other) {
+	this.object = other.object;
+	this.name = other.name;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitGetExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.object.reverse();
 	}
 
 	public  Expr object;
@@ -174,9 +465,22 @@ public static class Set extends Expr {
 	this.value = value;
 	}
 
+	public  Set(Set other) {
+	this.object = other.object;
+	this.name = other.name;
+	this.value = other.value;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitSetExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.object.reverse();
+	this.value.reverse();
 	}
 
 	public  Expr object;
@@ -191,9 +495,21 @@ public static class Knot extends Expr {
 	this.reifitnedi = reifitnedi;
 	}
 
+	public  Knot(Knot other) {
+	this.identifier = other.identifier;
+	this.expression = other.expression;
+	this.lexeme = other.lexeme;
+	this.reifitnedi = other.reifitnedi;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitKnotExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token identifier;
@@ -209,9 +525,21 @@ public static class Cup extends Expr {
 	this.reifitnedi = reifitnedi;
 	}
 
+	public  Cup(Cup other) {
+	this.identifier = other.identifier;
+	this.expression = other.expression;
+	this.lexeme = other.lexeme;
+	this.reifitnedi = other.reifitnedi;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitCupExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token identifier;
@@ -224,9 +552,19 @@ public static class Template extends Expr {
 	this.container = container;
 	}
 
+	public  Template(Template other) {
+	this.container = other.container;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitTemplateExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.container.reverse();
 	}
 
 	public  Expr container;
@@ -236,9 +574,19 @@ public static class Link extends Expr {
 	this.container = container;
 	}
 
+	public  Link(Link other) {
+	this.container = other.container;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLinkExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.container.reverse();
 	}
 
 	public  Expr container;
@@ -251,9 +599,21 @@ public static class Pocket extends Expr {
 	this.reifitnedi = reifitnedi;
 	}
 
+	public  Pocket(Pocket other) {
+	this.identifier = other.identifier;
+	this.expression = other.expression;
+	this.lexeme = other.lexeme;
+	this.reifitnedi = other.reifitnedi;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitPocketExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token identifier;
@@ -262,20 +622,32 @@ public static class Pocket extends Expr {
 	public  Token reifitnedi;
 	}
 public static class Box extends Expr {
-	 public Box(Token identifier , List<Stmt> expression , String lexeme, Token reifitnedi) {
+	 public Box(Token identifier , List<Expr> expression , String lexeme, Token reifitnedi) {
 	this.identifier = identifier;
 	this.expression = expression;
 	this.lexeme = lexeme;
 	this.reifitnedi = reifitnedi;
 	}
 
+	public  Box(Box other) {
+	this.identifier = other.identifier;
+	this.expression = other.expression;
+	this.lexeme = other.lexeme;
+	this.reifitnedi = other.reifitnedi;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitBoxExpr(this);
 	}
 
+	@Override
+	public void reverse() {
+	}
+
 	public  Token identifier;
-	public  List<Stmt> expression;
+	public  List<Expr> expression;
 	public  String lexeme;
 	public  Token reifitnedi;
 	}
@@ -286,14 +658,194 @@ public static class Monoonom extends Expr {
 	this.operatorBackward = operatorBackward;
 	}
 
+	public  Monoonom(Monoonom other) {
+	this.value = other.value;
+	this.operatorForward = other.operatorForward;
+	this.operatorBackward = other.operatorBackward;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitMonoonomExpr(this);
 	}
 
+	@Override
+	public void reverse() {
+	this.value.reverse();
+	}
+
 	public  Expr value;
 	public  Token operatorForward;
 	public  Token operatorBackward;
+	}
+public static class Addittidda extends Expr {
+	 public Addittidda(Expr calleeForward , Token operatorForward , Expr toadd , Token operatorBackward , Expr calleeBackward) {
+	this.calleeForward = calleeForward;
+	this.operatorForward = operatorForward;
+	this.toadd = toadd;
+	this.operatorBackward = operatorBackward;
+	this.calleeBackward = calleeBackward;
+	}
+
+	public  Addittidda(Addittidda other) {
+	this.calleeForward = other.calleeForward;
+	this.operatorForward = other.operatorForward;
+	this.toadd = other.toadd;
+	this.operatorBackward = other.operatorBackward;
+	this.calleeBackward = other.calleeBackward;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitAddittiddaExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.calleeForward.reverse();
+	this.toadd.reverse();
+	this.calleeBackward.reverse();
+	}
+
+	public  Expr calleeForward;
+	public  Token operatorForward;
+	public  Expr toadd;
+	public  Token operatorBackward;
+	public  Expr calleeBackward;
+	}
+public static class ParCoOppOoCraP extends Expr {
+	 public ParCoOppOoCraP(Expr calleeForward , Token operatorForward , Expr.Literal index , Expr calleeBackward , Token operatorBackward) {
+	this.calleeForward = calleeForward;
+	this.operatorForward = operatorForward;
+	this.index = index;
+	this.calleeBackward = calleeBackward;
+	this.operatorBackward = operatorBackward;
+	}
+
+	public  ParCoOppOoCraP(ParCoOppOoCraP other) {
+	this.calleeForward = other.calleeForward;
+	this.operatorForward = other.operatorForward;
+	this.index = other.index;
+	this.calleeBackward = other.calleeBackward;
+	this.operatorBackward = other.operatorBackward;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitParCoOppOoCraPExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.calleeForward.reverse();
+	this.calleeBackward.reverse();
+	}
+
+	public  Expr calleeForward;
+	public  Token operatorForward;
+	public  Expr.Literal index;
+	public  Expr calleeBackward;
+	public  Token operatorBackward;
+	}
+public static class NoPaCoOOoCaPoN extends Expr {
+	 public NoPaCoOOoCaPoN(Expr calleeForward , Token operatorForward , Expr calleeBackward , Token operatorBackward) {
+	this.calleeForward = calleeForward;
+	this.operatorForward = operatorForward;
+	this.calleeBackward = calleeBackward;
+	this.operatorBackward = operatorBackward;
+	}
+
+	public  NoPaCoOOoCaPoN(NoPaCoOOoCaPoN other) {
+	this.calleeForward = other.calleeForward;
+	this.operatorForward = other.operatorForward;
+	this.calleeBackward = other.calleeBackward;
+	this.operatorBackward = other.operatorBackward;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitNoPaCoOOoCaPoNExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.calleeForward.reverse();
+	this.calleeBackward.reverse();
+	}
+
+	public  Expr calleeForward;
+	public  Token operatorForward;
+	public  Expr calleeBackward;
+	public  Token operatorBackward;
+	}
+public static class Setattates extends Expr {
+	 public Setattates(Expr calleeForward , Expr.Literal index , Expr toset , Expr calleeBackward) {
+	this.calleeForward = calleeForward;
+	this.index = index;
+	this.toset = toset;
+	this.calleeBackward = calleeBackward;
+	}
+
+	public  Setattates(Setattates other) {
+	this.calleeForward = other.calleeForward;
+	this.index = other.index;
+	this.toset = other.toset;
+	this.calleeBackward = other.calleeBackward;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitSetattatesExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.calleeForward.reverse();
+	this.toset.reverse();
+	this.calleeBackward.reverse();
+	}
+
+	public  Expr calleeForward;
+	public  Expr.Literal index;
+	public  Expr toset;
+	public  Expr calleeBackward;
+	}
+public static class Subbus extends Expr {
+	 public Subbus(Expr calleeForward , Expr.Literal start , Expr.Literal end , Expr calleeBackward) {
+	this.calleeForward = calleeForward;
+	this.start = start;
+	this.end = end;
+	this.calleeBackward = calleeBackward;
+	}
+
+	public  Subbus(Subbus other) {
+	this.calleeForward = other.calleeForward;
+	this.start = other.start;
+	this.end = other.end;
+	this.calleeBackward = other.calleeBackward;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitSubbusExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.calleeForward.reverse();
+	this.calleeBackward.reverse();
+	}
+
+	public  Expr calleeForward;
+	public  Expr.Literal start;
+	public  Expr.Literal end;
+	public  Expr calleeBackward;
 	}
 public static class Binaryyranib extends Expr {
 	 public Binaryyranib(Expr left , Token operatorForward , Token operatorBackward , Expr right) {
@@ -303,9 +855,23 @@ public static class Binaryyranib extends Expr {
 	this.right = right;
 	}
 
+	public  Binaryyranib(Binaryyranib other) {
+	this.left = other.left;
+	this.operatorForward = other.operatorForward;
+	this.operatorBackward = other.operatorBackward;
+	this.right = other.right;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitBinaryyranibExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.left.reverse();
+	this.right.reverse();
 	}
 
 	public  Expr left;
@@ -321,9 +887,23 @@ public static class Loggol extends Expr {
 	this.operatorBackward = operatorBackward;
 	}
 
+	public  Loggol(Loggol other) {
+	this.operatorForward = other.operatorForward;
+	this.valueBase = other.valueBase;
+	this.value = other.value;
+	this.operatorBackward = other.operatorBackward;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLoggolExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.valueBase.reverse();
+	this.value.reverse();
 	}
 
 	public  Token operatorForward;
@@ -340,9 +920,24 @@ public static class Callllac extends Expr {
 	this.arguments = arguments;
 	}
 
+	public  Callllac(Callllac other) {
+	this.calleeForward = other.calleeForward;
+	this.calleeTokenForward = other.calleeTokenForward;
+	this.calleeBackward = other.calleeBackward;
+	this.calleeTokenBackward = other.calleeTokenBackward;
+	this.arguments = other.arguments;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitCallllacExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.calleeForward.reverse();
+	this.calleeBackward.reverse();
 	}
 
 	public  Expr calleeForward;
@@ -358,9 +953,21 @@ public static class Expressiontmts extends Expr {
 	this.tnemetatsToken = tnemetatsToken;
 	}
 
+	public  Expressiontmts(Expressiontmts other) {
+	this.expressionToken = other.expressionToken;
+	this.expression = other.expression;
+	this.tnemetatsToken = other.tnemetatsToken;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitExpressiontmtsExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
 	}
 
 	public  Token expressionToken;
@@ -374,9 +981,21 @@ public static class Assignmenttnemgissa extends Expr {
 	this.nameBackward = nameBackward;
 	}
 
+	public  Assignmenttnemgissa(Assignmenttnemgissa other) {
+	this.nameForward = other.nameForward;
+	this.value = other.value;
+	this.nameBackward = other.nameBackward;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitAssignmenttnemgissaExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.value.reverse();
 	}
 
 	public  Token nameForward;
@@ -389,9 +1008,21 @@ public static class Swap extends Expr {
 	this.Swap2 = Swap2;
 	}
 
+	public  Swap(Swap other) {
+	this.swap1 = other.swap1;
+	this.Swap2 = other.Swap2;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitSwapExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.swap1.reverse();
+	this.Swap2.reverse();
 	}
 
 	public  Expr swap1;
@@ -402,24 +1033,39 @@ public static class Variable extends Expr {
 	this.name = name;
 	}
 
+	public  Variable(Variable other) {
+	this.name = other.name;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitVariableExpr(this);
 	}
 
+	@Override
+	public void reverse() {
+	}
+
 	public  Token name;
-	
-	 
-	
 	}
 public static class LiteralChar extends Expr {
 	 public LiteralChar(char value) {
 	this.value = value;
 	}
 
+	public  LiteralChar(LiteralChar other) {
+	this.value = other.value;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLiteralCharExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  char value;
@@ -429,9 +1075,18 @@ public static class Literal extends Expr {
 	this.value = value;
 	}
 
+	public  Literal(Literal other) {
+	this.value = other.value;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLiteralExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Object value;
@@ -441,9 +1096,18 @@ public static class PocketOpen extends Expr {
 	this.ctrl = ctrl;
 	}
 
+	public  PocketOpen(PocketOpen other) {
+	this.ctrl = other.ctrl;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitPocketOpenExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token ctrl;
@@ -453,9 +1117,18 @@ public static class PocketClosed extends Expr {
 	this.ctrl = ctrl;
 	}
 
+	public  PocketClosed(PocketClosed other) {
+	this.ctrl = other.ctrl;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitPocketClosedExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token ctrl;
@@ -465,9 +1138,18 @@ public static class CupOpen extends Expr {
 	this.ctrl = ctrl;
 	}
 
+	public  CupOpen(CupOpen other) {
+	this.ctrl = other.ctrl;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitCupOpenExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token ctrl;
@@ -477,9 +1159,18 @@ public static class CupClosed extends Expr {
 	this.ctrl = ctrl;
 	}
 
+	public  CupClosed(CupClosed other) {
+	this.ctrl = other.ctrl;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitCupClosedExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token ctrl;
@@ -489,9 +1180,18 @@ public static class BoxOpen extends Expr {
 	this.ctrl = ctrl;
 	}
 
+	public  BoxOpen(BoxOpen other) {
+	this.ctrl = other.ctrl;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitBoxOpenExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token ctrl;
@@ -501,9 +1201,18 @@ public static class BoxClosed extends Expr {
 	this.ctrl = ctrl;
 	}
 
+	public  BoxClosed(BoxClosed other) {
+	this.ctrl = other.ctrl;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitBoxClosedExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token ctrl;
@@ -516,9 +1225,21 @@ public static class Tonk extends Expr {
 	this.reifitnedi = reifitnedi;
 	}
 
+	public  Tonk(Tonk other) {
+	this.identifier = other.identifier;
+	this.expression = other.expression;
+	this.lexeme = other.lexeme;
+	this.reifitnedi = other.reifitnedi;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitTonkExpr(this);
+	}
+
+	@Override
+	public void reverse() {
 	}
 
 	public  Token identifier;
@@ -533,9 +1254,22 @@ public static class Tes extends Expr {
 	this.value = value;
 	}
 
+	public  Tes(Tes other) {
+	this.object = other.object;
+	this.name = other.name;
+	this.value = other.value;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitTesExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.object.reverse();
+	this.value.reverse();
 	}
 
 	public  Expr object;
@@ -548,9 +1282,20 @@ public static class Teg extends Expr {
 	this.name = name;
 	}
 
+	public  Teg(Teg other) {
+	this.object = other.object;
+	this.name = other.name;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitTegExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.object.reverse();
 	}
 
 	public  Expr object;
@@ -563,9 +1308,21 @@ public static class Llac extends Expr {
 	this.arguments = arguments;
 	}
 
+	public  Llac(Llac other) {
+	this.callee = other.callee;
+	this.calleeToken = other.calleeToken;
+	this.arguments = other.arguments;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLlacExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
 	}
 
 	public  Expr callee;
@@ -579,9 +1336,22 @@ public static class Gol extends Expr {
 	this.value = value;
 	}
 
+	public  Gol(Gol other) {
+	this.operator = other.operator;
+	this.valueBase = other.valueBase;
+	this.value = other.value;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitGolExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.valueBase.reverse();
+	this.value.reverse();
 	}
 
 	public  Token operator;
@@ -594,9 +1364,20 @@ public static class Lairotcaf extends Expr {
 	this.operator = operator;
 	}
 
+	public  Lairotcaf(Lairotcaf other) {
+	this.value = other.value;
+	this.operator = other.operator;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitLairotcafExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.value.reverse();
 	}
 
 	public  Expr value;
@@ -608,9 +1389,20 @@ public static class Onom extends Expr {
 	this.operator = operator;
 	}
 
+	public  Onom(Onom other) {
+	this.value = other.value;
+	this.operator = other.operator;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitOnomExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.value.reverse();
 	}
 
 	public  Expr value;
@@ -623,9 +1415,22 @@ public static class Yranib extends Expr {
 	this.right = right;
 	}
 
+	public  Yranib(Yranib other) {
+	this.left = other.left;
+	this.operator = other.operator;
+	this.right = other.right;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitYranibExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.left.reverse();
+	this.right.reverse();
 	}
 
 	public  Expr left;
@@ -638,13 +1443,163 @@ public static class Yranu extends Expr {
 	this.right = right;
 	}
 
+	public  Yranu(Yranu other) {
+	this.operator = other.operator;
+	this.right = other.right;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitYranuExpr(this);
 	}
 
+	@Override
+	public void reverse() {
+	this.right.reverse();
+	}
+
 	public  Token operator;
 	public  Expr right;
+	}
+public static class Bus extends Expr {
+	 public Bus(Expr callee , Expr.Literal start , Expr.Literal end) {
+	this.callee = callee;
+	this.start = start;
+	this.end = end;
+	}
+
+	public  Bus(Bus other) {
+	this.callee = other.callee;
+	this.start = other.start;
+	this.end = other.end;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitBusExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	}
+
+	public  Expr callee;
+	public  Expr.Literal start;
+	public  Expr.Literal end;
+	}
+public static class Tates extends Expr {
+	 public Tates(Expr callee , Expr.Literal index , Expr toset) {
+	this.callee = callee;
+	this.index = index;
+	this.toset = toset;
+	}
+
+	public  Tates(Tates other) {
+	this.callee = other.callee;
+	this.index = other.index;
+	this.toset = other.toset;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitTatesExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	this.toset.reverse();
+	}
+
+	public  Expr callee;
+	public  Expr.Literal index;
+	public  Expr toset;
+	}
+public static class PoTnocMarapNon extends Expr {
+	 public PoTnocMarapNon(Expr callee , Token operator) {
+	this.callee = callee;
+	this.operator = operator;
+	}
+
+	public  PoTnocMarapNon(PoTnocMarapNon other) {
+	this.callee = other.callee;
+	this.operator = other.operator;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPoTnocMarapNonExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	}
+
+	public  Expr callee;
+	public  Token operator;
+	}
+public static class PoTnocMarap extends Expr {
+	 public PoTnocMarap(Expr callee , Token operator , Expr.Literal index) {
+	this.callee = callee;
+	this.operator = operator;
+	this.index = index;
+	}
+
+	public  PoTnocMarap(PoTnocMarap other) {
+	this.callee = other.callee;
+	this.operator = other.operator;
+	this.index = other.index;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPoTnocMarapExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	}
+
+	public  Expr callee;
+	public  Token operator;
+	public  Expr.Literal index;
+	}
+public static class Evitidda extends Expr {
+	 public Evitidda(Expr callee , Token operator , Expr toadd) {
+	this.callee = callee;
+	this.operator = operator;
+	this.toadd = toadd;
+	}
+
+	public  Evitidda(Evitidda other) {
+	this.callee = other.callee;
+	this.operator = other.operator;
+	this.toadd = other.toadd;
+	}
+
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitEvitiddaExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.callee.reverse();
+	this.toadd.reverse();
+	}
+
+	public  Expr callee;
+	public  Token operator;
+	public  Expr toadd;
 	}
 public static class Sniatnoc extends Expr {
 	 public Sniatnoc(Expr container , boolean open , Expr contents) {
@@ -653,9 +1608,22 @@ public static class Sniatnoc extends Expr {
 	this.contents = contents;
 	}
 
+	public  Sniatnoc(Sniatnoc other) {
+	this.container = other.container;
+	this.open = other.open;
+	this.contents = other.contents;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitSniatnocExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.container.reverse();
+	this.contents.reverse();
 	}
 
 	public  Expr container;
@@ -668,9 +1636,20 @@ public static class Tnemngissa extends Expr {
 	this.value = value;
 	}
 
+	public  Tnemngissa(Tnemngissa other) {
+	this.name = other.name;
+	this.value = other.value;
+	}
+
+
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitTnemngissaExpr(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.value.reverse();
 	}
 
 	public  Token name;

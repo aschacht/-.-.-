@@ -3,16 +3,16 @@ package Box.Interpreter;
 import java.util.ArrayList;
 import java.util.List;
 
-import Parser.Declaration;
 import Parser.Expr;
+import Parser.Stmt;
 
-public class CupInstance extends Instance {
+public class KnotInstance extends Instance {
 
-	public CupInstance(BoxCallable boxClass, List<?> body, Expr expr) {
+	public KnotInstance(BoxCallable boxClass, List<?> body, Expr expr) {
 		super(boxClass, body, expr);
 		// TODO Auto-generated constructor stub
 	}
 
 
-
+	
 }

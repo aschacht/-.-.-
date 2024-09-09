@@ -8,7 +8,7 @@ import Box.Token.TokenType;
 import Parser.Expr;
 import Parser.Stmt;
 
-public class BoxFunction extends BoxCallable {
+public class BoxFunction implements BoxCallable {
 
 	private final Environment closure;
 	private boolean isInitilizer;
@@ -52,7 +52,7 @@ public class BoxFunction extends BoxCallable {
 
 
 	@Override
-	public Object call(Interpreter interpreter) {
+	public Object call(Interpreter interpreter,List<Object> arguments) {
 		
 		Environment environment1 = new Environment(closure);
 		if (params != null) {
@@ -62,28 +62,34 @@ public class BoxFunction extends BoxCallable {
 				
 			}
 		}
+		
+		Environment previous = interpreter.environment;
+		Object evaluate = null;
 		try {
-			if (body instanceof Expr.Knot)
-				interpreter.executePocket(((Expr.Knot) body).expression, environment1);
-			else if (body instanceof Expr.Cup)
-				interpreter.executeCup(((Expr.Cup) body).expression, environment1);
-			else if (body instanceof Expr.Pocket)
-				interpreter.executePocket(((Expr.Pocket) body).expression, environment1);
-			else if(body instanceof Expr.Tonk)
-				interpreter.executePocket(((Expr.Tonk) body).expression, environment1);
-//			else if(body instanceof Expr.Box)
-//				interpreter.executeExprBlock(((Expr.Box) body).expression, environment1);
+			if (body instanceof Expr.Cup)
+				interpreter.executeCupExpr(((Expr.Cup) body),environment1);
+			
 
 		} catch (Returns returnValue) {
 			if (isInitilizer)
-				return closure.getAt(0, "this");
+				return closure.getAt(0, name);
 
-			return returnValue.value;
+			
+			if(returnValue.value instanceof Expr) {
+			Expr value = (Expr)returnValue.value;
+			evaluate = interpreter.evaluate(value);
+			}else {
+				evaluate = returnValue.value;
+				
+			}
+			
+			
+		}finally {
+			 interpreter.environment = previous;
 		}
-		if (isInitilizer)
-			return closure.getAt(0, "this");
+		
 
-		return null;
+		return evaluate;
 	}
 
 	@Override
@@ -115,5 +121,15 @@ public class BoxFunction extends BoxCallable {
 	public Token getType() {
 		return type;
 	}
+
+
+
+	@Override
+	public BoxFunction findMethod(String lexeme) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
 
 }

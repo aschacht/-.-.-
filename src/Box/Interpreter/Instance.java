@@ -40,16 +40,8 @@ public abstract class Instance {
 			return fields.get(name.lexeme);
 
 		}
-		if (boxClass instanceof BoxClass) {
-			Object object = ((BoxClass) boxClass).get(name.lexeme);
-
-			return object;
-		}
-		if (boxClass instanceof BoxContainerClass) {
-			Object object = ((BoxContainerClass) boxClass).get(name.lexeme);
-
-			return object;
-		}
+		BoxFunction method = boxClass.findMethod(name.lexeme);
+		if(method!=null)return method.bind(this);
 		throw new RuntimeError(name, "Undefined property '" + name.lexeme + "'.");
 	}
 
@@ -100,16 +92,7 @@ public abstract class Instance {
 				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
 			}
 		}
-		if (boxClass instanceof BoxKnotClass) {
-			if (integer <= ((BoxKnotClass) boxClass).getPrimarys().size() - 1) {
-				((BoxKnotClass) boxClass).setPrimaryAt(integer, value);
-
-			} else if (integer == 0 && ((BoxKnotClass) boxClass).getPrimarys().size() - 1 == -1) {
-				((BoxKnotClass) boxClass).setPrimaryAt(integer, value);
-			} else {
-				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
-			}
-		}
+		
 
 	}
 
@@ -152,10 +135,7 @@ public abstract class Instance {
 			((BoxContainerClass) boxClass).setPrimaryAtEnd(data);
 
 		}
-		if (boxClass instanceof BoxKnotClass) {
-			((BoxKnotClass) boxClass).setPrimaryAtEnd(data);
-
-		}
+		
 	}
 
 

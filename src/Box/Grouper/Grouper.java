@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Random;
 import java.util.Stack;
 
+import Box.Box.Util;
 import Box.Token.Token;
 import Box.Token.TokenType;
 
@@ -77,13 +78,14 @@ public class Grouper {
 	}
 
 	public ArrayList<Token> scanTokensSecondPass() {
-
 		addHashTagsToIdents(tokens);
 		addBangTagsToIdents(tokens);
 		matchIdentifiersToOpenClosedParenBraceSquare(tokens);
 		removeSpaces(tokens);
 
-		ArrayList<ContainerIndexes> containerIndexes = findContainers(tokens);
+		Util util = new Util();
+		util.setTokens(tokens);
+		ArrayList<ContainerIndexes> containerIndexes = util.findContainers(0,tokens.size());
 		renameNonBoxContainers(tokens, containerIndexes);
 		renameBoxes(tokens);
 
@@ -569,141 +571,13 @@ public class Grouper {
 		return nstr;
 	}
 
-	private ArrayList<ContainerIndexes> findContainers(ArrayList<Token> tok) {
 
-		ArrayList<ContainerIndexes> contIndexes = checkIfContainsKnot(tokens, 0, tok.size());
-		for (int i = 0; i < contIndexes.size(); i++) {
-			ArrayList<ContainerIndexes> exclude = new ArrayList<>();
-			buildExclude(contIndexes, contIndexes.get(i), exclude);
-			ArrayList<ContainerIndexes> checkIfContainsKnotExclude = checkIfContainsKnotExclude(tokens,
-					contIndexes.get(i).getStart(), contIndexes.get(i).getEnd(), exclude);
 
-			for (ContainerIndexes containerIndexes : contIndexes) {
-				for (ContainerIndexes containerIndexes0 : checkIfContainsKnotExclude) {
-					if (containerIndexes.getStart() == containerIndexes0.getStart()
-							&& containerIndexes.getEnd() == containerIndexes0.getEnd()) {
-						containerIndexes.setKnot(containerIndexes0.isKnot());
-					}
-				}
-			}
-		}
-		return contIndexes;
-	}
 
-	private ArrayList<ContainerIndexes> findBoxes(ArrayList<Token> tok) {
 
-		ArrayList<ContainerIndexes> contIndexes = checkIfContainsKnot(tokens, 0, tok.size());
-		for (int i = 0; i < contIndexes.size(); i++) {
-			ArrayList<ContainerIndexes> exclude = new ArrayList<>();
-			buildExclude(contIndexes, contIndexes.get(i), exclude);
-			ArrayList<ContainerIndexes> checkIfContainsKnotExclude = checkIfContainsKnotExclude(tokens,
-					contIndexes.get(i).getStart(), contIndexes.get(i).getEnd(), exclude);
 
-			for (ContainerIndexes containerIndexes : contIndexes) {
-				for (ContainerIndexes containerIndexes0 : checkIfContainsKnotExclude) {
-					if (containerIndexes.getStart() == containerIndexes0.getStart()
-							&& containerIndexes.getEnd() == containerIndexes0.getEnd()) {
-						containerIndexes.setKnot(containerIndexes0.isKnot());
-					}
-				}
-			}
-		}
-		return contIndexes;
-	}
 
-	private void buildExclude(ArrayList<ContainerIndexes> contIndexes, ContainerIndexes containerIndexes,
-			ArrayList<ContainerIndexes> exclude) {
-
-		for (ContainerIndexes containerIndexes1 : contIndexes) {
-			if (containerIndexes.getStart() < containerIndexes1.getStart()
-					&& containerIndexes.getEnd() > containerIndexes1.getEnd()) {
-				exclude.add(containerIndexes1);
-			}
-		}
-	}
-
-	private ArrayList<ContainerIndexes> checkIfContainsKnot(ArrayList<Token> tok, int sta, int end) {
-		boolean start = true;
-		int startIndex = sta;
-		int endIndex = startIndex;
-		ArrayList<ContainerIndexes> contIndexes = new ArrayList<>();
-		Stack<TokenType> stack = new Stack<>();
-		Stack<TokenType> paren = new Stack<>();
-		Stack<TokenType> brace = new Stack<>();
-		int count = 0;
-		boolean isKnotOrContainsKnot = false;
-
-		while (count < end) {
-			int countOpenClose = 0;
-			for (int i = startIndex; i < end; i++) {
-				if (tok.get(i).type == TokenType.OPENPAREN) {
-					if (start) {
-						start = false;
-						startIndex = i;
-					}
-					stack.push(tok.get(i).type);
-					paren.push(tok.get(i).type);
-					countOpenClose++;
-				} else if (tok.get(i).type == TokenType.OPENBRACE) {
-					if (start) {
-						start = false;
-						startIndex = i;
-					}
-					stack.push(tok.get(i).type);
-					brace.push(tok.get(i).type);
-					countOpenClose++;
-				} else if (tok.get(i).type == TokenType.CLOSEDBRACE) {
-					endIndex = i;
-					if (stack.size() > 0) {
-						if (stack.peek() == TokenType.OPENBRACE)
-							stack.pop();
-						else
-							isKnotOrContainsKnot = true;
-					}
-					if (brace.size() > 0) {
-						brace.pop();
-					}
-
-					countOpenClose++;
-
-					if (brace.size() == 0 && paren.size() == 0) {
-						break;
-					}
-				} else if (tok.get(i).type == TokenType.CLOSEDPAREN) {
-					endIndex = i;
-					if (stack.size() > 0) {
-						if (stack.peek() == TokenType.OPENPAREN)
-							stack.pop();
-						else
-							isKnotOrContainsKnot = true;
-					}
-					if (paren.size() > 0) {
-						paren.pop();
-					}
-					countOpenClose++;
-					if (brace.size() == 0 && paren.size() == 0) {
-						break;
-					}
-				}
-				count++;
-			}
-			if (countOpenClose >= 2 && countOpenClose % 2 == 0 && isKnotOrContainsKnot && paren.size() == 0
-					&& brace.size() == 0 && stack.size() > 0) {
-				contIndexes.add(new ContainerIndexes(startIndex, endIndex, isKnotOrContainsKnot));
-			} else if (countOpenClose >= 2 && !isKnotOrContainsKnot && paren.size() == 0 && brace.size() == 0) {
-				contIndexes.add(new ContainerIndexes(startIndex, endIndex, isKnotOrContainsKnot));
-			}
-			paren.clear();
-			brace.clear();
-			stack.clear();
-			count = startIndex;
-			startIndex++;
-			start = true;
-			isKnotOrContainsKnot = false;
-		}
-		return contIndexes;
-	}
-
+	
 	private ArrayList<ContainerIndexes> checkIfContainsBox(ArrayList<Token> tok, int sta, int end) {
 		boolean start = true;
 		int startIndex = sta;
@@ -746,136 +620,7 @@ public class Grouper {
 		return contIndexes;
 	}
 
-	private ArrayList<ContainerIndexes> checkIfContainsKnotExclude(ArrayList<Token> tok, int sta, int end,
-			ArrayList<ContainerIndexes> exclude) {
-		boolean start = true;
-		int startIndex = sta;
-		int endIndex = startIndex;
-		ArrayList<ContainerIndexes> contIndexes = new ArrayList<>();
-		Stack<TokenType> stack = new Stack<>();
-		Stack<TokenType> paren = new Stack<>();
-		Stack<TokenType> brace = new Stack<>();
-		int count = 0;
-		boolean isKnotOrContainsKnot = false;
-
-		while (count < end) {
-			int countOpenClose = 0;
-			for (int i = startIndex; i <= end; i++) {
-
-				if (tok.get(i).type == TokenType.OPENPAREN) {
-					boolean dontskip = true;
-					if (exclude != null) {
-						for (ContainerIndexes containerIndexes : exclude) {
-							if (containerIndexes.getStart() <= i && containerIndexes.getEnd() >= i) {
-								dontskip = false;
-								break;
-							}
-						}
-					}
-					if (dontskip) {
-						if (start) {
-							start = false;
-							startIndex = i;
-						}
-						stack.push(tok.get(i).type);
-						paren.push(tok.get(i).type);
-						countOpenClose++;
-					}
-
-				} else if (tok.get(i).type == TokenType.OPENBRACE) {
-					boolean dontskip = true;
-					if (exclude != null) {
-						for (ContainerIndexes containerIndexes : exclude) {
-							if (containerIndexes.getStart() <= i && containerIndexes.getEnd() >= i) {
-								dontskip = false;
-								break;
-							}
-						}
-					}
-					if (dontskip) {
-						if (start) {
-							start = false;
-							startIndex = i;
-						}
-						stack.push(tok.get(i).type);
-						brace.push(tok.get(i).type);
-						countOpenClose++;
-					}
-
-				} else if (tok.get(i).type == TokenType.CLOSEDBRACE) {
-					boolean dontskip = true;
-					if (exclude != null) {
-						for (ContainerIndexes containerIndexes : exclude) {
-							if (containerIndexes.getStart() <= i && containerIndexes.getEnd() >= i) {
-								dontskip = false;
-								break;
-							}
-						}
-					}
-					if (dontskip) {
-						endIndex = i;
-						if (stack.size() > 0) {
-							if (stack.peek() == TokenType.OPENBRACE)
-								stack.pop();
-							else
-								isKnotOrContainsKnot = true;
-						}
-						if (brace.size() > 0) {
-							brace.pop();
-						}
-
-						countOpenClose++;
-					}
-					if (brace.size() == 0 && paren.size() == 0) {
-						break;
-					}
-				} else if (tok.get(i).type == TokenType.CLOSEDPAREN) {
-					boolean dontskip = true;
-					if (exclude != null) {
-						for (ContainerIndexes containerIndexes : exclude) {
-							if (containerIndexes.getStart() <= i && containerIndexes.getEnd() >= i) {
-								dontskip = false;
-								break;
-							}
-						}
-					}
-					if (dontskip) {
-						endIndex = i;
-						if (stack.size() > 0) {
-							if (stack.peek() == TokenType.OPENPAREN)
-								stack.pop();
-							else
-								isKnotOrContainsKnot = true;
-						}
-						if (paren.size() > 0) {
-							paren.pop();
-						}
-						countOpenClose++;
-						if (brace.size() == 0 && paren.size() == 0) {
-							break;
-						}
-					}
-				}
-				count++;
-			}
-			if (countOpenClose >= 4 && countOpenClose % 2 == 0 && isKnotOrContainsKnot && paren.size() == 0
-					&& brace.size() == 0 && stack.size() > 0) {
-				contIndexes.add(new ContainerIndexes(startIndex, endIndex, isKnotOrContainsKnot));
-			} else if (countOpenClose == 2 && !isKnotOrContainsKnot && paren.size() == 0 && brace.size() == 0) {
-				contIndexes.add(new ContainerIndexes(startIndex, endIndex, isKnotOrContainsKnot));
-
-			}
-			paren.clear();
-			brace.clear();
-			stack.clear();
-			count = startIndex;
-			startIndex++;
-			start = true;
-			isKnotOrContainsKnot = false;
-		}
-		return contIndexes;
-	}
-
+	
 	private void removeSpaces(ArrayList<Token> tokens) {
 
 		for (int i = 0; i < tokens.size(); i++) {
