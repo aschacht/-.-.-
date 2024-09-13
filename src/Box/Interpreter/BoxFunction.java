@@ -17,12 +17,14 @@ public class BoxFunction implements BoxCallable {
 	private Expr body;
 	private Token type;
 	private List<Token> paramsTypes;
+	private boolean isLink;
 
-	public BoxFunction(Expr body, String name, List<Token> paramsTypes,List<Token> paramsNames, Environment closure, boolean isInitilizer) {
+	public BoxFunction(Expr body, String name, List<Token> paramsTypes,List<Token> paramsNames, Environment closure, boolean isInitilizer, boolean isLink) {
 		this.body = body;
 		this.name = name;
 		this.paramsTypes = paramsTypes;
 		this.params = paramsNames;
+		this.isLink = isLink;
 		String paramsString = "";
 		if(params!=null)
 		for (int i = 0; i < params.size(); i++) {
@@ -115,7 +117,7 @@ public class BoxFunction implements BoxCallable {
 
 		environment.define(name, getType(),boxInstance);
 
-		return new BoxFunction(body, name,paramsTypes, params, environment, isInitilizer);
+		return new BoxFunction(body, name,paramsTypes, params, environment, isInitilizer,isLink);
 	}
 
 	public Token getType() {

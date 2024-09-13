@@ -25,9 +25,10 @@ public class BoxClass implements BoxCallable {
 	private TypesOfObject typesOfObject;
 	Environment closure;
 	Expr body;
+	private boolean isLink;
 
 	public BoxClass(String name, BoxClass superclass, ArrayList<Object> boxPrimarys, Map<String, BoxFunction> methods,
-			TokenType type, boolean enforce, TypesOfObject typesOfObject, Environment closure, Expr body) {
+			TokenType type, boolean enforce, TypesOfObject typesOfObject, Environment closure, Expr body, boolean isLink) {
 		this.name = name;
 		this.superclass = superclass;
 		this.contents = boxPrimarys;
@@ -38,6 +39,7 @@ public class BoxClass implements BoxCallable {
 		this.typesOfObject = typesOfObject;
 		this.closure = closure;
 		this.body = body;
+		this.isLink = isLink;
 
 	}
 
@@ -96,7 +98,7 @@ public class BoxClass implements BoxCallable {
 	}
 
 	public void setContentsAtEnd(String data) {
-		Literal literal = new ExprOLD.Literal(data);
+		Parser.Expr.Literal literal = new Expr.Literal(data);
 		contents.add(literal);
 	}
 
@@ -126,19 +128,19 @@ public class BoxClass implements BoxCallable {
 		Instance instance = null;
 
 		if (body instanceof Expr.Knot) {
-			instance = new KnotInstance(this, ((Expr.Knot) body).expression, body);
+			instance = new KnotInstance(this, new ArrayList<>(((Expr.Knot) body).expression), body,interpreter);
 
 		} else if (body instanceof Expr.Cup) {
-			instance = new CupInstance(this, ((Expr.Cup) body).expression, body);
+			instance = new CupInstance(this, new ArrayList<>(((Expr.Cup) body).expression), body,interpreter);
 
 		} else if (body instanceof Expr.Pocket) {
-			instance = new PocketInstance(this, ((Expr.Pocket) body).expression, body);
+			instance = new PocketInstance(this, new ArrayList<>(((Expr.Pocket) body).expression), body,interpreter);
 
 		} else if (body instanceof Expr.Tonk) {
-			instance = new KnotInstance(this, ((Expr.Tonk) body).expression, body);
+			instance = new KnotInstance(this, new ArrayList<>(((Expr.Tonk) body).expression), body,interpreter);
 
 		} else if (body instanceof Expr.Box) {
-			instance = new BoxInstance(this, ((Expr.Box) body).expression, body);
+			instance = new BoxInstance(this, new ArrayList<>(((Expr.Box) body).expression), body,interpreter);
 
 		}
 		return instance;

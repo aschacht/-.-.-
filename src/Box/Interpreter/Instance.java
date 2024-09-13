@@ -19,22 +19,20 @@ public abstract class Instance {
 
 	public BoxCallable boxClass;
 	private final Map<String, Object> fields = new HashMap<>();
-	public List<?> body;
+	
 	public Expr expr;
 	
 
-	public Instance(BoxCallable boxClass,List<?> body,Expr expr) {
+	public Instance(BoxCallable boxClass,Expr expr) {
 		this.boxClass = boxClass;
-		this.body = body;
 		this.expr = expr;
 		
 	}
 
-	@Override
-	public String toString() {
-		return boxClass.toString();
-	}
+	
 
+	
+	
 	public Object get(Token name) {
 		if (fields.containsKey(name.lexeme)) {
 			return fields.get(name.lexeme);
@@ -153,45 +151,6 @@ public abstract class Instance {
 		
 		
 		
-	}
-	public boolean contains(Instance lookUpContents) {
-		
-		System.out.println("Does the container contain"+lookUpContents.toString() );
-		
-		return false;
-	}
-
-	public boolean contains(Literal contents) {
-		System.out.println("Does the container contain"+contents.toString() );
-		
-		return false;
-	}
-
-	public boolean contains(LiteralChar contents) {
-		System.out.println("Does the container contain"+contents.toString() );
-		return false;
-	}
-
-
-
-	public boolean contains(Pocket contents) {
-		System.out.println("Does the container contain"+contents.toString() );
-		return false;
-	}
-
-	public boolean contains(Cup contents) {
-		System.out.println("Does the container contain"+contents.toString() );
-		return false;
-	}
-
-	public boolean contains(Knot contents) {
-		System.out.println("Does the container contain"+contents.toString() );
-		return false;
-	}
-
-	public boolean contains(Tonk contents) {
-		System.out.println("Does the container contain"+contents.toString() );
-		return false;
 	}
 
 	

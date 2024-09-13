@@ -880,6 +880,8 @@ public class ParserTest {
 			return new Expr.Assignment(((Expr.Assignment) expression));
 		} else if (expression instanceof Expr.Contains) {
 			return new Expr.Contains(((Expr.Contains) expression));
+		} else if (expression instanceof Expr.Containssniatnoc) {
+			return new Expr.Containssniatnoc(((Expr.Containssniatnoc) expression));
 		} else if (expression instanceof Expr.Binary) {
 			return new Expr.Binary(((Expr.Binary) expression));
 		} else if (expression instanceof Expr.Mono) {
@@ -928,6 +930,10 @@ public class ParserTest {
 			return new Expr.LiteralChar(((Expr.LiteralChar) expression));
 		} else if (expression instanceof Expr.Literal) {
 			return new Expr.Literal(((Expr.Literal) expression));
+		} else if (expression instanceof Expr.LiteralBool) {
+			return new Expr.LiteralBool(((Expr.LiteralBool) expression));
+		} else if (expression instanceof Expr.LiteralLoob) {
+			return new Expr.LiteralLoob(((Expr.LiteralLoob) expression));
 		} else if (expression instanceof Expr.PocketOpen) {
 			return new Expr.PocketOpen(((Expr.PocketOpen) expression));
 		} else if (expression instanceof Expr.PocketClosed) {
@@ -2307,32 +2313,114 @@ public class ParserTest {
 			Token equals = previous();
 			Expr value = assignmenttnemngissa();
 
-			if (expr instanceof Expr.Variable && value instanceof Expr.Variable) {
-				return new Expr.Swap(expr, value);
-			} else if (expr instanceof Expr.Get && value instanceof Expr.Get) {
-				return new Expr.Swap(expr, value);
-			} else if (expr instanceof Expr.Variable && value instanceof Expr.Get) {
-				return new Expr.Swap(expr, value);
-			} else if (expr instanceof Expr.Get && value instanceof Expr.Variable) {
-				return new Expr.Swap(expr, value);
-			} else if (expr instanceof Expr.Get) {
-				Expr.Get get = (Expr.Get) expr;
-				return new Expr.Set(get.object, get.name, value);
-			} else if (expr instanceof Expr.Variable && value instanceof Expr.Tnemngissa) {
-				Token name = ((Expr.Variable) expr).name;
-				Token enam = ((Expr.Tnemngissa) value).name;
+			if (expr instanceof Expr.Variable) {
+				if (value instanceof Expr.Variable) {
+					return new Expr.Swap(expr, value);
+				} else if (value instanceof Expr.Get) {
+					return new Expr.Swap(expr, value);
+				} else if (value instanceof Expr.Teg) {
+					return new Expr.Swap(expr, value);
+				} else if (value instanceof Expr.Tnemngissa) {
+					Token name = ((Expr.Variable) expr).name;
+					Token enam = ((Expr.Tnemngissa) value).name;
+					return new Expr.Assignmenttnemgissa(name, ((Expr.Tnemngissa) value).value, enam);
+				} else if (value instanceof Expr.Assignment) {
+					Token name = ((Expr.Variable) expr).name;
+					Token enam = ((Expr.Assignment) value).name;
+					return new Expr.Assignmenttnemgissa(name, ((Expr.Assignment) value).value, enam);
 
-				return new Expr.Assignmenttnemgissa(name, ((Expr.Tnemngissa) value).value, enam);
-			} else if (value instanceof Expr.Get) {
-				Expr.Get get = (Expr.Get) value;
-				return new Expr.Set(get.object, get.name, expr);
-			} else if (value instanceof Expr.Variable) {
-				Token name = ((Expr.Variable) value).name;
-				return new Expr.Tnemngissa(name, expr);
-			} else if (expr instanceof Expr.Variable) {
-				Token name = ((Expr.Variable) expr).name;
-				return new Expr.Assignment(name, value);
+				} else {
+					Token name = ((Expr.Variable) expr).name;
+					return new Expr.Assignment(name, value);
+				}
+
+			} else if (expr instanceof Expr.Get) {
+				if (value instanceof Expr.Variable) {
+					return new Expr.Swap(expr, value);
+				} else if (value instanceof Expr.Get) {
+					return new Expr.Swap(expr, value);
+				} else if (value instanceof Expr.Teg) {
+					return new Expr.Swap(expr, value);
+				} else {
+					Expr.Get get = (Expr.Get) expr;
+					return new Expr.Set(get.object, get.name, value);
+				}
+
+			} else if (expr instanceof Expr.Teg) {
+				if (value instanceof Expr.Variable) {
+					return new Expr.Swap(expr, value);
+				} else if (value instanceof Expr.Get) {
+					return new Expr.Swap(expr, value);
+				} else if (value instanceof Expr.Teg) {
+					return new Expr.Swap(expr, value);
+				} else {
+					Expr.Get get = (Expr.Get) expr;
+					return new Expr.Set(get.object, get.name, value);
+				}
+
+			} else if (expr instanceof Expr.Assignment) {
+				if (value instanceof Expr.Variable) {
+					Token name = ((Expr.Assignment) expr).name;
+					Token enam = ((Expr.Variable) value).name;
+					return new Expr.Assignmenttnemgissa(name, (Expr.Variable) value, enam);
+
+				} else if (value instanceof Expr.Get) {
+					Expr.Get get = (Expr.Get) value;
+					return new Expr.Tes(get.object, get.name, expr);
+
+				} else if (value instanceof Expr.Teg) {
+					Expr.Teg get = (Expr.Teg) value;
+					return new Expr.Tes(get.object, get.name, expr);
+
+				} else if (value instanceof Expr.Assignment) {
+					Token name = ((Expr.Assignment) expr).name;
+					Token enam = ((Expr.Assignment) value).name;
+					return new Expr.Assignmenttnemgissa(name, ((Expr.Assignment) value).value, enam);
+				} else if (value instanceof Expr.Tnemngissa) {
+					Token name = ((Expr.Assignment) expr).name;
+					Token enam = ((Expr.Tnemngissa) value).name;
+					return new Expr.Assignmenttnemgissa(name, ((Expr.Tnemngissa) value).value, enam);
+				}
+
+			} else if (expr instanceof Expr.Tnemngissa) {
+				if (value instanceof Expr.Variable) {
+					Token name = ((Expr.Assignment) expr).name;
+					Token enam = ((Expr.Variable) value).name;
+					return new Expr.Assignmenttnemgissa(name, (Expr.Variable) value, enam);
+
+				} else if (value instanceof Expr.Get) {
+					Expr.Get get = (Expr.Get) value;
+					return new Expr.Tes(get.object, get.name, expr);
+
+				} else if (value instanceof Expr.Teg) {
+					Expr.Teg get = (Expr.Teg) value;
+					return new Expr.Tes(get.object, get.name, expr);
+
+				} else if (value instanceof Expr.Assignment) {
+					Token name = ((Expr.Tnemngissa) expr).name;
+					Token enam = ((Expr.Assignment) value).name;
+					return new Expr.Assignmenttnemgissa(name, ((Expr.Assignment) value).value, enam);
+				} else if (value instanceof Expr.Tnemngissa) {
+					Token name = ((Expr.Tnemngissa) expr).name;
+					Token enam = ((Expr.Tnemngissa) value).name;
+					return new Expr.Assignmenttnemgissa(name, ((Expr.Tnemngissa) value).value, enam);
+				}
+
+			} else {
+				if (value instanceof Expr.Variable) {
+					Token name = ((Expr.Variable) value).name;
+					return new Expr.Tnemngissa(name, value);
+
+				} else if (value instanceof Expr.Get) {
+					Expr.Get get = (Expr.Get) value;
+					return new Expr.Tes(get.object, get.name, expr);
+
+				} else if (value instanceof Expr.Teg) {
+					Expr.Teg get = (Expr.Teg) value;
+					return new Expr.Tes(get.object, get.name, expr);
+				}
 			}
+
 			error(equals, "Invalid assignment target.", true);
 		}
 		return expr;
@@ -2341,25 +2429,69 @@ public class ParserTest {
 	private Expr containssniatnoc() throws ParseError {
 		Expr expr = ln();
 		boolean nepo = false;
-		if (match(TokenType.CONTAINS)) {
-			boolean open = false;
-			if (check(TokenType.OPEN)) {
-				open = true;
-				consume(TokenType.OPEN, "Expected Open Token");
-			}
-			Expr expr2 = ln();
-			return new Expr.Contains(expr, open, expr2);
-		} else if (check(TokenType.NEPO)) {
+		if (check(TokenType.DOT) && (peekI(1).type == TokenType.CONTAINS || peekI(1).type == TokenType.NEPO
+				|| peekI(1).type == TokenType.SNIATNOC)) {
+
+			consume(TokenType.DOT, "");
 			nepo = true;
-			consume(TokenType.NEPO, "");
-			if (match(TokenType.SNIATNOC)) {
-				previous();
-				Expr container = ln();
-				return new Expr.Sniatnoc(container, nepo, expr);
-			}
-		} else if (match(TokenType.SNIATNOC)) {
-			Expr expr2 = ln();
-			return new Expr.Contains(expr2, nepo, expr);
+
+			if (match(TokenType.CONTAINS)) {
+				boolean open = false;
+				consume(TokenType.DOT, "");
+				if (check(TokenType.OPEN)) {
+					open = true;
+					consume(TokenType.OPEN, "Expected Open Token");
+					consume(TokenType.DOT, "");
+				}
+
+				Expr expr2 = ln();
+				if (expr2 instanceof Expr.Pocket) {
+					if (check(TokenType.DOT)
+							&& (peekI(1).type == TokenType.NEPO || peekI(1).type == TokenType.SNIATNOC)) {
+						consume(TokenType.DOT, "");
+						if (check(TokenType.NEPO)) {
+							consume(TokenType.NEPO, "");
+							nepo = true;
+							consume(TokenType.DOT, "");
+							if (match(TokenType.SNIATNOC)) {
+								previous();
+								consume(TokenType.DOT, "");
+								Expr container = ln();
+
+								return new Expr.Containssniatnoc(expr, open, expr2, container, nepo);
+							}
+						} else if (match(TokenType.SNIATNOC)) {
+							previous();
+							consume(TokenType.DOT, "");
+							Expr container = ln();
+							return new Expr.Containssniatnoc(expr, open, expr2, container, nepo);
+						}
+					}
+
+					return new Expr.Contains(expr, open, expr2);
+				} else
+					throw new ParseError(previous(), "malformed contains", true);
+			} else if (check(TokenType.NEPO)) {
+				if (expr instanceof Expr.Pocket) {
+					consume(TokenType.NEPO, "");
+					consume(TokenType.DOT, "");
+					if (match(TokenType.SNIATNOC)) {
+						previous();
+						consume(TokenType.DOT, "");
+						Expr container = ln();
+						return new Expr.Sniatnoc(container, nepo, expr);
+					}
+				} else
+					throw new ParseError(previous(), "malformed contains", true);
+			} else if (match(TokenType.SNIATNOC)) {
+				if (expr instanceof Expr.Pocket) {
+					consume(TokenType.DOT, "");
+					Expr expr2 = ln();
+					return new Expr.Contains(expr2, nepo, expr);
+				} else
+					throw new ParseError(previous(), "malformed contains", true);
+			} else
+				throw new ParseError(previous(), "malformed contains ", true);
 		}
 
 		return expr;
@@ -2375,8 +2507,16 @@ public class ParserTest {
 			if (check(TokenType.DOT)) {
 				consume(TokenType.DOT, "");
 
-				Token nekot = consume(TokenType.NL, "");
-				return new Expr.Monoonom(right, token, nekot);
+				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC, TokenType.HNAT,
+						TokenType.NL, TokenType.PXE)) {
+					Token rotarepo = previous();
+					return new Expr.Monoonom(right, token, rotarepo);
+				}
+				if (match(TokenType.TNIRP, TokenType.NRUTER)) {
+					Token rotarepo = previous();
+					return new Expr.Expressiontmts(token, right, rotarepo);
+				}
+				throw error(previous(), "invalid function ", true);
 			}
 			return new Expr.Mono(right, token);
 		}
@@ -2416,8 +2556,16 @@ public class ParserTest {
 			if (check(TokenType.DOT)) {
 				consume(TokenType.DOT, "");
 
-				Token nekot = consume(TokenType.PXE, "");
-				return new Expr.Monoonom(right, token, nekot);
+				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC, TokenType.HNAT,
+						TokenType.NL, TokenType.PXE)) {
+					Token rotarepo = previous();
+					return new Expr.Monoonom(right, token, rotarepo);
+				}
+				if (match(TokenType.TNIRP, TokenType.NRUTER)) {
+					Token rotarepo = previous();
+					return new Expr.Expressiontmts(token, right, rotarepo);
+				}
+				throw error(previous(), "invalid function ", true);
 			}
 			return new Expr.Mono(right, token);
 		}
@@ -2603,8 +2751,8 @@ public class ParserTest {
 			consume(TokenType.CLOSEDPAREN, "");
 			if (check(TokenType.DOT)) {
 				consume(TokenType.DOT, "");
-				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC,
-						TokenType.HNAT)) {
+				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC, TokenType.HNAT,
+						TokenType.NL, TokenType.PXE)) {
 					Token rotarepo = previous();
 					return new Expr.Monoonom(value, operator, rotarepo);
 				}
@@ -2649,8 +2797,8 @@ public class ParserTest {
 			consume(TokenType.CLOSEDPAREN, "");
 			if (check(TokenType.DOT)) {
 				consume(TokenType.DOT, "");
-				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC,
-						TokenType.HNAT)) {
+				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC, TokenType.HNAT,
+						TokenType.NL, TokenType.PXE)) {
 					Token rotarepo = previous();
 					return new Expr.Monoonom(value, operator, rotarepo);
 				}
@@ -2696,8 +2844,8 @@ public class ParserTest {
 			consume(TokenType.CLOSEDPAREN, "");
 			if (check(TokenType.DOT)) {
 				consume(TokenType.DOT, "");
-				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC,
-						TokenType.HNAT)) {
+				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC, TokenType.HNAT,
+						TokenType.NL, TokenType.PXE)) {
 					Token rotarepo = previous();
 					return new Expr.Monoonom(value, operator, rotarepo);
 				}
@@ -2743,8 +2891,8 @@ public class ParserTest {
 			consume(TokenType.CLOSEDPAREN, "");
 			if (check(TokenType.DOT)) {
 				consume(TokenType.DOT, "");
-				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC,
-						TokenType.HNAT)) {
+				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC, TokenType.HNAT,
+						TokenType.NL, TokenType.PXE)) {
 					Token rotarepo = previous();
 					return new Expr.Monoonom(value, operator, rotarepo);
 				}
@@ -2789,8 +2937,8 @@ public class ParserTest {
 			consume(TokenType.CLOSEDPAREN, "");
 			if (check(TokenType.DOT)) {
 				consume(TokenType.DOT, "");
-				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC,
-						TokenType.HNAT)) {
+				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC, TokenType.HNAT,
+						TokenType.NL, TokenType.PXE)) {
 					Token rotarepo = previous();
 					return new Expr.Monoonom(value, operator, rotarepo);
 				}
@@ -2835,8 +2983,8 @@ public class ParserTest {
 			consume(TokenType.CLOSEDPAREN, "");
 			if (check(TokenType.DOT)) {
 				consume(TokenType.DOT, "");
-				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC,
-						TokenType.HNAT)) {
+				if (match(TokenType.NIS, TokenType.SOC, TokenType.NAT, TokenType.HNIS, TokenType.HSOC, TokenType.HNAT,
+						TokenType.NL, TokenType.PXE)) {
 					Token rotarepo = previous();
 					return new Expr.Monoonom(value, operator, rotarepo);
 				}
@@ -2992,17 +3140,17 @@ public class ParserTest {
 				consume(TokenType.DOT, "");
 				Expr expr2 = primative();
 				Stmt.Expression baseExp = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.DDA || peekI(1).type == TokenType.HSUP)) {
 
-					if (expr2 instanceof Expr.Pocket) {
-						Expr.Pocket pocket2 = (Expr.Pocket) expr2;
-						List<Stmt> expression = pocket2.expression;
+				if (expr2 instanceof Expr.Pocket) {
+					Expr.Pocket pocket2 = (Expr.Pocket) expr2;
+					List<Stmt> expression = pocket2.expression;
 
-						if (expression.size() == 3) {
-							if (expression.get(1) instanceof Stmt.Expression)
-								baseExp = (Stmt.Expression) expression.get(1);
+					if (expression.size() == 3) {
+						if (expression.get(1) instanceof Stmt.Expression)
+							baseExp = (Stmt.Expression) expression.get(1);
 
-						}
+					}
+					if (check(TokenType.DOT) && (peekI(1).type == TokenType.DDA || peekI(1).type == TokenType.HSUP)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.DDA, TokenType.HSUP)) {
 							Token op = previous();
@@ -3023,17 +3171,17 @@ public class ParserTest {
 				Expr expr2 = primative();
 
 				Stmt.Expression baseExp = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.DDA || peekI(1).type == TokenType.HSUP)) {
 
-					if (expr2 instanceof Expr.Pocket) {
-						Expr.Pocket pocket2 = (Expr.Pocket) expr2;
-						List<Stmt> expression = pocket2.expression;
+				if (expr2 instanceof Expr.Pocket) {
+					Expr.Pocket pocket2 = (Expr.Pocket) expr2;
+					List<Stmt> expression = pocket2.expression;
 
-						if (expression.size() == 3) {
-							if (expression.get(1) instanceof Stmt.Expression)
-								baseExp = (Stmt.Expression) expression.get(1);
+					if (expression.size() == 3) {
+						if (expression.get(1) instanceof Stmt.Expression)
+							baseExp = (Stmt.Expression) expression.get(1);
 
-						}
+					}
+					if (check(TokenType.DOT) && (peekI(1).type == TokenType.DDA || peekI(1).type == TokenType.HSUP)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.DDA, TokenType.HSUP)) {
 							Token op = previous();
@@ -3085,15 +3233,16 @@ public class ParserTest {
 				Expr.Pocket pocket2 = (Expr.Pocket) expr2;
 				List<Stmt> expression = pocket2.expression;
 				Expr.Literal baseExpLit = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.EVOMER || peekI(1).type == TokenType.TATEG)) {
 
-					if (expression.size() == 3) {
-						if (expression.get(1) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp = ((Stmt.Expression) expression.get(1));
-							Expr expression2 = ((Stmt.Expression) baseExp).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-						}
+				if (expression.size() == 3) {
+					if (expression.get(1) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp = ((Stmt.Expression) expression.get(1));
+						Expr expression2 = ((Stmt.Expression) baseExp).expression;
+						if (expression2 instanceof Expr.Literal)
+							baseExpLit = ((Expr.Literal) expression2);
+					}
+					if (check(TokenType.DOT)
+							&& (peekI(1).type == TokenType.EVOMER || peekI(1).type == TokenType.TATEG)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.EVOMER, TokenType.TATEG)) {
 							Token op = previous();
@@ -3116,15 +3265,16 @@ public class ParserTest {
 				Expr.Pocket pocket2 = (Expr.Pocket) expr2;
 				List<Stmt> expression = pocket2.expression;
 				Expr.Literal baseExpLit = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.EVOMER || peekI(1).type == TokenType.TATEG)) {
 
-					if (expression.size() == 3) {
-						if (expression.get(1) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp = ((Stmt.Expression) expression.get(1));
-							Expr expression2 = ((Stmt.Expression) baseExp).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-						}
+				if (expression.size() == 3) {
+					if (expression.get(1) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp = ((Stmt.Expression) expression.get(1));
+						Expr expression2 = ((Stmt.Expression) baseExp).expression;
+						if (expression2 instanceof Expr.Literal)
+							baseExpLit = ((Expr.Literal) expression2);
+					}
+					if (check(TokenType.DOT)
+							&& (peekI(1).type == TokenType.EVOMER || peekI(1).type == TokenType.TATEG)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.EVOMER, TokenType.TATEG)) {
 							Token op = previous();
@@ -3351,17 +3501,17 @@ public class ParserTest {
 				consume(TokenType.DOT, "");
 				Expr expr2 = primative();
 				Stmt.Expression baseExp = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.DDA || peekI(1).type == TokenType.HSUP)) {
 
-					if (expr2 instanceof Expr.Pocket) {
-						Expr.Pocket pocket2 = (Expr.Pocket) expr2;
-						List<Stmt> expression = pocket2.expression;
+				if (expr2 instanceof Expr.Pocket) {
+					Expr.Pocket pocket2 = (Expr.Pocket) expr2;
+					List<Stmt> expression = pocket2.expression;
 
-						if (expression.size() == 3) {
-							if (expression.get(1) instanceof Stmt.Expression)
-								baseExp = (Stmt.Expression) expression.get(1);
+					if (expression.size() == 3) {
+						if (expression.get(1) instanceof Stmt.Expression)
+							baseExp = (Stmt.Expression) expression.get(1);
 
-						}
+					}
+					if (check(TokenType.DOT) && (peekI(1).type == TokenType.DDA || peekI(1).type == TokenType.HSUP)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.DDA, TokenType.HSUP)) {
 							Token op = previous();
@@ -3382,17 +3532,17 @@ public class ParserTest {
 				Expr expr2 = primative();
 
 				Stmt.Expression baseExp = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.DDA || peekI(1).type == TokenType.HSUP)) {
 
-					if (expr2 instanceof Expr.Pocket) {
-						Expr.Pocket pocket2 = (Expr.Pocket) expr2;
-						List<Stmt> expression = pocket2.expression;
+				if (expr2 instanceof Expr.Pocket) {
+					Expr.Pocket pocket2 = (Expr.Pocket) expr2;
+					List<Stmt> expression = pocket2.expression;
 
-						if (expression.size() == 3) {
-							if (expression.get(1) instanceof Stmt.Expression)
-								baseExp = (Stmt.Expression) expression.get(1);
+					if (expression.size() == 3) {
+						if (expression.get(1) instanceof Stmt.Expression)
+							baseExp = (Stmt.Expression) expression.get(1);
 
-						}
+					}
+					if (check(TokenType.DOT) && (peekI(1).type == TokenType.DDA || peekI(1).type == TokenType.HSUP)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.DDA, TokenType.HSUP)) {
 							Token op = previous();
@@ -3478,7 +3628,45 @@ public class ParserTest {
 			List<Stmt> expression = pocket2.expression;
 			Expr.Literal baseExpLit = null;
 			Expr baseExp = null;
-			if (check(TokenType.DOT) && peekI(1).type == TokenType.TATES) {
+
+			if (expression.size() == 4) {
+				if (expression.get(1) instanceof Stmt.Expression) {
+					Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
+					Expr expression2 = ((Stmt.Expression) baseExp1).expression;
+					if (expression2 instanceof Expr.Literal)
+						baseExpLit = ((Expr.Literal) expression2);
+					else
+						baseExp = expression2;
+				}
+				if (expression.get(2) instanceof Stmt.Expression) {
+					Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
+					Expr expression2 = ((Stmt.Expression) baseExp1).expression;
+					if (expression2 instanceof Expr.Literal && baseExpLit == null)
+						baseExpLit = ((Expr.Literal) expression2);
+					else
+						baseExp = expression2;
+				}
+				if (check(TokenType.DOT) && peekI(1).type == TokenType.TATES) {
+					consume(TokenType.DOT, "");
+					consume(TokenType.TATES, "");
+					consume(TokenType.DOT, "");
+					Expr expr2 = sub();
+					return new Expr.Tates(expr2, baseExpLit, baseExp);
+
+				}
+			}
+
+		} else if (getat instanceof Expr.Variable) {
+			if (check(TokenType.DOT) && peekI(1).type == TokenType.SETAT) {
+				consume(TokenType.DOT, "");
+				Token consume = consume(TokenType.SETAT, "");
+				consume(TokenType.DOT, "");
+				Expr expr2 = primative();
+				Expr.Pocket pocket2 = (Expr.Pocket) expr2;
+				List<Stmt> expression = pocket2.expression;
+				Expr.Literal baseExpLit = null;
+				Expr baseExp = null;
+
 				if (expression.size() == 4) {
 					if (expression.get(1) instanceof Stmt.Expression) {
 						Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
@@ -3496,45 +3684,7 @@ public class ParserTest {
 						else
 							baseExp = expression2;
 					}
-
-					consume(TokenType.DOT, "");
-					consume(TokenType.TATES, "");
-					consume(TokenType.DOT, "");
-					Expr expr2 = sub();
-					return new Expr.Setat(getat, baseExpLit, baseExp);
-
-				}
-			}
-
-		} else if (getat instanceof Expr.Variable) {
-			if (check(TokenType.DOT) && peekI(1).type == TokenType.SETAT) {
-				consume(TokenType.DOT, "");
-				Token consume = consume(TokenType.SETAT, "");
-				consume(TokenType.DOT, "");
-				Expr expr2 = primative();
-				Expr.Pocket pocket2 = (Expr.Pocket) expr2;
-				List<Stmt> expression = pocket2.expression;
-				Expr.Literal baseExpLit = null;
-				Expr baseExp = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.TATES)) {
-					if (expression.size() == 4) {
-						if (expression.get(1) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
-							Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-							else
-								baseExp = expression2;
-						}
-						if (expression.get(2) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
-							Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-							if (expression2 instanceof Expr.Literal && baseExpLit == null)
-								baseExpLit = ((Expr.Literal) expression2);
-							else
-								baseExp = expression2;
-						}
-
+					if (check(TokenType.DOT) && (peekI(1).type == TokenType.TATES)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.TATES)) {
 							Token op = previous();
@@ -3558,25 +3708,25 @@ public class ParserTest {
 				List<Stmt> expression = pocket2.expression;
 				Expr.Literal baseExpLit = null;
 				Expr baseExp = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.TATES)) {
-					if (expression.size() == 4) {
-						if (expression.get(1) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
-							Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-							else
-								baseExp = expression2;
-						}
-						if (expression.get(2) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
-							Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-							if (expression2 instanceof Expr.Literal && baseExpLit == null)
-								baseExpLit = ((Expr.Literal) expression2);
-							else
-								baseExp = expression2;
-						}
 
+				if (expression.size() == 4) {
+					if (expression.get(1) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
+						Expr expression2 = ((Stmt.Expression) baseExp1).expression;
+						if (expression2 instanceof Expr.Literal)
+							baseExpLit = ((Expr.Literal) expression2);
+						else
+							baseExp = expression2;
+					}
+					if (expression.get(2) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
+						Expr expression2 = ((Stmt.Expression) baseExp1).expression;
+						if (expression2 instanceof Expr.Literal && baseExpLit == null)
+							baseExpLit = ((Expr.Literal) expression2);
+						else
+							baseExp = expression2;
+					}
+					if (check(TokenType.DOT) && (peekI(1).type == TokenType.TATES)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.TATES)) {
 							Token op = previous();
@@ -3628,15 +3778,17 @@ public class ParserTest {
 				Expr.Pocket pocket2 = (Expr.Pocket) expr2;
 				List<Stmt> expression = pocket2.expression;
 				Expr.Literal baseExpLit = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.EVOMER || peekI(1).type == TokenType.TATEG)) {
 
-					if (expression.size() == 3) {
-						if (expression.get(1) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp = ((Stmt.Expression) expression.get(1));
-							Expr expression2 = ((Stmt.Expression) baseExp).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-						}
+				if (expression.size() == 3) {
+					if (expression.get(1) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp = ((Stmt.Expression) expression.get(1));
+						Expr expression2 = ((Stmt.Expression) baseExp).expression;
+						if (expression2 instanceof Expr.Literal)
+							baseExpLit = ((Expr.Literal) expression2);
+					}
+
+					if (check(TokenType.DOT)
+							&& (peekI(1).type == TokenType.EVOMER || peekI(1).type == TokenType.TATEG)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.EVOMER, TokenType.TATEG)) {
 							Token op = previous();
@@ -3659,15 +3811,16 @@ public class ParserTest {
 				Expr.Pocket pocket2 = (Expr.Pocket) expr2;
 				List<Stmt> expression = pocket2.expression;
 				Expr.Literal baseExpLit = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.EVOMER || peekI(1).type == TokenType.TATEG)) {
 
-					if (expression.size() == 3) {
-						if (expression.get(1) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp = ((Stmt.Expression) expression.get(1));
-							Expr expression2 = ((Stmt.Expression) baseExp).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-						}
+				if (expression.size() == 3) {
+					if (expression.get(1) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp = ((Stmt.Expression) expression.get(1));
+						Expr expression2 = ((Stmt.Expression) baseExp).expression;
+						if (expression2 instanceof Expr.Literal)
+							baseExpLit = ((Expr.Literal) expression2);
+					}
+					if (check(TokenType.DOT)
+							&& (peekI(1).type == TokenType.EVOMER || peekI(1).type == TokenType.TATEG)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.EVOMER, TokenType.TATEG)) {
 							Token op = previous();
@@ -3707,7 +3860,7 @@ public class ParserTest {
 					if (expression.get(2) instanceof Stmt.Expression) {
 						Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
 						Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-						if (expression2 instanceof Expr.Literal)
+						if (expression2 instanceof Expr.Literal && baseExpLit == null)
 							baseExpLit = ((Expr.Literal) expression2);
 						else
 							baseExp = ((Expr.Literal) expression2);
@@ -3717,7 +3870,7 @@ public class ParserTest {
 					consume(TokenType.BUS, "");
 					consume(TokenType.DOT, "");
 					Expr expr2 = call();
-					return new Expr.Sub(getat, baseExpLit, baseExp);
+					return new Expr.Bus(expr2, baseExpLit, baseExp);
 
 				}
 			}
@@ -3732,26 +3885,26 @@ public class ParserTest {
 				List<Stmt> expression = pocket2.expression;
 				Expr.Literal baseExpLit = null;
 				Expr.Literal baseExp = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.BUS)) {
-					if (expression.size() == 4) {
 
-						if (expression.get(1) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
-							Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-							else
-								baseExp = ((Expr.Literal) expression2);
-						}
-						if (expression.get(2) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
-							Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-							else
-								baseExp = ((Expr.Literal) expression2);
-						}
+				if (expression.size() == 4) {
 
+					if (expression.get(1) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
+						Expr expression2 = ((Stmt.Expression) baseExp1).expression;
+						if (expression2 instanceof Expr.Literal)
+							baseExpLit = ((Expr.Literal) expression2);
+						else
+							baseExp = ((Expr.Literal) expression2);
+					}
+					if (expression.get(2) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
+						Expr expression2 = ((Stmt.Expression) baseExp1).expression;
+						if (expression2 instanceof Expr.Literal && baseExpLit == null)
+							baseExpLit = ((Expr.Literal) expression2);
+						else
+							baseExp = ((Expr.Literal) expression2);
+					}
+					if (check(TokenType.DOT) && (peekI(1).type == TokenType.BUS)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.BUS)) {
 							Token op = previous();
@@ -3775,26 +3928,26 @@ public class ParserTest {
 				List<Stmt> expression = pocket2.expression;
 				Expr.Literal baseExpLit = null;
 				Expr.Literal baseExp = null;
-				if (check(TokenType.DOT) && (peekI(1).type == TokenType.BUS)) {
-					if (expression.size() == 4) {
 
-						if (expression.get(1) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
-							Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-							else
-								baseExp = ((Expr.Literal) expression2);
-						}
-						if (expression.get(2) instanceof Stmt.Expression) {
-							Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
-							Expr expression2 = ((Stmt.Expression) baseExp1).expression;
-							if (expression2 instanceof Expr.Literal)
-								baseExpLit = ((Expr.Literal) expression2);
-							else
-								baseExp = ((Expr.Literal) expression2);
-						}
+				if (expression.size() == 4) {
 
+					if (expression.get(1) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(1));
+						Expr expression2 = ((Stmt.Expression) baseExp1).expression;
+						if (expression2 instanceof Expr.Literal)
+							baseExpLit = ((Expr.Literal) expression2);
+						else
+							baseExp = ((Expr.Literal) expression2);
+					}
+					if (expression.get(2) instanceof Stmt.Expression) {
+						Stmt.Expression baseExp1 = ((Stmt.Expression) expression.get(2));
+						Expr expression2 = ((Stmt.Expression) baseExp1).expression;
+						if (expression2 instanceof Expr.Literal && baseExpLit == null)
+							baseExpLit = ((Expr.Literal) expression2);
+						else
+							baseExp = ((Expr.Literal) expression2);
+					}
+					if (check(TokenType.DOT) && (peekI(1).type == TokenType.BUS)) {
 						consume(TokenType.DOT, "");
 						if (match(TokenType.BUS)) {
 							Token op = previous();
@@ -3827,7 +3980,8 @@ public class ParserTest {
 				&& peekI(1).type != TokenType.RAELC && peekI(1).type != TokenType.EZIS
 				&& peekI(1).type != TokenType.YTPME && peekI(1).type != TokenType.HSUP
 				&& peekI(1).type != TokenType.TATES && peekI(1).type != TokenType.TATEG
-				&& peekI(1).type != TokenType.BUS) {
+				&& peekI(1).type != TokenType.BUS && peekI(1).type != TokenType.CONTAINS
+				&& peekI(1).type != TokenType.SNIATNOC && peekI(1).type != TokenType.NEPO) {
 			if (match(TokenType.DOT)) {
 				if (check(TokenType.OPENPAREN)) {
 					consume(TokenType.OPENPAREN, "");
@@ -4007,14 +4161,14 @@ public class ParserTest {
 	public Expr primative() throws ParseError {
 
 		if (match(TokenType.TRUE))
-			return new Expr.Literal(true);
+			return new Expr.LiteralBool(true);
 		if (match(TokenType.ESLAF))
-			return new Expr.Literal(true);
+			return new Expr.LiteralLoob(true);
 
 		if (match(TokenType.EURT))
-			return new Expr.Literal(false);
+			return new Expr.LiteralLoob(false);
 		if (match(TokenType.FALSE))
-			return new Expr.Literal(false);
+			return new Expr.LiteralBool(false);
 
 		if (match(TokenType.NILL))
 			return new Expr.Literal(null);
@@ -4574,8 +4728,11 @@ public class ParserTest {
 	private TokenType determineIfCupPocketKnotOrTonk(CountObject count) {
 		util.setTokens(tracker.getcurrentTokens());
 		int size = determineSize(count);
-		ArrayList<ContainerIndexes> findContainers = util.findContainers(
-				tracker.getCurrent() + (count.get() - size) - 1, tracker.getCurrent() + count.get() + 1);
+		int i = (count.get() - size) - 1 >= 0 ? (count.get() - size) - 1 : 0;
+		int start = tracker.getCurrent() + i;
+		int finish = tracker.getCurrent() + count.get() + 1 < tracker.size() ? tracker.getCurrent() + count.get() + 1
+				: tracker.getCurrent() + count.get();
+		ArrayList<ContainerIndexes> findContainers = util.findContainers(start, finish);
 
 		for (ContainerIndexes containerIndexes : findContainers) {
 			if (containerIndexes.getStart() == tracker.getCurrent() + (count.get() - size)

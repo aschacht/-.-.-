@@ -28,6 +28,7 @@ import Parser.Expr.Bus;
 import Parser.Expr.Call;
 import Parser.Expr.Callllac;
 import Parser.Expr.Contains;
+import Parser.Expr.Containssniatnoc;
 import Parser.Expr.Cup;
 import Parser.Expr.CupClosed;
 import Parser.Expr.CupOpen;
@@ -40,7 +41,9 @@ import Parser.Expr.Knot;
 import Parser.Expr.Lairotcaf;
 import Parser.Expr.Link;
 import Parser.Expr.Literal;
+import Parser.Expr.LiteralBool;
 import Parser.Expr.LiteralChar;
+import Parser.Expr.LiteralLoob;
 import Parser.Expr.Llac;
 import Parser.Expr.Log;
 import Parser.Expr.Loggol;
@@ -788,7 +791,8 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitSwapExpr(Swap expr) {
-		resolve(expr);
+		resolve(expr.swap1);
+		resolve(expr.Swap2);
 		return null;
 	}
 
@@ -984,7 +988,8 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitAdditiveExpr(Additive expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
+		resolve(expr.toadd);
 		return null;
 	}
 
@@ -992,25 +997,27 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitSetatExpr(Setat expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
+		resolve(expr.toset);
 		return null;
 	}
 
 	@Override
 	public Void visitSubExpr(Sub expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
 		return null;
 	}
 
 	@Override
 	public Void visitBusExpr(Bus expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee); 
 		return null;
 	}
 
 	@Override
 	public Void visitTatesExpr(Tates expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
+		resolve(expr.toset);
 		return null;
 	}
 
@@ -1020,60 +1027,88 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 	@Override
 	public Void visitEvitiddaExpr(Evitidda expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
+		resolve(expr.toadd);
 		return null;
 	}
 
 	@Override
 	public Void visitParamContOpExpr(ParamContOp expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
 		return null;
 	}
 
 	@Override
 	public Void visitNonParamContOpExpr(NonParamContOp expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
 		return null;
 	}
 
 	@Override
 	public Void visitPoTnocMarapNonExpr(PoTnocMarapNon expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
 		return null;
 	}
 
 	@Override
 	public Void visitPoTnocMarapExpr(PoTnocMarap expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.callee);
 		return null;
 	}
 
 	@Override
 	public Void visitAddittiddaExpr(Addittidda expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.calleeForward);
+		resolve(expr.calleeBackward);
+		resolve(expr.toadd);
 		return null;
 	}
 
 	@Override
 	public Void visitParCoOppOoCraPExpr(ParCoOppOoCraP expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.calleeForward);
+		resolve(expr.calleeBackward);
 		return null;
 	}
 
 	@Override
 	public Void visitNoPaCoOOoCaPoNExpr(NoPaCoOOoCaPoN expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.calleeForward);
+		resolve(expr.calleeBackward);
 		return null;
 	}
 
 	@Override
 	public Void visitSetattatesExpr(Setattates expr) {
-		// TODO Auto-generated method stub
+		resolve(expr.calleeForward);
+		resolve(expr.calleeBackward);
+		resolve(expr.toset);
 		return null;
 	}
 
 	@Override
 	public Void visitSubbusExpr(Subbus expr) {
+		resolve(expr.calleeForward);
+		resolve(expr.calleeBackward);
+		return null;
+	}
+
+
+
+	@Override
+	public Void visitContainssniatnocExpr(Containssniatnoc expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitLiteralBoolExpr(LiteralBool expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Void visitLiteralLoobExpr(LiteralLoob expr) {
 		// TODO Auto-generated method stub
 		return null;
 	}

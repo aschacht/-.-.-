@@ -6,11 +6,13 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
 
 import Box.Box.Box;
@@ -33,6 +35,7 @@ import Parser.Expr.Bus;
 import Parser.Expr.Call;
 import Parser.Expr.Callllac;
 import Parser.Expr.Contains;
+import Parser.Expr.Containssniatnoc;
 import Parser.Expr.Cup;
 import Parser.Expr.CupClosed;
 import Parser.Expr.CupOpen;
@@ -45,7 +48,9 @@ import Parser.Expr.Knot;
 import Parser.Expr.Lairotcaf;
 import Parser.Expr.Link;
 import Parser.Expr.Literal;
+import Parser.Expr.LiteralBool;
 import Parser.Expr.LiteralChar;
+import Parser.Expr.LiteralLoob;
 import Parser.Expr.Llac;
 import Parser.Expr.Log;
 import Parser.Expr.Loggol;
@@ -135,6 +140,10 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private boolean forward;
 	HashMap<String, String> nameMap = new HashMap<>();
 	HashMap<String, String> classMapToSuperClass = new HashMap<>();
+	private ArrayList<Object> identifiers = new ArrayList<>();
+	private ArrayList<String> classes = new ArrayList<>();
+	private ArrayList<String> templates = new ArrayList<>();
+	private ArrayList<String> links = new ArrayList<>();
 
 	public Interpreter() {
 
@@ -389,7 +398,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		case PLUSEQUALS:
 			return add(left, right, expr.right, expr.operator);
 		case PLUS:
-			return add(left, right);
+			return add(left, right, expr.left, expr.right);
 		case MOD:
 			return mod(left, right);
 		case MODEQUAL:
@@ -1141,8 +1150,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				return addObjectString(left, right);
 			} else if (right instanceof ArrayList<?>) {
 				return addStringArray(left, right);
-			}
+			} else {
 
+				if (right != null)
+					return left.toString() + right.toString();
+				else
+					return left.toString() + "null";
+			}
 		} else if (left instanceof ArrayList<?>) {
 			if (right instanceof ArrayList<?>)
 				return addArrayListArrayList(left, right, 1);
@@ -1150,6 +1164,76 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				return addBinaryArrayList(left, right, 1);
 		}
 		return null;
+	}
+
+	private Object add(Object left, Object right, Expr left2, Expr right2) {
+		if (left instanceof Integer) {
+			if (right instanceof Integer) {
+				return addIntegerInteger(left, right);
+			} else if (right instanceof Double) {
+				return addIntegerDouble(left, right);
+			} else if (right instanceof Bin) {
+				return addIntegerBin(left, right);
+			} else if (right instanceof String) {
+				return addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Double) {
+			if (right instanceof Integer) {
+				return addDoubleInteger(left, right);
+			} else if (right instanceof Double) {
+				return addDoubleDouble(left, right);
+			} else if (right instanceof Bin) {
+				return addDoubleBin(left, right);
+			} else if (right instanceof String) {
+				return addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof Bin) {
+			if (right instanceof Integer) {
+				return addBinInteger(left, right);
+			} else if (right instanceof Double) {
+				return addBinDouble(left, right);
+			} else if (right instanceof Bin) {
+				return addBinBin(left, right);
+			} else if (right instanceof String) {
+				return addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+
+				return addArrayBinaryList(left, right, 1);
+			}
+		} else if (left instanceof String) {
+			if (right instanceof Integer) {
+				return addObjectString(left, right);
+			} else if (right instanceof Double) {
+				return addObjectString(left, right);
+			} else if (right instanceof Bin) {
+				return addObjectString(left, right);
+			} else if (right instanceof String) {
+				return addObjectString(left, right);
+			} else if (right instanceof ArrayList<?>) {
+				return addStringArray(left, right);
+			} else {
+
+				if (right instanceof Boolean)
+					return left.toString() + right2.toString();
+				else
+					return left.toString() + right.toString();
+			}
+		} else if (left instanceof Boolean) {
+
+			if (right instanceof String)
+				return left2.toString() + right.toString();
+		} else if (left instanceof ArrayList<?>) {
+			if (right instanceof ArrayList<?>)
+				return addArrayListArrayList(left, right, 1);
+			else
+				return addBinaryArrayList(left, right, 1);
+		}
+		return null;
+
 	}
 
 	private Object greaterthen(Object left, Object right) {
@@ -3885,8 +3969,9 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 		} else if (left instanceof ArrayList<?>) {
 			left = reformatArrayListDataForJustValues((ArrayList<?>) left);
-		} else
-			left = findValueOfInstanceFromIdentifier(left);
+		}
+		// else
+		// left = findValueOfInstanceFromIdentifier(left);
 		return left;
 	}
 
@@ -3989,13 +4074,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 			if (right instanceof Bin)
 				return ((Bin) right).negate();
-			if (right instanceof Instance) {
+			int valueToAssign = -1;
+			if (right instanceof CupInstance) {
 				Environment previous = environment;
 				try {
 					environment = new Environment(environment);
-					int valueToAssign = -1;
-					for (int i = 0; i < ((Instance) right).body.size(); i++) {
-						Object at = ((Instance) right).body.get(i);
+					for (int i = 0; i < ((CupInstance) right).body.size(); i++) {
+						Object at = ((CupInstance) right).body.get(i);
 						multiplyByValueAndAssign(at, valueToAssign);
 					}
 				} finally {
@@ -4004,6 +4089,63 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				return right;
 
 			}
+			if (right instanceof PocketInstance) {
+				Environment previous = environment;
+				try {
+					environment = new Environment(environment);
+					for (int i = 0; i < ((PocketInstance) right).body.size(); i++) {
+						Object at = ((PocketInstance) right).body.get(i);
+						multiplyByValueAndAssign(at, valueToAssign);
+					}
+				} finally {
+					this.environment = previous;
+				}
+				return right;
+
+			}
+			if (right instanceof BoxInstance) {
+				Environment previous = environment;
+				try {
+					environment = new Environment(environment);
+					for (int i = 0; i < ((BoxInstance) right).body.size(); i++) {
+						Object at = ((BoxInstance) right).body.get(i);
+						multiplyByValueAndAssign(at, valueToAssign);
+					}
+				} finally {
+					this.environment = previous;
+				}
+				return right;
+
+			}
+			if (right instanceof KnotInstance) {
+				Environment previous = environment;
+				try {
+					environment = new Environment(environment);
+					for (int i = 0; i < ((KnotInstance) right).body.size(); i++) {
+						Object at = ((KnotInstance) right).body.get(i);
+						multiplyByValueAndAssign(at, valueToAssign);
+					}
+				} finally {
+					this.environment = previous;
+				}
+				return right;
+
+			}
+			if (right instanceof TonkInstance) {
+				Environment previous = environment;
+				try {
+					environment = new Environment(environment);
+					for (int i = 0; i < ((TonkInstance) right).body.size(); i++) {
+						Object at = ((TonkInstance) right).body.get(i);
+						multiplyByValueAndAssign(at, valueToAssign);
+					}
+				} finally {
+					this.environment = previous;
+				}
+				return right;
+
+			}
+
 			throw new RuntimeError(expr.operator, "Operand must be a number.");
 
 		case PLUSPLUS:
@@ -4029,13 +4171,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 					return value;
 				}
-				int valueToAssign = 1;
+				int valueToAssignpp = 1;
 
-				Object pocketInstance = isPocketInstance(right, valueToAssign);
-				Object cupInstance = isCupInstance(right, valueToAssign);
-				Object knotInstance = isKnotInstance(right, valueToAssign);
-				Object tonkInstance = isTonkInstance(right, valueToAssign);
-				Object boxInstance = isBoxInstance(right, valueToAssign);
+				Object pocketInstance = isPocketInstance(right, valueToAssignpp);
+				Object cupInstance = isCupInstance(right, valueToAssignpp);
+				Object knotInstance = isKnotInstance(right, valueToAssignpp);
+				Object tonkInstance = isTonkInstance(right, valueToAssignpp);
+				Object boxInstance = isBoxInstance(right, valueToAssignpp);
 
 				if (pocketInstance != null)
 					return pocketInstance;
@@ -4074,13 +4216,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					return value;
 				}
 
-				int valueToAssign = -1;
+				int valueToAssignmm = -1;
 
-				Object pocketInstance = isPocketInstance(right, valueToAssign);
-				Object cupInstance = isCupInstance(right, valueToAssign);
-				Object knotInstance = isKnotInstance(right, valueToAssign);
-				Object tonkInstance = isTonkInstance(right, valueToAssign);
-				Object boxInstance = isBoxInstance(right, valueToAssign);
+				Object pocketInstance = isPocketInstance(right, valueToAssignmm);
+				Object cupInstance = isCupInstance(right, valueToAssignmm);
+				Object knotInstance = isKnotInstance(right, valueToAssignmm);
+				Object tonkInstance = isTonkInstance(right, valueToAssignmm);
+				Object boxInstance = isBoxInstance(right, valueToAssignmm);
 
 				if (pocketInstance != null)
 					return pocketInstance;
@@ -4119,19 +4261,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			} finally {
 				this.environment = previous;
 			}
-
-			Expr.Box expr2 = (Expr.Box) ((BoxInstance) right).expr;
-//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
-//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
-//					expr2.identifier.finish);
-			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
-					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
-
-			Expr.Variable variable = new Expr.Variable(identifier);
-			locals.get(variable);
-			setGlobalOrCurrentEnvironmentVariable(arr, variable);
-
-			return arr;
+			return right;
 		} else {
 			return null;
 		}
@@ -4233,18 +4363,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			} finally {
 				this.environment = previous;
 			}
-
-			Expr.Pocket expr2 = (Pocket) ((PocketInstance) right).expr;
-			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
-					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
-//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
-//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
-//					expr2.identifier.finish);
-
-			Expr.Variable variable = new Expr.Variable(identifier);
-			setGlobalOrCurrentEnvironmentVariable(arr, variable);
-
-			return arr;
+			return right;
 		} else {
 			return null;
 		}
@@ -4270,17 +4389,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				this.environment = previous;
 			}
 
-			Expr.Knot expr2 = (Knot) ((KnotInstance) right).expr;
-			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
-					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
-//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
-//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
-//					expr2.identifier.finish);
-
-			Expr.Variable variable = new Expr.Variable(identifier);
-			setGlobalOrCurrentEnvironmentVariable(arr, variable);
-
-			return arr;
+			return right;
 		} else {
 			return null;
 		}
@@ -4305,18 +4414,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			} finally {
 				this.environment = previous;
 			}
-
-			Expr.Tonk expr2 = (Tonk) ((TonkInstance) right).expr;
-			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme, null, null, null,
-					expr2.identifier.column, expr2.identifier.line, expr2.identifier.start, expr2.identifier.finish);
-//			Token identifier = new Token(TokenType.IDENTIFIER, expr2.identifier.lexeme + "varravargssgra", null, null,
-//					null, expr2.identifier.column, expr2.identifier.line, expr2.identifier.start,
-//					expr2.identifier.finish);
-
-			Expr.Variable variable = new Expr.Variable(identifier);
-			setGlobalOrCurrentEnvironmentVariable(arr, variable);
-
-			return arr;
+			return right;
 		} else {
 			return null;
 		}
@@ -4333,6 +4431,24 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		} else if (at instanceof Stmt.Expression) {
 			assignExpression(at, valueToAssign);
 
+		} else if (at instanceof Expr.Cup) {
+			assignCupAdd(valueToAssign, (Expr) at);
+		} else if (at instanceof Expr.Pocket) {
+			assignPocketAdd(valueToAssign, (Expr) at);
+		} else if (at instanceof Expr.Box) {
+			assignBoxAdd(valueToAssign, (Expr) at);
+		} else if (at instanceof Expr.Knot) {
+			assignKnotAdd(valueToAssign, (Expr) at);
+		} else if (at instanceof Expr.Tonk) {
+			assignTonkAdd(valueToAssign, (Expr) at);
+		} else if (at instanceof Expr.Literal) {
+			if (((Literal) at).value instanceof Integer) {
+				((Literal) at).value = ((Integer) ((Literal) at).value) + valueToAssign;
+			} else if (((Literal) at).value instanceof Double) {
+				((Literal) at).value = ((Double) ((Literal) at).value) + valueToAssign;
+			} else if (((Literal) at).value instanceof Bin) {
+				((Literal) at).value = Bin.add(((Bin) ((Literal) at).value), new Bin(valueToAssign));
+			}
 		}
 	}
 
@@ -4378,8 +4494,22 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					assignCupAdd(valueToAssign, right2);
 				} else if (right2 instanceof Expr.Pocket) {
 					assignPocketAdd(valueToAssign, right2);
+				} else if (right2 instanceof Expr.Box) {
+					assignBoxAdd(valueToAssign, right2);
+				} else if (expression instanceof Expr.Knot) {
+					assignKnotAdd(valueToAssign, expression);
+				} else if (expression instanceof Expr.Tonk) {
+					assignTonkAdd(valueToAssign, expression);
 				} else if (expression instanceof Expr.Binary) {
 					assignBinaryAdd(valueToAssign, expression);
+				} else if (at instanceof Expr.Literal) {
+					if (((Literal) at).value instanceof Integer) {
+						((Literal) at).value = ((Integer) ((Literal) at).value) + valueToAssign;
+					} else if (((Literal) at).value instanceof Double) {
+						((Literal) at).value = ((Double) ((Literal) at).value) + valueToAssign;
+					} else if (((Literal) at).value instanceof Bin) {
+						((Literal) at).value = Bin.add(((Bin) ((Literal) at).value), new Bin(valueToAssign));
+					}
 				}
 			} else if (expression instanceof Expr.Binary) {
 				assignBinaryAdd(valueToAssign, expression);
@@ -4389,6 +4519,20 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				assignCupAdd(valueToAssign, expression);
 			} else if (expression instanceof Expr.Pocket) {
 				assignPocketAdd(valueToAssign, expression);
+			} else if (expression instanceof Expr.Box) {
+				assignBoxAdd(valueToAssign, expression);
+			} else if (expression instanceof Expr.Knot) {
+				assignKnotAdd(valueToAssign, expression);
+			} else if (expression instanceof Expr.Tonk) {
+				assignTonkAdd(valueToAssign, expression);
+			} else if (at instanceof Expr.Literal) {
+				if (((Literal) at).value instanceof Integer) {
+					((Literal) at).value = ((Integer) ((Literal) at).value) + valueToAssign;
+				} else if (((Literal) at).value instanceof Double) {
+					((Literal) at).value = ((Double) ((Literal) at).value) + valueToAssign;
+				} else if (((Literal) at).value instanceof Bin) {
+					((Literal) at).value = Bin.add(((Bin) ((Literal) at).value), new Bin(valueToAssign));
+				}
 			}
 		}
 	}
@@ -4514,6 +4658,42 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		try {
 			environment = new Environment(environment);
 			for (Declaration declaration : ((Pocket) right2).expression) {
+				addOrSubtractAndAssign(declaration, valueToAssign);
+			}
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	private void assignKnotAdd(int valueToAssign, Expr right2) {
+		Environment previous = environment;
+		try {
+			environment = new Environment(environment);
+			for (Declaration declaration : ((Knot) right2).expression) {
+				addOrSubtractAndAssign(declaration, valueToAssign);
+			}
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	private void assignTonkAdd(int valueToAssign, Expr right2) {
+		Environment previous = environment;
+		try {
+			environment = new Environment(environment);
+			for (Declaration declaration : ((Tonk) right2).expression) {
+				addOrSubtractAndAssign(declaration, valueToAssign);
+			}
+		} finally {
+			this.environment = previous;
+		}
+	}
+
+	private void assignBoxAdd(int valueToAssign, Expr right2) {
+		Environment previous = environment;
+		try {
+			environment = new Environment(environment);
+			for (Expr declaration : ((Expr.Box) right2).expression) {
 				addOrSubtractAndAssign(declaration, valueToAssign);
 			}
 		} finally {
@@ -4870,54 +5050,40 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitContainsExpr(Contains expr) {
 		if (forward) {
 			if (expr.container instanceof Expr.Variable) {
+				
 				Object lookUpVariable = lookUpVariable(((Expr.Variable) expr.container).name, expr.container);
 				Instance lookUpContainer = (Instance) lookUpVariable;
 				System.out.println("hey");
-				if (expr.contents instanceof Expr.Variable) {
-					Instance lookUpContents = (Instance) lookUpVariable(((Expr.Variable) expr.contents).name,
-							expr.contents);
-					System.out.println("hi");
-					boolean contains = lookUpContainer.contains(lookUpContents);
+				Pocket poc =((Expr.Pocket)expr.contents);
+				if(poc.expression.size()<3) {
+					throw new RuntimeException("expected one parameter found none");
+				}else if(poc.expression.size()>3) {
+					throw new RuntimeException("expected one parameter found more then one");
+				}
+				Stmt stmt = poc.expression.get(1);
+				
+				
+				if (lookUpContainer instanceof BoxInstance) {
+
+				} else if (lookUpContainer instanceof PocketInstance) {
+
+					boolean contains = ((PocketInstance)lookUpContainer).contains(stmt);
 					if (contains) {
-						System.out.println("hey");
 					}
-				} else if (expr.contents instanceof Expr.Literal) {
+				} else if (lookUpContainer instanceof CupInstance) {
 
-					boolean contains = lookUpContainer.contains((Expr.Literal) expr.contents);
+					boolean contains = ((CupInstance)lookUpContainer).contains(stmt);
 					if (contains) {
-						System.out.println("hey");
 					}
-				} else if (expr.contents instanceof Expr.LiteralChar) {
+				} else if (lookUpContainer instanceof KnotInstance) {
 
-					boolean contains = lookUpContainer.contains((Expr.LiteralChar) expr.contents);
+					boolean contains = ((KnotInstance)lookUpContainer).contains( stmt);
 					if (contains) {
-						System.out.println("hey");
 					}
-				} else if (expr.contents instanceof Expr.Box) {
+				} else if (lookUpContainer instanceof TonkInstance) {
 
-				} else if (expr.contents instanceof Expr.Pocket) {
-
-					boolean contains = lookUpContainer.contains((Expr.Pocket) expr.contents);
+					boolean contains = ((TonkInstance)lookUpContainer).contains(stmt);
 					if (contains) {
-						System.out.println("hey");
-					}
-				} else if (expr.contents instanceof Expr.Cup) {
-
-					boolean contains = lookUpContainer.contains((Expr.Cup) expr.contents);
-					if (contains) {
-						System.out.println("hey");
-					}
-				} else if (expr.contents instanceof Expr.Knot) {
-
-					boolean contains = lookUpContainer.contains((Expr.Knot) expr.contents);
-					if (contains) {
-						System.out.println("hey");
-					}
-				} else if (expr.contents instanceof Expr.Tonk) {
-
-					boolean contains = lookUpContainer.contains((Expr.Tonk) expr.contents);
-					if (contains) {
-						System.out.println("hey");
 					}
 				}
 			}
@@ -5108,7 +5274,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 				folderPath = folderPath.substring(0, folderPath.length() - 1);
 
-
 				String str = "";
 				Object boxInstance = evaluate(stmt.objecttosave);
 				if (boxInstance != null) {
@@ -5139,16 +5304,17 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					data += myReader.nextLine();
 
 				}
-				
+
 				if (stmt.objectToReadInto instanceof Expr.Variable) {
 					Object value = evaluate(new Expr.Literal(data));
-					Integer distance = locals.get((Expr.Variable)stmt.objectToReadInto);
+					Integer distance = locals.get((Expr.Variable) stmt.objectToReadInto);
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable)stmt.objectToReadInto).name, value, value, this);
+						environment.assignAt(distance, ((Expr.Variable) stmt.objectToReadInto).name, value, value,
+								this);
 					else
-						globals.assign(((Expr.Variable)stmt.objectToReadInto).name, value, value, this);
+						globals.assign(((Expr.Variable) stmt.objectToReadInto).name, value, value, this);
 				}
-			
+
 				myReader.close();
 			} catch (FileNotFoundException e) {
 				System.out.println("An error occurred.");
@@ -5207,20 +5373,128 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitYranibExpr(Yranib expr) {
+		Object left = null;
+		Object right = null;
 
-		return null;
+		if (expr.left instanceof Pocket || expr.left instanceof Cup) {
+			left = evaluate(expr.left);
+			right = evaluate(expr.right);
+		} else if (expr.right instanceof Pocket || expr.right instanceof Cup) {
+			right = evaluate(expr.right);
+			left = evaluate(expr.left);
+		} else {
+			left = evaluate(expr.left);
+			right = evaluate(expr.right);
+		}
+
+		left = parseBinData(left);
+		right = parseBinData(right);
+
+		switch (expr.operator.type) {
+		case NOTEQUALS:
+			return !isEqual(left, right);
+		case EQUALSNOT:
+			return !isEqual(left, right);
+		case EQUALSEQUALS:
+			return isEqual(left, right);
+
+		case GREATERTHEN:
+			return greaterthen(left, right);
+		case GREATERTHENEQUAL:
+			return greaterequalthen(left, right);
+		case LESSTHEN:
+			return lessthen(left, right);
+		case LESSTHENEQUAL:
+			return lessequalthen(left, right);
+		case EQUALLESSTHEN:
+			return greaterequalthen(left, right);
+		case EQUALGREATERTHEN:
+			return lessequalthen(left, right);
+
+		case MINUS:
+
+			return sub(left, right);
+		case EQUALSMINUS:
+			return sub(left, right, expr.left, expr.operator);
+		case MINUSEQUALS:
+			return sub(left, right, expr.right, expr.operator);
+
+		case EQUALSPLUS:
+			return add(left, right, expr.left, expr.operator);
+		case PLUSEQUALS:
+			return add(left, right, expr.right, expr.operator);
+		case PLUS:
+			return add(left, right, expr.left, expr.right);
+		case MOD:
+			return mod(left, right);
+		case MODEQUAL:
+			return mod(left, right, expr.right, expr.operator);
+		case EQUALMOD:
+			return mod(left, right, expr.left, expr.operator);
+
+		case FORWARDSLASH:
+			return div(left, right);
+		case BACKSLASH:
+			Object div = div(right, left);
+			return div;
+		case EQUALDIVIDEFORWARD:
+			return div(right, left, expr.left, expr.operator);
+		case EQUALDIVIDEBACKWARD:
+			return div(right, left, expr.right, expr.operator);
+
+		case TIMES:
+			return times(left, right);
+		case TIMESEQUAL:
+			return times(left, right, expr.right, expr.operator);
+		case EQUALTIMES:
+			return times(left, right, expr.left, expr.operator);
+
+		case POWER:
+			return power(left, right);
+		case EQUALPOWER:
+			return power(left, right, expr.left, expr.operator);
+		case POWEREQUAL:
+			return power(left, right, expr.right, expr.operator);
+		case YROOT:
+			return null;
+		case TOORY:
+			return null;
+
+		case DNA:
+			if (!forward)
+				return and(left, right);
+			else
+				return null;
+		case AND:
+			if (forward)
+				return and(left, right);
+			else
+				return null;
+		case RO:
+			if (!forward)
+				return or(left, right);
+			else
+				return false;
+		case OR:
+			if (forward)
+				return or(left, right);
+			else
+				return false;
+		default:
+			return null;
+		}
 
 	}
 
 	@Override
 	public Object visitOnomExpr(Onom expr) {
 		if (!forward) {
-			return findOnomExpr(expr);
+			return findOnom(expr);
 		}
 		return null;
 	}
 
-	private Object findOnomExpr(Expr expr) {
+	private Object findOnom(Expr expr) {
 		Double result = 0.0;
 
 		Object evaluate = null;
@@ -5268,6 +5542,12 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 		case HNAT:
 			result = Math.tanh(evaluateDouble);
+			break;
+		case NL:
+			result = Math.log1p(evaluateDouble - 1);
+			break;
+		case PXE:
+			result = Math.exp(evaluateDouble);
 			break;
 
 		default:
@@ -5372,7 +5652,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitFunctionFun(Function fun) {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 
@@ -5492,7 +5772,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 				folderPath = folderPath.substring(0, folderPath.length() - 1);
 
-
 				String str = "";
 				Object boxInstance = evaluate(stmt.objecttosave);
 				if (boxInstance != null) {
@@ -5515,7 +5794,63 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitExpelStmt(Expel stmt) {
 		if (forward) {
+			try {
+				String filePathAndName = (String) evaluate(stmt.filePath);
+				String[] split = filePathAndName.split("/");
+				String folderPath = "";
+				if (split[split.length - 1].contains(".")) {
+					for (int i = 0; i < split.length - 1; i++) {
+						folderPath += split[i] + "/";
+					}
+				} else {
+					for (int i = 0; i < split.length; i++) {
+						folderPath += split[i] + "/";
+					}
+				}
+				folderPath = folderPath.substring(0, folderPath.length() - 1);
+
+				String str = "";
+				Object boxInstance = evaluate(stmt.toExpell);
+				if (boxInstance != null) {
+					str = boxInstance.toString();
+
+					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
+					writer.write(str);
+
+					writer.close();
+				}
+
+				Integer integer = locals.get(stmt.toExpell);
+				Token name = getNameForExpr(stmt.toExpell);
+
+				if (integer != null) {
+					environment.assignAt(integer, name, null, null, this);
+				} else {
+					globals.assign(name, null, null, this);
+				}
+			} catch (IOException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
+			}
+
 		} else {
+		}
+		return null;
+	}
+
+	private Token getNameForExpr(Expr expression) {
+		if (expression instanceof Expr.Knot) {
+			return ((Expr.Knot) expression).identifier.identifierToken;
+		} else if (expression instanceof Expr.Cup) {
+			return ((Expr.Cup) expression).identifier.identifierToken;
+		} else if (expression instanceof Expr.Pocket) {
+			return ((Expr.Pocket) expression).identifier.identifierToken;
+		} else if (expression instanceof Expr.Box) {
+			return ((Expr.Box) expression).identifier.identifierToken;
+		} else if (expression instanceof Expr.Variable) {
+			return ((Expr.Variable) expression).name;
+		} else if (expression instanceof Expr.Tonk) {
+			return ((Expr.Tonk) expression).identifier.identifierToken;
 		}
 		return null;
 	}
@@ -5531,16 +5866,17 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					data += myReader.nextLine();
 
 				}
-				
+
 				if (stmt.objectToReadInto instanceof Expr.Variable) {
 					Object value = evaluate(new Expr.Literal(data));
-					Integer distance = locals.get((Expr.Variable)stmt.objectToReadInto);
+					Integer distance = locals.get((Expr.Variable) stmt.objectToReadInto);
 					if (distance != null)
-						environment.assignAt(distance, ((Expr.Variable)stmt.objectToReadInto).name, value, value, this);
+						environment.assignAt(distance, ((Expr.Variable) stmt.objectToReadInto).name, value, value,
+								this);
 					else
-						globals.assign(((Expr.Variable)stmt.objectToReadInto).name, value, value, this);
+						globals.assign(((Expr.Variable) stmt.objectToReadInto).name, value, value, this);
 				}
-			
+
 				myReader.close();
 			} catch (FileNotFoundException e) {
 				System.out.println("An error occurred.");
@@ -5563,13 +5899,104 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 		if (stmt.initilizer != null) {
 			Object evaluate = evaluate(stmt.initilizer);
+			String reverse = reverse(stmt.name.lexeme);
+			if (evaluate instanceof CupInstance) {
+				Object open0 = ((CupInstance) evaluate).body.get(0);
+				Object close1 = ((CupInstance) evaluate).body.get(((CupInstance) evaluate).body.size() - 1);
+				if (open0 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) open0).expression;
+					if (expression instanceof Expr.CupOpen) {
+						((Expr.CupOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+						((Expr.CupOpen) expression).ctrl.lexeme = stmt.name.lexeme + "{";
+					}
+				}
+				if (close1 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) close1).expression;
+					if (expression instanceof Expr.CupClosed) {
+						((Expr.CupClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+						((Expr.CupClosed) expression).ctrl.lexeme = "}" + reverse;
+					}
+				}
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				environment.assign(stmt.name, null, evaluate);
+				environment.assign(reverseName, null, evaluate);
+			} else if (evaluate instanceof PocketInstance) {
+				Object open0 = ((PocketInstance) evaluate).body.get(0);
+				Object close1 = ((PocketInstance) evaluate).body.get(((PocketInstance) evaluate).body.size() - 1);
+				if (open0 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) open0).expression;
+					if (expression instanceof Expr.PocketOpen) {
+						((Expr.PocketOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+						((Expr.PocketOpen) expression).ctrl.lexeme = stmt.name.lexeme + "(";
+					}
+				}
+				if (close1 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) close1).expression;
+					if (expression instanceof Expr.PocketClosed) {
+						((Expr.PocketClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+						((Expr.PocketClosed) expression).ctrl.lexeme = ")" + reverse;
+					}
+				}
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				environment.assign(stmt.name, null, evaluate);
+				environment.assign(reverseName, null, evaluate);
+			} else if (evaluate instanceof BoxInstance) {
+				Object open0 = ((BoxInstance) evaluate).body.get(0);
+				Object close1 = ((BoxInstance) evaluate).body.get(((BoxInstance) evaluate).body.size() - 1);
+				if (open0 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) open0).expression;
+					if (expression instanceof Expr.BoxOpen) {
+						((Expr.BoxOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+						((Expr.BoxOpen) expression).ctrl.lexeme = stmt.name.lexeme + "[";
+					}
+				}
+				if (close1 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) close1).expression;
+					if (expression instanceof Expr.BoxClosed) {
+						((Expr.BoxClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+						((Expr.BoxClosed) expression).ctrl.lexeme = "]" + reverse;
+					}
+				}
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				environment.assign(stmt.name, null, evaluate);
+				environment.assign(reverseName, null, evaluate);
+			} else if (evaluate instanceof KnotInstance) {
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				environment.assign(stmt.name, null, evaluate);
+				environment.assign(reverseName, null, evaluate);
+			} else if (evaluate instanceof TonkInstance) {
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				environment.assign(stmt.name, null, evaluate);
+				environment.assign(reverseName, null, evaluate);
+			} else {
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
 
-			environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
-		}else {
+			}
+		} else {
 			environment.define(stmt.name.lexeme, stmt.type, stmt.num, null, this);
 		}
 
 		return null;
+	}
+
+	private String reverse(String str) {
+		String nstr = "";
+		char ch;
+		for (int i = 0; i < str.length(); i++) {
+			ch = str.charAt(i); // extracts each character
+			nstr = ch + nstr; // adds each character in front of the existing string
+		}
+		return nstr;
 	}
 
 	private void mapVarNameToInitilizer(Token name, Expr evaluate) {
@@ -5589,13 +6016,83 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitRavStmt(Rav stmt) {
-		environment.define(stmt.name.lexeme, stmt.type, stmt.num, stmt.initilizer, this);
-		if (stmt.initilizer instanceof Stmt.Expression)
-			if (((Stmt.Expression) stmt.initilizer).expression != null) {
-				mapVarNameToInitilizer(stmt.name, ((Stmt.Expression) stmt.initilizer).expression);
-				evaluate(((Stmt.Expression) stmt.initilizer).expression);
+
+		if (stmt.initilizer != null) {
+			Object evaluate = evaluate(stmt.initilizer);
+			String reverse = reverse(stmt.name.lexeme);
+			if (evaluate instanceof CupInstance) {
+				Object open0 = ((CupInstance) evaluate).body.get(0);
+				Object close1 = ((CupInstance) evaluate).body.get(((CupInstance) evaluate).body.size() - 1);
+				if (open0 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) open0).expression;
+					if (expression instanceof Expr.CupOpen) {
+						((Expr.CupOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+						((Expr.CupOpen) expression).ctrl.lexeme = stmt.name.lexeme + "{";
+					}
+				}
+				if (close1 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) close1).expression;
+					if (expression instanceof Expr.CupClosed) {
+						((Expr.CupClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+						((Expr.CupClosed) expression).ctrl.lexeme = "}" + reverse;
+					}
+				}
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+			} else if (evaluate instanceof PocketInstance) {
+				Object open0 = ((PocketInstance) evaluate).body.get(0);
+				Object close1 = ((PocketInstance) evaluate).body.get(((PocketInstance) evaluate).body.size() - 1);
+				if (open0 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) open0).expression;
+					if (expression instanceof Expr.PocketOpen) {
+						((Expr.PocketOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+						((Expr.PocketOpen) expression).ctrl.lexeme = stmt.name.lexeme + "(";
+					}
+				}
+				if (close1 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) close1).expression;
+					if (expression instanceof Expr.PocketClosed) {
+						((Expr.PocketClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+						((Expr.PocketClosed) expression).ctrl.lexeme = ")" + reverse;
+					}
+				}
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+			} else if (evaluate instanceof BoxInstance) {
+				Object open0 = ((BoxInstance) evaluate).body.get(0);
+				Object close1 = ((BoxInstance) evaluate).body.get(((BoxInstance) evaluate).body.size() - 1);
+				if (open0 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) open0).expression;
+					if (expression instanceof Expr.BoxOpen) {
+						((Expr.BoxOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+						((Expr.BoxOpen) expression).ctrl.lexeme = stmt.name.lexeme + "[";
+					}
+				}
+				if (close1 instanceof Stmt.Expression) {
+					Expr expression = ((Stmt.Expression) close1).expression;
+					if (expression instanceof Expr.BoxClosed) {
+						((Expr.BoxClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+						((Expr.BoxClosed) expression).ctrl.lexeme = "]" + reverse;
+					}
+				}
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+			} else if (evaluate instanceof KnotInstance) {
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+
+			} else if (evaluate instanceof TonkInstance) {
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
+				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
+
+			} else {
+				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
 
 			}
+		} else {
+			environment.define(stmt.name.lexeme, stmt.type, stmt.num, null, this);
+		}
+
 		return null;
 	}
 
@@ -5603,16 +6100,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitGetExpr(Get expr) {
 		if (forward) {
 			Object object = evaluate(expr.object);
-			if (object instanceof CupInstance) {
+			if (object instanceof Instance) {
 				return ((Instance) object).get(expr.name);
 			}
-			
-			if(object instanceof BoxClass) {
-				Instance call = (Instance)((BoxClass) object).call(this, new ArrayList<>());
+
+			if (object instanceof BoxClass) {
+				Instance call = (Instance) ((BoxClass) object).call(this, new ArrayList<>());
 				return call.get(expr.name);
 			}
-			
-			
+
 			return object;
 		}
 		return null;
@@ -5621,6 +6117,14 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitSetExpr(Set expr) {
 		if (forward) {
+			Object evaluate = evaluate(expr.value);
+			Integer integer = locals.get(expr.object);
+			if (integer != null) {
+				environment.assignAt(integer, expr.name, evaluate, evaluate, this);
+			} else {
+				globals.assign(expr.name, evaluate, evaluate, this);
+			}
+
 		}
 		return null;
 	}
@@ -5635,10 +6139,18 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitTegExpr(Teg expr) {
 		if (!forward) {
+
 			Object object = evaluate(expr.object);
-			if (object instanceof CupInstance) {
+			if (object instanceof Instance) {
 				return ((Instance) object).get(expr.name);
 			}
+
+			if (object instanceof BoxClass) {
+				Instance call = (Instance) ((BoxClass) object).call(this, new ArrayList<>());
+				return call.get(expr.name);
+			}
+
+			return object;
 		}
 		return null;
 	}
@@ -5646,14 +6158,21 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitTesExpr(Tes expr) {
 		if (!forward) {
+			Object evaluate = evaluate(expr.value);
+			Integer integer = locals.get(expr.object);
+			if (integer != null) {
+				environment.assignAt(integer, expr.name, evaluate, evaluate, this);
+			} else {
+				globals.assign(expr.name, evaluate, evaluate, this);
+			}
+
 		}
 		return null;
 	}
 
 	@Override
 	public Object visitLiteralCharExpr(LiteralChar expr) {
-		// TODO Auto-generated method stub
-		return null;
+		return expr.value;
 	}
 
 	@Override
@@ -5901,13 +6420,193 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitSwapExpr(Swap expr) {
+		Object s1 = evaluate(expr.swap1);
+		Object s2 = evaluate(expr.Swap2);
+		Object s3 = s1;
+		s1 = s2;
+		s2 = s3;
+		if (expr.swap1 instanceof Expr.Variable) {
+			if (expr.Swap2 instanceof Expr.Variable) {
+				Integer integer = locals.get((Expr.Variable) expr.swap1);
+				Integer integer2 = locals.get((Expr.Variable) expr.Swap2);
+				assignForSwap((Expr.Variable) expr.swap1, s1, integer);
+				assignForSwap((Expr.Variable) expr.Swap2, s2, integer2);
+			} else if (expr.Swap2 instanceof Expr.Get) {
+				Integer integer = locals.get((Expr.Variable) expr.swap1);
+				Integer integer2 = locals.get((Expr.Get) expr.Swap2);
+				assignForSwap((Expr.Variable) expr.swap1, s1, integer);
+				assignForSwap((Expr.Get) expr.Swap2, s2, integer2);
+
+			} else if (expr.Swap2 instanceof Expr.Teg) {
+				Integer integer = locals.get((Expr.Variable) expr.swap1);
+				Integer integer2 = locals.get((Expr.Teg) expr.Swap2);
+				assignForSwap((Expr.Variable) expr.swap1, s1, integer);
+				assignForSwap((Expr.Teg) expr.Swap2, s2, integer2);
+
+			}
+		} else if (expr.swap1 instanceof Expr.Get) {
+			if (expr.Swap2 instanceof Expr.Variable) {
+				Integer integer = locals.get((Expr.Get) expr.swap1);
+				Integer integer2 = locals.get((Expr.Variable) expr.Swap2);
+				assignForSwap((Expr.Get) expr.swap1, s1, integer);
+				assignForSwap((Expr.Variable) expr.Swap2, s2, integer2);
+			} else if (expr.Swap2 instanceof Expr.Get) {
+				Integer integer = locals.get((Expr.Get) expr.swap1);
+				Integer integer2 = locals.get((Expr.Get) expr.Swap2);
+				assignForSwap((Expr.Get) expr.swap1, s1, integer);
+				assignForSwap((Expr.Get) expr.Swap2, s2, integer2);
+
+			} else if (expr.Swap2 instanceof Expr.Teg) {
+				Integer integer = locals.get((Expr.Get) expr.swap1);
+				Integer integer2 = locals.get((Expr.Teg) expr.Swap2);
+				assignForSwap((Expr.Get) expr.swap1, s1, integer);
+				assignForSwap((Expr.Teg) expr.Swap2, s2, integer2);
+
+			}
+		} else if (expr.swap1 instanceof Expr.Teg) {
+			if (expr.Swap2 instanceof Expr.Variable) {
+				Integer integer = locals.get((Expr.Teg) expr.swap1);
+				Integer integer2 = locals.get((Expr.Variable) expr.Swap2);
+				assignForSwap((Expr.Teg) expr.swap1, s1, integer);
+				assignForSwap((Expr.Variable) expr.Swap2, s2, integer2);
+			} else if (expr.Swap2 instanceof Expr.Get) {
+				Integer integer = locals.get((Expr.Teg) expr.swap1);
+				Integer integer2 = locals.get((Expr.Get) expr.Swap2);
+				assignForSwap((Expr.Teg) expr.swap1, s1, integer);
+				assignForSwap((Expr.Get) expr.Swap2, s2, integer2);
+
+			} else if (expr.Swap2 instanceof Expr.Teg) {
+				Integer integer = locals.get((Expr.Teg) expr.swap1);
+				Integer integer2 = locals.get((Expr.Teg) expr.Swap2);
+				assignForSwap((Expr.Teg) expr.swap1, s1, integer);
+				assignForSwap((Expr.Teg) expr.Swap2, s2, integer2);
+
+			}
+		}
+
 		return null;
+	}
+
+	private void assignForSwap(Expr.Variable expr, Object s1, Integer integer) {
+		if (integer != null) {
+			environment.assignAt(integer, expr.name, s1, s1, this);
+		} else {
+			globals.assign(expr.name, s1, s1, this);
+		}
+	}
+
+	private void assignForSwap(Expr.Get expr, Object s1, Integer integer) {
+		if (integer != null) {
+			environment.assignAt(integer, expr.name, s1, s1, this);
+		} else {
+			globals.assign(expr.name, s1, s1, this);
+		}
+	}
+
+	private void assignForSwap(Expr.Teg expr, Object s1, Integer integer) {
+		if (integer != null) {
+			environment.assignAt(integer, expr.name, s1, s1, this);
+		} else {
+			globals.assign(expr.name, s1, s1, this);
+		}
 	}
 
 	@Override
 	public Object visitTemplatVarStmt(TemplatVar stmt) {
 		if (forward) {
+			if (!templates.contains(stmt.name.lexeme) && templates.contains(stmt.superclass.lexeme)) {
+				Expr.Variable supclass = new Expr.Variable(stmt.superclass);
+				BoxCallable superBoxClass = (BoxCallable)lookUpVariable(supclass.name,supclass);
+				Object call = superBoxClass.call(this, new ArrayList<>());
+				String reverse = reverse(stmt.name.lexeme);
+				environment.define(stmt.name.lexeme, null, null);
+				environment.define(reverse, null, null);
+				if (call instanceof CupInstance) {
+					Object open0 = ((CupInstance) call).body.get(0);
+					Object close1 = ((CupInstance) call).body.get(((CupInstance) call).body.size() - 1);
+					if (open0 instanceof Stmt.Expression) {
+						Expr expression = ((Stmt.Expression) open0).expression;
+						if (expression instanceof Expr.CupOpen) {
+							((Expr.CupOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+							((Expr.CupOpen) expression).ctrl.lexeme = stmt.name.lexeme + "{";
+						}
+					}
+					if (close1 instanceof Stmt.Expression) {
+						Expr expression = ((Stmt.Expression) close1).expression;
+						if (expression instanceof Expr.CupClosed) {
+							((Expr.CupClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+							((Expr.CupClosed) expression).ctrl.lexeme = "}" + reverse;
+						}
+					}
+				} else if (call instanceof PocketInstance) {
+					Object open0 = ((PocketInstance) call).body.get(0);
+					Object close1 = ((PocketInstance) call).body.get(((PocketInstance) call).body.size() - 1);
+					if (open0 instanceof Stmt.Expression) {
+						Expr expression = ((Stmt.Expression) open0).expression;
+						if (expression instanceof Expr.PocketOpen) {
+							((Expr.PocketOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+							((Expr.PocketOpen) expression).ctrl.lexeme = stmt.name.lexeme + "(";
+						}
+					}
+					if (close1 instanceof Stmt.Expression) {
+						Expr expression = ((Stmt.Expression) close1).expression;
+						if (expression instanceof Expr.PocketClosed) {
+							((Expr.PocketClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+							((Expr.PocketClosed) expression).ctrl.lexeme = ")" + reverse;
+						}
+					}
+				}
+				Token reifi=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				environment.assign(stmt.name, null, call);
+				environment.assign(reifi, null, call);
+			}
 		} else {
+			if (templates.contains(stmt.name.lexeme) && !templates.contains(stmt.superclass.lexeme)) {
+				Expr.Variable supclass = new Expr.Variable(stmt.name);
+				BoxCallable superBoxClass = (BoxCallable)lookUpVariable(supclass.name,supclass);
+				Object call = superBoxClass.call(this, new ArrayList<>());
+				String reverse = reverse(stmt.superclass.lexeme);
+				environment.define(stmt.superclass.lexeme, null, null);
+				environment.define(reverse, null, null);
+				if (call instanceof CupInstance) {
+					Object open0 = ((CupInstance) call).body.get(0);
+					Object close1 = ((CupInstance) call).body.get(((CupInstance) call).body.size() - 1);
+					if (open0 instanceof Stmt.Expression) {
+						Expr expression = ((Stmt.Expression) open0).expression;
+						if (expression instanceof Expr.CupOpen) {
+							((Expr.CupOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+							((Expr.CupOpen) expression).ctrl.lexeme = stmt.name.lexeme + "{";
+						}
+					}
+					if (close1 instanceof Stmt.Expression) {
+						Expr expression = ((Stmt.Expression) close1).expression;
+						if (expression instanceof Expr.CupClosed) {
+							((Expr.CupClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+							((Expr.CupClosed) expression).ctrl.lexeme = "}" + reverse;
+						}
+					}
+				} else if (call instanceof PocketInstance) {
+					Object open0 = ((PocketInstance) call).body.get(0);
+					Object close1 = ((PocketInstance) call).body.get(((PocketInstance) call).body.size() - 1);
+					if (open0 instanceof Stmt.Expression) {
+						Expr expression = ((Stmt.Expression) open0).expression;
+						if (expression instanceof Expr.PocketOpen) {
+							((Expr.PocketOpen) expression).ctrl.identifierToken.lexeme = stmt.name.lexeme;
+							((Expr.PocketOpen) expression).ctrl.lexeme = stmt.name.lexeme + "(";
+						}
+					}
+					if (close1 instanceof Stmt.Expression) {
+						Expr expression = ((Stmt.Expression) close1).expression;
+						if (expression instanceof Expr.PocketClosed) {
+							((Expr.PocketClosed) expression).ctrl.reifitnediToken.lexeme = reverse;
+							((Expr.PocketClosed) expression).ctrl.lexeme = ")" + reverse;
+						}
+					}
+				}
+				Token reifi=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				environment.assign(stmt.superclass, null, call);
+				environment.assign(reifi, null, call);
+			}
 		}
 		return null;
 	}
@@ -6012,8 +6711,16 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	private Token buildClass(Expr expr) {
 		Object superclass = null;
 		if (expr instanceof Expr.Cup) {
+			Token identifier = ((Expr.Cup) expr).identifier;
+			Token reifitnedi = ((Expr.Cup) expr).reifitnedi;
+			this.classes.add(identifier.lexeme);
+			this.classes.add(reifitnedi.lexeme);
 			return buildCupClass(expr, superclass);
 		} else if (expr instanceof Expr.Pocket) {
+			Token identifier = ((Expr.Pocket) expr).identifier;
+			Token reifitnedi = ((Expr.Pocket) expr).reifitnedi;
+			this.classes.add(identifier.lexeme);
+			this.classes.add(reifitnedi.lexeme);
 			return buildPocketClass(expr, superclass);
 
 		} else if (expr instanceof Expr.Box) {
@@ -6026,9 +6733,74 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			return buildTonkClass(expr, superclass);
 
 		} else if (expr instanceof Expr.Template) {
-			return buildClass(((Template) expr).container);
+
+			Expr container = ((Template) expr).container;
+			if (container instanceof Expr.Pocket) {
+				Token identifier = ((Expr.Pocket) container).identifier;
+				Token reifitnedi = ((Expr.Pocket) container).reifitnedi;
+				this.templates.add(identifier.lexeme);
+				this.templates.add(reifitnedi.lexeme);
+			} else if (container instanceof Expr.Cup) {
+				Token identifier = ((Expr.Cup) container).identifier;
+				Token reifitnedi = ((Expr.Cup) container).reifitnedi;
+				this.templates.add(identifier.lexeme);
+				this.templates.add(reifitnedi.lexeme);
+
+			}
+			return buildClass(container);
+		} else if (expr instanceof Expr.Link) {
+			Expr container = ((Expr.Link) expr).container;
+			if (container instanceof Expr.Pocket) {
+				Token identifier = ((Expr.Pocket) container).identifier;
+				Token reifitnedi = ((Expr.Pocket) container).reifitnedi;
+				this.links.add(identifier.lexeme);
+				this.links.add(reifitnedi.lexeme);
+			} else if (container instanceof Expr.Cup) {
+				Token identifier = ((Expr.Cup) container).identifier;
+				Token reifitnedi = ((Expr.Cup) container).reifitnedi;
+				this.links.add(identifier.lexeme);
+				this.links.add(reifitnedi.lexeme);
+
+			}
+			return buildLink(expr);
 		}
 		return null;
+	}
+
+	private Token buildLink(Expr expr) {
+		environment.define(((Tonk) expr).identifier.lexeme, ((Tonk) expr).identifier, null);
+		environment.define(((Tonk) expr).reifitnedi.lexeme, ((Tonk) expr).reifitnedi, null);
+		Map<String, BoxFunction> methods = new HashMap<>();
+		for (Declaration method : ((Expr.Cup) expr).expression) {
+			if (method instanceof Declaration.FunDecl) {
+				if (((Function) ((Declaration.FunDecl) method).function).forwardIdentifier != null) {
+					String fname = ((Function) ((Declaration.FunDecl) method).function).forwardIdentifier.lexeme;
+					List<Token> fparamtypes = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersType;
+					List<Token> fparamsNames = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersNames;
+					BoxFunction boxFunction1 = new BoxFunction(null, fname, fparamtypes, fparamsNames, environment,
+							false,true);
+					methods.put(fname, boxFunction1);
+				}
+				if (((Function) ((Declaration.FunDecl) method).function).backwardIdentifier != null) {
+					String bname = ((Function) ((Declaration.FunDecl) method).function).backwardIdentifier.lexeme;
+					List<Token> bparamtypes = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersType;
+					List<Token> bparamsNames = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersNames;
+
+					BoxFunction boxFunction0 = new BoxFunction(null, bname, bparamtypes, bparamsNames, environment,
+							false,true);
+					methods.put(bname, boxFunction0);
+
+				}
+			}
+		}
+		BoxClass boxClass = new BoxClass(((Expr.Cup) expr).identifier.lexeme, null, null, methods,
+				TokenType.CUPCONTAINER, false, null, environment, expr,true);
+
+
+		environment.assign(((Expr.Cup) expr).identifier, null, boxClass);
+		environment.assign(((Expr.Cup) expr).reifitnedi, null, boxClass);
+		return ((Expr.Cup) expr).identifier;
+
 	}
 
 	private Token buildTonkClass(Expr expr, Object superclass) {
@@ -6071,7 +6843,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Tonk) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
-				TokenType.CUPCONTAINER, false, null, environment, expr);
+				TokenType.CUPCONTAINER, false, null, environment, expr,false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -6126,7 +6898,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Knot) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
-				TokenType.CUPCONTAINER, false, null, environment, expr);
+				TokenType.CUPCONTAINER, false, null, environment, expr,false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -6178,7 +6950,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Expr.Box) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
-				TokenType.POCKETCONTAINER, false, null, environment, expr);
+				TokenType.POCKETCONTAINER, false, null, environment, expr,false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -6230,7 +7002,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Pocket) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
-				TokenType.POCKETCONTAINER, false, null, environment, expr);
+				TokenType.POCKETCONTAINER, false, null, environment, expr,false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -6287,7 +7059,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					List<Token> fparamtypes = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersType;
 					List<Token> fparamsNames = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersNames;
 					BoxFunction boxFunction1 = new BoxFunction(body, fname, fparamtypes, fparamsNames, environment,
-							false);
+							false,false);
 					methods.put(fname, boxFunction1);
 				}
 				if (((Function) ((Declaration.FunDecl) method).function).backwardIdentifier != null) {
@@ -6297,7 +7069,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					List<Token> bparamsNames = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersNames;
 
 					BoxFunction boxFunction0 = new BoxFunction(body, bname, bparamtypes, bparamsNames, environment,
-							false);
+							false,false);
 					methods.put(bname, boxFunction0);
 
 				}
@@ -6311,7 +7083,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Expr.Cup) expr).identifier.lexeme, (BoxClass) superclass, primarys, methods,
-				TokenType.CUPCONTAINER, false, null, environment, expr);
+				TokenType.CUPCONTAINER, false, null, environment, expr,false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -6327,13 +7099,13 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitFunctionLinkFun(FunctionLink fun) {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 
 	@Override
 	public Object visitLinkExpr(Link expr) {
-		// TODO Auto-generated method stub
+		buildClass(expr);
 		return null;
 	}
 
@@ -6375,14 +7147,131 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitSaveevasStmt(Saveevas stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+			try {
+				String filePathAndName = (String) evaluate(stmt.filePathFileName);
+				String[] split = filePathAndName.split("/");
+				String folderPath = "";
+				if (split[split.length - 1].contains(".")) {
+					for (int i = 0; i < split.length - 1; i++) {
+						folderPath += split[i] + "/";
+					}
+				} else {
+					for (int i = 0; i < split.length; i++) {
+						folderPath += split[i] + "/";
+					}
+				}
+				folderPath = folderPath.substring(0, folderPath.length() - 1);
+
+				String str = "";
+				Object boxInstance = evaluate(stmt.objecttosave);
+				if (boxInstance != null) {
+					str = boxInstance.toString();
+
+					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
+					writer.write(str);
+
+					writer.close();
+				}
+
+			} catch (IOException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
+			}
+		} else {
+
+			try {
+				String filePathAndName = (String) evaluate(stmt.filePathFileName);
+				String[] split = filePathAndName.split("/");
+				String folderPath = "";
+				if (split[split.length - 1].contains(".")) {
+					for (int i = 0; i < split.length - 1; i++) {
+						folderPath += split[i] + "/";
+					}
+				} else {
+					for (int i = 0; i < split.length; i++) {
+						folderPath += split[i] + "/";
+					}
+				}
+				folderPath = folderPath.substring(0, folderPath.length() - 1);
+
+				String str = "";
+				Object boxInstance = evaluate(stmt.objecttosave);
+				if (boxInstance != null) {
+					str = boxInstance.toString();
+
+					BufferedWriter writer = new BufferedWriter(new FileWriter(filePathAndName));
+					writer.write(str);
+
+					writer.close();
+				}
+
+			} catch (IOException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
+			}
+
+		}
+
 		return null;
 	}
 
 	@Override
 	public Object visitReaddaerStmt(Readdaer stmt) {
-		// TODO Auto-generated method stub
+		if (forward) {
+			try {
+				File myObj = new File((String) evaluate(stmt.filePath));
+				Scanner myReader = new Scanner(myObj);
+				String data = "";
+				while (myReader.hasNextLine()) {
+					data += myReader.nextLine();
+
+				}
+
+				if (stmt.objectToReadInto instanceof Expr.Variable) {
+					Object value = evaluate(new Expr.Literal(data));
+					Integer distance = locals.get((Expr.Variable) stmt.objectToReadInto);
+					if (distance != null)
+						environment.assignAt(distance, ((Expr.Variable) stmt.objectToReadInto).name, value, value,
+								this);
+					else
+						globals.assign(((Expr.Variable) stmt.objectToReadInto).name, value, value, this);
+				}
+
+				myReader.close();
+			} catch (FileNotFoundException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				File myObj = new File((String) evaluate(stmt.filePath));
+				Scanner myReader = new Scanner(myObj);
+				String data = "";
+				while (myReader.hasNextLine()) {
+					data += myReader.nextLine();
+
+				}
+
+				if (stmt.objectToReadInto instanceof Expr.Variable) {
+					Object value = evaluate(new Expr.Literal(data));
+					Integer distance = locals.get((Expr.Variable) stmt.objectToReadInto);
+					if (distance != null)
+						environment.assignAt(distance, ((Expr.Variable) stmt.objectToReadInto).name, value, value,
+								this);
+					else
+						globals.assign(((Expr.Variable) stmt.objectToReadInto).name, value, value, this);
+				}
+
+				myReader.close();
+			} catch (FileNotFoundException e) {
+				System.out.println("An error occurred.");
+				e.printStackTrace();
+			}
+
+		}
 		return null;
+
 	}
 
 	@Override
@@ -6417,13 +7306,266 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (forward) {
 			return findMono(expr);
 		} else {
-			return findOnomExpr(expr);
+			return findOnom(expr);
 		}
 	}
 
 	@Override
 	public Object visitBinaryyranibExpr(Binaryyranib expr) {
-		return null;
+		Object left = null;
+		Object right = null;
+
+		if (expr.left instanceof Pocket || expr.left instanceof Cup) {
+			left = evaluate(expr.left);
+			right = evaluate(expr.right);
+		} else if (expr.right instanceof Pocket || expr.right instanceof Cup) {
+			right = evaluate(expr.right);
+			left = evaluate(expr.left);
+		} else {
+			left = evaluate(expr.left);
+			right = evaluate(expr.right);
+		}
+
+		left = parseBinData(left);
+		right = parseBinData(right);
+		Object forwardReturn = null;
+		switch (expr.operatorForward.type) {
+		case NOTEQUALS:
+			forwardReturn = !isEqual(left, right);
+		case EQUALSNOT:
+			forwardReturn = !isEqual(left, right);
+		case EQUALSEQUALS:
+			forwardReturn = isEqual(left, right);
+
+		case GREATERTHEN:
+			forwardReturn = greaterthen(left, right);
+		case GREATERTHENEQUAL:
+			forwardReturn = greaterequalthen(left, right);
+		case LESSTHEN:
+			forwardReturn = lessthen(left, right);
+		case LESSTHENEQUAL:
+			forwardReturn = lessequalthen(left, right);
+		case EQUALLESSTHEN:
+			forwardReturn = greaterequalthen(left, right);
+		case EQUALGREATERTHEN:
+			forwardReturn = lessequalthen(left, right);
+
+		case MINUS:
+
+			forwardReturn = sub(left, right);
+		case EQUALSMINUS:
+			forwardReturn = sub(left, right, expr.left, expr.operatorForward);
+		case MINUSEQUALS:
+			forwardReturn = sub(left, right, expr.right, expr.operatorForward);
+
+		case EQUALSPLUS:
+			forwardReturn = add(left, right, expr.left, expr.operatorForward);
+		case PLUSEQUALS:
+			forwardReturn = add(left, right, expr.right, expr.operatorForward);
+		case PLUS:
+			forwardReturn = add(left, right, expr.left, expr.right);
+		case MOD:
+			forwardReturn = mod(left, right);
+		case MODEQUAL:
+			forwardReturn = mod(left, right, expr.right, expr.operatorForward);
+		case EQUALMOD:
+			forwardReturn = mod(left, right, expr.left, expr.operatorForward);
+
+		case FORWARDSLASH:
+			forwardReturn = div(left, right);
+		case BACKSLASH:
+			Object div = div(right, left);
+			forwardReturn = div;
+		case EQUALDIVIDEFORWARD:
+			forwardReturn = div(right, left, expr.left, expr.operatorForward);
+		case EQUALDIVIDEBACKWARD:
+			forwardReturn = div(right, left, expr.right, expr.operatorForward);
+
+		case TIMES:
+			forwardReturn = times(left, right);
+		case TIMESEQUAL:
+			forwardReturn = times(left, right, expr.right, expr.operatorForward);
+		case EQUALTIMES:
+			forwardReturn = times(left, right, expr.left, expr.operatorForward);
+
+		case POWER:
+			forwardReturn = power(left, right);
+		case EQUALPOWER:
+			forwardReturn = power(left, right, expr.left, expr.operatorForward);
+		case POWEREQUAL:
+			forwardReturn = power(left, right, expr.right, expr.operatorForward);
+		case YROOT:
+			forwardReturn = null;
+		case TOORY:
+			forwardReturn = null;
+
+		case DNA:
+			if (!forward)
+				forwardReturn = and(left, right);
+			else
+				forwardReturn = null;
+		case AND:
+			if (forward)
+				forwardReturn = and(left, right);
+			else
+				forwardReturn = null;
+		case RO:
+			if (!forward)
+				forwardReturn = or(left, right);
+			else
+				forwardReturn = false;
+		case OR:
+			if (forward)
+				forwardReturn = or(left, right);
+			else
+				forwardReturn = false;
+		default:
+			forwardReturn = null;
+		}
+
+		Object backwardReturn = null;
+		switch (expr.operatorForward.type) {
+		case NOTEQUALS:
+			backwardReturn = !isEqual(left, right);
+		case EQUALSNOT:
+			backwardReturn = !isEqual(left, right);
+		case EQUALSEQUALS:
+			backwardReturn = isEqual(left, right);
+
+		case GREATERTHEN:
+			backwardReturn = greaterthen(left, right);
+		case GREATERTHENEQUAL:
+			backwardReturn = greaterequalthen(left, right);
+		case LESSTHEN:
+			backwardReturn = lessthen(left, right);
+		case LESSTHENEQUAL:
+			backwardReturn = lessequalthen(left, right);
+		case EQUALLESSTHEN:
+			backwardReturn = greaterequalthen(left, right);
+		case EQUALGREATERTHEN:
+			backwardReturn = lessequalthen(left, right);
+
+		case MINUS:
+
+			backwardReturn = sub(left, right);
+		case EQUALSMINUS:
+			backwardReturn = sub(left, right, expr.left, expr.operatorBackward);
+		case MINUSEQUALS:
+			backwardReturn = sub(left, right, expr.right, expr.operatorBackward);
+
+		case EQUALSPLUS:
+			backwardReturn = add(left, right, expr.left, expr.operatorBackward);
+		case PLUSEQUALS:
+			backwardReturn = add(left, right, expr.right, expr.operatorBackward);
+		case PLUS:
+			backwardReturn = add(left, right, expr.left, expr.right);
+		case MOD:
+			backwardReturn = mod(left, right);
+		case MODEQUAL:
+			backwardReturn = mod(left, right, expr.right, expr.operatorBackward);
+		case EQUALMOD:
+			backwardReturn = mod(left, right, expr.left, expr.operatorBackward);
+
+		case FORWARDSLASH:
+			backwardReturn = div(left, right);
+		case BACKSLASH:
+			Object div = div(right, left);
+			backwardReturn = div;
+		case EQUALDIVIDEFORWARD:
+			backwardReturn = div(right, left, expr.left, expr.operatorBackward);
+		case EQUALDIVIDEBACKWARD:
+			backwardReturn = div(right, left, expr.right, expr.operatorBackward);
+
+		case TIMES:
+			backwardReturn = times(left, right);
+		case TIMESEQUAL:
+			backwardReturn = times(left, right, expr.right, expr.operatorBackward);
+		case EQUALTIMES:
+			backwardReturn = times(left, right, expr.left, expr.operatorBackward);
+
+		case POWER:
+			backwardReturn = power(left, right);
+		case EQUALPOWER:
+			backwardReturn = power(left, right, expr.left, expr.operatorBackward);
+		case POWEREQUAL:
+			backwardReturn = power(left, right, expr.right, expr.operatorBackward);
+		case YROOT:
+			backwardReturn = null;
+		case TOORY:
+			backwardReturn = null;
+
+		case DNA:
+			if (!forward)
+				backwardReturn = and(left, right);
+			else
+				backwardReturn = null;
+		case AND:
+			if (forward)
+				backwardReturn = and(left, right);
+			else
+				backwardReturn = null;
+		case RO:
+			if (!forward)
+				backwardReturn = or(left, right);
+			else
+				backwardReturn = false;
+		case OR:
+			if (forward)
+				backwardReturn = or(left, right);
+			else
+				backwardReturn = false;
+		default:
+			backwardReturn = null;
+		}
+
+		ArrayList<Declaration> expression = new ArrayList<>();
+		if (forwardReturn instanceof Expr)
+			expression.add((Expr) forwardReturn);
+		else if (forwardReturn instanceof Stmt)
+			expression.add((Stmt) forwardReturn);
+		else if (forwardReturn instanceof Parser.Fun)
+			expression.add((Parser.Fun) forwardReturn);
+		else if (forwardReturn instanceof Declaration)
+			expression.add((Declaration) forwardReturn);
+		else if (forwardReturn instanceof Integer)
+			expression.add(new Expr.Literal(forwardReturn));
+		else if (forwardReturn instanceof Boolean)
+			expression.add(new Expr.Literal(forwardReturn));
+
+		if (backwardReturn instanceof Expr)
+			expression.add((Expr) backwardReturn);
+		else if (backwardReturn instanceof Stmt)
+			expression.add((Stmt) backwardReturn);
+		else if (backwardReturn instanceof Parser.Fun)
+			expression.add((Parser.Fun) backwardReturn);
+		else if (backwardReturn instanceof Declaration)
+			expression.add((Declaration) backwardReturn);
+		else if (backwardReturn instanceof Integer)
+			expression.add(new Expr.Literal(backwardReturn));
+		else if (backwardReturn instanceof Boolean)
+			expression.add(new Expr.Literal(backwardReturn));
+		BigInteger uniqueNum = generateUniqueNum();
+		String reverse = reverse(uniqueNum.toString());
+		Token identifier = new Token(TokenType.IDENTIFIER, uniqueNum.toString() + "cup", null, null, null, -1, -1, -1,
+				-1);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, "puc" + reverse, null, null, null, -1, -1, -1, -1);
+		return new Expr.Cup(identifier, expression, "", reifitnedi);
+
+	}
+
+	private BigInteger generateUniqueNum() {
+
+		Random rand = new Random();
+		BigInteger upperLimit = new BigInteger("999999999");
+		BigInteger result = new BigInteger(upperLimit.bitLength(), rand);
+		result.add(upperLimit);
+		while (identifiers.contains(result)) {
+			rand = new Random();
+			result = new BigInteger(upperLimit.bitLength(), rand);
+			result.add(upperLimit);
+		}
+		this.identifiers.add(result);
+		return result;
 	}
 
 	@Override
@@ -6437,8 +7579,48 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitCallllacExpr(Callllac expr) {
-		// TODO Auto-generated method stub
-		return null;
+		if (forward) {
+			Object callee = evaluate(expr.calleeForward);
+			List<Object> arguments = new ArrayList<>();
+			for (Expr argument : expr.arguments) {
+				arguments.add(evaluate(argument));
+			}
+
+			if (!(callee instanceof BoxCallable)) {
+				throw new RuntimeError(expr.calleeTokenForward, "Can only call functions and classes.");
+			}
+
+			BoxCallable function = (BoxCallable) callee;
+			if (arguments.size() != function.arity()) {
+				throw new RuntimeError(expr.calleeTokenForward,
+						"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
+			}
+
+			return function.call(this, arguments);
+		}else {
+			Object callee = evaluate(expr.calleeBackward);
+			List<Object> arguments = new ArrayList<>();
+			for (Expr argument : expr.arguments) {
+				arguments.add(evaluate(argument));
+			}
+
+			if (!(callee instanceof BoxCallable)) {
+				throw new RuntimeError(expr.calleeTokenBackward, "Can only call functions and classes.");
+			}
+
+			BoxCallable function = (BoxCallable) callee;
+			if (arguments.size() != function.arity()) {
+				throw new RuntimeError(expr.calleeTokenBackward,
+						"Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
+			}
+
+			return function.call(this, arguments);
+					
+			
+			
+			
+		}
+		
 	}
 
 	@Override
@@ -6513,6 +7695,12 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 		case TANH:
 			result = Math.tanh(evaluateDouble);
+			break;
+		case LN:
+			result = Math.log1p(evaluateDouble - 1);
+			break;
+		case EXP:
+			result = Math.exp(evaluateDouble);
 			break;
 
 		default:
@@ -6665,109 +7853,1098 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	}
 
 	public void executeCupExpr(Cup cup, Environment environment1) {
-		
-		
-			environment = environment1;
-			for (int i = 0; i < cup.expression.size(); i = i + 1) {
-				execute(cup.expression.get(i));
-			}
-		
+
+		environment = environment1;
+		for (int i = 0; i < cup.expression.size(); i = i + 1) {
+			execute(cup.expression.get(i));
+		}
 
 	}
 
 	@Override
 	public Object visitAdditiveExpr(Additive expr) {
-		// TODO Auto-generated method stub
+		Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+		if (expr.operator.type == TokenType.ADD) {
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+		} else if (expr.operator.type == TokenType.PUSH) {
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+		}
 		return null;
 	}
 
-
-
 	@Override
 	public Object visitSetatExpr(Setat expr) {
-		// TODO Auto-generated method stub
+		Object object2 = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+		if (object2 instanceof CupInstance) {
+			CupInstance cup = ((CupInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof PocketInstance) {
+			PocketInstance cup = ((PocketInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof BoxInstance) {
+			BoxInstance cup = ((BoxInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof KnotInstance) {
+			KnotInstance cup = ((KnotInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof TonkInstance) {
+			TonkInstance cup = ((TonkInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitSubExpr(Sub expr) {
-		// TODO Auto-generated method stub
+		Object object2 = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+		if (object2 instanceof CupInstance) {
+			CupInstance cup = ((CupInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof PocketInstance) {
+			PocketInstance cup = ((PocketInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof BoxInstance) {
+			BoxInstance cup = ((BoxInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof KnotInstance) {
+			KnotInstance cup = ((KnotInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof TonkInstance) {
+			TonkInstance cup = ((TonkInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitBusExpr(Bus expr) {
-		// TODO Auto-generated method stub
+		Object object2 = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+		if (object2 instanceof CupInstance) {
+			CupInstance cup = ((CupInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof PocketInstance) {
+			PocketInstance cup = ((PocketInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof BoxInstance) {
+			BoxInstance cup = ((BoxInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof KnotInstance) {
+			KnotInstance cup = ((KnotInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof TonkInstance) {
+			TonkInstance cup = ((TonkInstance) object2);
+			return cup.sub(expr.start, expr.end);
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitTatesExpr(Tates expr) {
-		// TODO Auto-generated method stub
+		Object object2 = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+		if (object2 instanceof CupInstance) {
+			CupInstance cup = ((CupInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof PocketInstance) {
+			PocketInstance cup = ((PocketInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof BoxInstance) {
+			BoxInstance cup = ((BoxInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof KnotInstance) {
+			KnotInstance cup = ((KnotInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof TonkInstance) {
+			TonkInstance cup = ((TonkInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
 		return null;
 	}
 
-
-
-
 	@Override
 	public Object visitEvitiddaExpr(Evitidda expr) {
-		// TODO Auto-generated method stub
+		Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+		if (expr.operator.type == TokenType.DDA) {
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				cup.add(expr.operator, expr.toadd);
+			}
+		} else if (expr.operator.type == TokenType.HSUP) {
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				cup.push(expr.operator, expr.toadd);
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitParamContOpExpr(ParamContOp expr) {
-		// TODO Auto-generated method stub
+		if (expr.operator.type == TokenType.REMOVE) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+		} else if (expr.operator.type == TokenType.GETAT) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+		}
+
 		return null;
 	}
 
 	@Override
 	public Object visitNonParamContOpExpr(NonParamContOp expr) {
-		// TODO Auto-generated method stub
+		if (expr.operator.type == TokenType.SIZE) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.size(expr.operator);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.size(expr.operator);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.size(expr.operator);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.size(expr.operator);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.size(expr.operator);
+			}
+		} else if (expr.operator.type == TokenType.CLEAR) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.clear(expr.operator);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.clear(expr.operator);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.clear(expr.operator);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.clear(expr.operator);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.clear(expr.operator);
+			}
+		} else if (expr.operator.type == TokenType.EMPTY) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.empty(expr.operator);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.empty(expr.operator);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.empty(expr.operator);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.empty(expr.operator);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.empty(expr.operator);
+			}
+		} else if (expr.operator.type == TokenType.POP) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.pop(expr.operator);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.pop(expr.operator);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.pop(expr.operator);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.pop(expr.operator);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.pop(expr.operator);
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitPoTnocMarapNonExpr(PoTnocMarapNon expr) {
-		// TODO Auto-generated method stub
+		if (expr.operator.type == TokenType.EZIS) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.size(expr.operator);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.size(expr.operator);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.size(expr.operator);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.size(expr.operator);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.size(expr.operator);
+			}
+		} else if (expr.operator.type == TokenType.RAELC) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.clear(expr.operator);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.clear(expr.operator);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.clear(expr.operator);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.clear(expr.operator);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.clear(expr.operator);
+			}
+		} else if (expr.operator.type == TokenType.YTPME) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.empty(expr.operator);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.empty(expr.operator);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.empty(expr.operator);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.empty(expr.operator);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.empty(expr.operator);
+			}
+		} else if (expr.operator.type == TokenType.POP) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.pop(expr.operator);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.pop(expr.operator);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.pop(expr.operator);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.pop(expr.operator);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.pop(expr.operator);
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitPoTnocMarapExpr(PoTnocMarap expr) {
-		// TODO Auto-generated method stub
+		if (expr.operator.type == TokenType.EVOMER) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.remove(expr.operator, expr.index.value);
+			}
+		} else if (expr.operator.type == TokenType.TATEG) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.callee)).name, ((Expr.Variable) (expr.callee)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				return cup.getat(expr.operator, expr.index.value);
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitAddittiddaExpr(Addittidda expr) {
-		// TODO Auto-generated method stub
+		Object object = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+				((Expr.Variable) (expr.calleeForward)));
+		Object object2 = lookUpVariable(((Expr.Variable) (expr.calleeBackward)).name,
+				((Expr.Variable) (expr.calleeBackward)));
+		if (expr.operatorForward.type == TokenType.ADD) {
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				cup.add(expr.operatorForward, expr.toadd);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				cup.add(expr.operatorForward, expr.toadd);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				cup.add(expr.operatorForward, expr.toadd);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				cup.add(expr.operatorForward, expr.toadd);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				cup.add(expr.operatorForward, expr.toadd);
+			}
+		} else if (expr.operatorForward.type == TokenType.PUSH) {
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				cup.push(expr.operatorForward, expr.toadd);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				cup.push(expr.operatorForward, expr.toadd);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				cup.push(expr.operatorForward, expr.toadd);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				cup.push(expr.operatorForward, expr.toadd);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				cup.push(expr.operatorForward, expr.toadd);
+			}
+		}
+
+		if (expr.operatorBackward.type == TokenType.DDA) {
+			if (object2 instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object2);
+				cup.add(expr.operatorBackward, expr.toadd);
+			}
+			if (object2 instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object2);
+				cup.add(expr.operatorBackward, expr.toadd);
+			}
+			if (object2 instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object2);
+				cup.add(expr.operatorBackward, expr.toadd);
+			}
+			if (object2 instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object2);
+				cup.add(expr.operatorBackward, expr.toadd);
+			}
+			if (object2 instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object2);
+				cup.add(expr.operatorBackward, expr.toadd);
+			}
+		} else if (expr.operatorBackward.type == TokenType.HSUP) {
+			if (object2 instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object2);
+				cup.push(expr.operatorBackward, expr.toadd);
+			}
+			if (object2 instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object2);
+				cup.push(expr.operatorBackward, expr.toadd);
+			}
+			if (object2 instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object2);
+				cup.push(expr.operatorBackward, expr.toadd);
+			}
+			if (object2 instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object2);
+				cup.push(expr.operatorBackward, expr.toadd);
+			}
+			if (object2 instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object2);
+				cup.push(expr.operatorBackward, expr.toadd);
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitParCoOppOoCraPExpr(ParCoOppOoCraP expr) {
-		// TODO Auto-generated method stub
-		return null;
+		Object forward = null;
+		Object backward = null;
+		if (expr.operatorForward.type == TokenType.REMOVE) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+					((Expr.Variable) (expr.calleeForward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				forward = cup.remove(expr.operatorForward, expr.index.value);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				forward = cup.remove(expr.operatorForward, expr.index.value);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				forward = cup.remove(expr.operatorForward, expr.index.value);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				forward = cup.remove(expr.operatorForward, expr.index.value);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				forward = cup.remove(expr.operatorForward, expr.index.value);
+			}
+		} else if (expr.operatorForward.type == TokenType.GETAT) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+					((Expr.Variable) (expr.calleeForward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				forward = cup.getat(expr.operatorForward, expr.index.value);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				forward = cup.getat(expr.operatorForward, expr.index.value);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				forward = cup.getat(expr.operatorForward, expr.index.value);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				forward = cup.getat(expr.operatorForward, expr.index.value);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				forward = cup.getat(expr.operatorForward, expr.index.value);
+			}
+		}
+		if (expr.operatorBackward.type == TokenType.EVOMER) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeBackward)).name,
+					((Expr.Variable) (expr.calleeBackward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				backward = cup.remove(expr.operatorBackward, expr.index.value);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				backward = cup.remove(expr.operatorBackward, expr.index.value);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				backward = cup.remove(expr.operatorBackward, expr.index.value);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				backward = cup.remove(expr.operatorBackward, expr.index.value);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				backward = cup.remove(expr.operatorBackward, expr.index.value);
+			}
+		} else if (expr.operatorBackward.type == TokenType.TATEG) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeBackward)).name,
+					((Expr.Variable) (expr.calleeBackward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				backward = cup.getat(expr.operatorBackward, expr.index.value);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				backward = cup.getat(expr.operatorBackward, expr.index.value);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				backward = cup.getat(expr.operatorBackward, expr.index.value);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				backward = cup.getat(expr.operatorBackward, expr.index.value);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				backward = cup.getat(expr.operatorBackward, expr.index.value);
+			}
+		}
+
+		ArrayList<Declaration> expression = new ArrayList<>();
+		if (forward instanceof Expr)
+			expression.add((Expr) forward);
+		else if (forward instanceof Stmt)
+			expression.add((Stmt) forward);
+		else if (forward instanceof Parser.Fun)
+			expression.add((Parser.Fun) forward);
+		else if (forward instanceof Declaration)
+			expression.add((Declaration) forward);
+
+		if (backward instanceof Expr)
+			expression.add((Expr) backward);
+		else if (backward instanceof Stmt)
+			expression.add((Stmt) backward);
+		else if (backward instanceof Parser.Fun)
+			expression.add((Parser.Fun) backward);
+		else if (backward instanceof Declaration)
+			expression.add((Declaration) backward);
+
+		return new Expr.Cup(((Expr.Variable) (expr.calleeForward)).name, expression, "",
+				((Expr.Variable) (expr.calleeBackward)).name);
 	}
 
 	@Override
 	public Object visitNoPaCoOOoCaPoNExpr(NoPaCoOOoCaPoN expr) {
-		// TODO Auto-generated method stub
-		return null;
+		Object forward = null;
+		Object backward = null;
+		if (expr.operatorForward.type == TokenType.SIZE) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+					((Expr.Variable) (expr.calleeForward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				forward = cup.size(expr.operatorForward);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				forward = cup.size(expr.operatorForward);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				forward = cup.size(expr.operatorForward);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				forward = cup.size(expr.operatorForward);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				forward = cup.size(expr.operatorForward);
+			}
+		} else if (expr.operatorForward.type == TokenType.CLEAR) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+					((Expr.Variable) (expr.calleeForward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				forward = cup.clear(expr.operatorForward);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				forward = cup.clear(expr.operatorForward);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				forward = cup.clear(expr.operatorForward);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				forward = cup.clear(expr.operatorForward);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				forward = cup.clear(expr.operatorForward);
+			}
+		} else if (expr.operatorForward.type == TokenType.EMPTY) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+					((Expr.Variable) (expr.calleeForward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				forward = cup.empty(expr.operatorForward);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				forward = cup.empty(expr.operatorForward);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				forward = cup.empty(expr.operatorForward);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				forward = cup.empty(expr.operatorForward);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				forward = cup.empty(expr.operatorForward);
+			}
+		} else if (expr.operatorForward.type == TokenType.POP) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+					((Expr.Variable) (expr.calleeForward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				forward = cup.pop(expr.operatorForward);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				forward = cup.pop(expr.operatorForward);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				forward = cup.pop(expr.operatorForward);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				forward = cup.pop(expr.operatorForward);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				forward = cup.pop(expr.operatorForward);
+			}
+		}
+
+		if (expr.operatorBackward.type == TokenType.EZIS) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeBackward)).name,
+					((Expr.Variable) (expr.calleeBackward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				backward = cup.size(expr.operatorBackward);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				backward = cup.size(expr.operatorBackward);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				backward = cup.size(expr.operatorBackward);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				backward = cup.size(expr.operatorBackward);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				backward = cup.size(expr.operatorBackward);
+			}
+		} else if (expr.operatorBackward.type == TokenType.RAELC) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeBackward)).name,
+					((Expr.Variable) (expr.calleeBackward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				backward = cup.clear(expr.operatorBackward);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				backward = cup.clear(expr.operatorBackward);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				backward = cup.clear(expr.operatorBackward);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				backward = cup.clear(expr.operatorBackward);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				backward = cup.clear(expr.operatorBackward);
+			}
+		} else if (expr.operatorBackward.type == TokenType.YTPME) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeBackward)).name,
+					((Expr.Variable) (expr.calleeBackward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				backward = cup.empty(expr.operatorBackward);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				backward = cup.empty(expr.operatorBackward);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				backward = cup.empty(expr.operatorBackward);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				backward = cup.empty(expr.operatorBackward);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				backward = cup.empty(expr.operatorBackward);
+			}
+		} else if (expr.operatorBackward.type == TokenType.POP) {
+			Object object = lookUpVariable(((Expr.Variable) (expr.calleeBackward)).name,
+					((Expr.Variable) (expr.calleeBackward)));
+			if (object instanceof CupInstance) {
+				CupInstance cup = ((CupInstance) object);
+				backward = cup.pop(expr.operatorBackward);
+			}
+			if (object instanceof PocketInstance) {
+				PocketInstance cup = ((PocketInstance) object);
+				backward = cup.pop(expr.operatorBackward);
+			}
+			if (object instanceof BoxInstance) {
+				BoxInstance cup = ((BoxInstance) object);
+				backward = cup.pop(expr.operatorBackward);
+			}
+			if (object instanceof KnotInstance) {
+				KnotInstance cup = ((KnotInstance) object);
+				backward = cup.pop(expr.operatorBackward);
+			}
+			if (object instanceof TonkInstance) {
+				TonkInstance cup = ((TonkInstance) object);
+				backward = cup.pop(expr.operatorBackward);
+			}
+		}
+		ArrayList<Declaration> expression = new ArrayList<>();
+		if (forward instanceof Expr)
+			expression.add((Expr) forward);
+		else if (forward instanceof Stmt)
+			expression.add((Stmt) forward);
+		else if (forward instanceof Parser.Fun)
+			expression.add((Parser.Fun) forward);
+		else if (forward instanceof Declaration)
+			expression.add((Declaration) forward);
+		else if (forward instanceof Integer)
+			expression.add(new Expr.Literal(forward));
+		else if (forward instanceof Boolean)
+			expression.add(new Expr.Literal(forward));
+
+		if (backward instanceof Expr)
+			expression.add((Expr) backward);
+		else if (backward instanceof Stmt)
+			expression.add((Stmt) backward);
+		else if (backward instanceof Parser.Fun)
+			expression.add((Parser.Fun) backward);
+		else if (backward instanceof Declaration)
+			expression.add((Declaration) backward);
+		else if (backward instanceof Integer)
+			expression.add(new Expr.Literal(backward));
+		else if (backward instanceof Boolean)
+			expression.add(new Expr.Literal(backward));
+
+		BigInteger uniqueNum = generateUniqueNum();
+		String reverse = reverse(uniqueNum.toString());
+		Token identifier = new Token(TokenType.IDENTIFIER, uniqueNum.toString() + "cup", null, null, null, -1, -1, -1,
+				-1);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, "puc" + reverse, null, null, null, -1, -1, -1, -1);
+		return new Expr.Cup(identifier, expression, "", reifitnedi);
 	}
 
 	@Override
 	public Object visitSetattatesExpr(Setattates expr) {
-		// TODO Auto-generated method stub
+		Object object2 = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+				((Expr.Variable) (expr.calleeForward)));
+		Object object3 = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+				((Expr.Variable) (expr.calleeForward)));
+		if (object2 instanceof CupInstance) {
+			CupInstance cup = ((CupInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof PocketInstance) {
+			PocketInstance cup = ((PocketInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof BoxInstance) {
+			BoxInstance cup = ((BoxInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof KnotInstance) {
+			KnotInstance cup = ((KnotInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object2 instanceof TonkInstance) {
+			TonkInstance cup = ((TonkInstance) object2);
+			cup.setat(expr.index, expr.toset);
+		}
+
+		if (object3 instanceof CupInstance) {
+			CupInstance cup = ((CupInstance) object3);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object3 instanceof PocketInstance) {
+			PocketInstance cup = ((PocketInstance) object3);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object3 instanceof BoxInstance) {
+			BoxInstance cup = ((BoxInstance) object3);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object3 instanceof KnotInstance) {
+			KnotInstance cup = ((KnotInstance) object3);
+			cup.setat(expr.index, expr.toset);
+		}
+		if (object3 instanceof TonkInstance) {
+			TonkInstance cup = ((TonkInstance) object3);
+			cup.setat(expr.index, expr.toset);
+		}
+
 		return null;
 	}
 
 	@Override
 	public Object visitSubbusExpr(Subbus expr) {
-		// TODO Auto-generated method stub
+		Object object2 = lookUpVariable(((Expr.Variable) (expr.calleeForward)).name,
+				((Expr.Variable) (expr.calleeForward)));
+		Object object3 = lookUpVariable(((Expr.Variable) (expr.calleeBackward)).name,
+				((Expr.Variable) (expr.calleeBackward)));
+		Object forwardReturn = null;
+		Object backwardReturn = null;
+
+		if (object2 instanceof CupInstance) {
+			CupInstance cup = ((CupInstance) object2);
+			forwardReturn = cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof PocketInstance) {
+			PocketInstance cup = ((PocketInstance) object2);
+			forwardReturn = cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof BoxInstance) {
+			BoxInstance cup = ((BoxInstance) object2);
+			forwardReturn = cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof KnotInstance) {
+			KnotInstance cup = ((KnotInstance) object2);
+			forwardReturn = cup.sub(expr.start, expr.end);
+		}
+		if (object2 instanceof TonkInstance) {
+			TonkInstance cup = ((TonkInstance) object2);
+			forwardReturn = cup.sub(expr.start, expr.end);
+		}
+
+		if (object3 instanceof CupInstance) {
+			CupInstance cup = ((CupInstance) object3);
+			backwardReturn = cup.sub(expr.start, expr.end);
+		}
+		if (object3 instanceof PocketInstance) {
+			PocketInstance cup = ((PocketInstance) object3);
+			backwardReturn = cup.sub(expr.start, expr.end);
+		}
+		if (object3 instanceof BoxInstance) {
+			BoxInstance cup = ((BoxInstance) object3);
+			backwardReturn = cup.sub(expr.start, expr.end);
+		}
+		if (object3 instanceof KnotInstance) {
+			KnotInstance cup = ((KnotInstance) object3);
+			backwardReturn = cup.sub(expr.start, expr.end);
+		}
+		if (object3 instanceof TonkInstance) {
+			TonkInstance cup = ((TonkInstance) object3);
+			backwardReturn = cup.sub(expr.start, expr.end);
+		}
+		ArrayList<Declaration> expression = new ArrayList<>();
+		if (forwardReturn instanceof Expr)
+			expression.add((Expr) forwardReturn);
+		else if (forwardReturn instanceof Stmt)
+			expression.add((Stmt) forwardReturn);
+		else if (forwardReturn instanceof Parser.Fun)
+			expression.add((Parser.Fun) forwardReturn);
+		else if (forwardReturn instanceof Declaration)
+			expression.add((Declaration) forwardReturn);
+		else if (forwardReturn instanceof Integer)
+			expression.add(new Expr.Literal(forwardReturn));
+		else if (forwardReturn instanceof Boolean)
+			expression.add(new Expr.Literal(forwardReturn));
+
+		if (backwardReturn instanceof Expr)
+			expression.add((Expr) backwardReturn);
+		else if (backwardReturn instanceof Stmt)
+			expression.add((Stmt) backwardReturn);
+		else if (backwardReturn instanceof Parser.Fun)
+			expression.add((Parser.Fun) backwardReturn);
+		else if (backwardReturn instanceof Declaration)
+			expression.add((Declaration) backwardReturn);
+		else if (backwardReturn instanceof Integer)
+			expression.add(new Expr.Literal(backwardReturn));
+		else if (backwardReturn instanceof Boolean)
+			expression.add(new Expr.Literal(backwardReturn));
+
+		BigInteger uniqueNum = generateUniqueNum();
+		String reverse = reverse(uniqueNum.toString());
+		Token identifier = new Token(TokenType.IDENTIFIER, uniqueNum.toString() + "cup", null, null, null, -1, -1, -1,
+				-1);
+		Token reifitnedi = new Token(TokenType.IDENTIFIER, "puc" + reverse, null, null, null, -1, -1, -1, -1);
+		return new Expr.Cup(identifier, expression, "", reifitnedi);
+	}
+
+	@Override
+	public Object visitContainssniatnocExpr(Containssniatnoc expr) {
 		return null;
+	}
+
+	@Override
+	public Object visitLiteralBoolExpr(LiteralBool expr) {
+		return expr.value;
+	}
+
+	@Override
+	public Object visitLiteralLoobExpr(LiteralLoob expr) {
+		return expr.value;
 	}
 
 }
