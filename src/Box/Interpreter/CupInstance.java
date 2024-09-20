@@ -83,6 +83,7 @@ body=temp;
 
 	public void add(Token operator, Object toadd) {
 		body.add(body.size() - 1, toadd);
+		evaluateBody();
 	}
 
 	@Override
@@ -179,7 +180,7 @@ body=temp;
 
 	public void push(Token operator, Expr toadd) {
 		body.add(1, toadd);
-
+		evaluateBody();
 	}
 
 	public void setat(Literal index, Expr toset) {
@@ -188,6 +189,7 @@ body=temp;
 			if (i >= 1 && i <= bodySizeExclude() - 1) {
 				body.add((int) i, toset);
 				body.remove(i + 1);
+				evaluateBody();
 			} else
 				throw new RuntimeError(new Token(TokenType.SETAT, "", null, null, null, -1, -1, -1, -1),
 						"index out of bounds");

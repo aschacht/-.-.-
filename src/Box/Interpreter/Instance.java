@@ -58,14 +58,8 @@ public abstract class Instance {
 				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
 			}
 		}
-		if (boxClass instanceof BoxContainerClass) {
-			if (i <= ((BoxContainerClass) boxClass).getPrimarys().size() - 1) {
-				Object expr = ((BoxContainerClass) boxClass).get(i);
-				return expr;
-			} else {
-				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
-			}
-		}
+		
+
 		return null;
 	}
 
@@ -80,16 +74,8 @@ public abstract class Instance {
 				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
 			}
 		}
-		if (boxClass instanceof BoxContainerClass) {
-			if (integer <= ((BoxContainerClass) boxClass).getPrimarys().size() - 1) {
-				((BoxContainerClass) boxClass).setPrimaryAt(integer, value);
 
-			} else if (integer == 0 && ((BoxContainerClass) boxClass).getPrimarys().size() - 1 == -1) {
-				((BoxContainerClass) boxClass).setPrimaryAt(integer, value);
-			} else {
-				Box.error(null, "index out of bounds for Box Cup or Pocket.",true);
-			}
-		}
+
 		
 
 	}
@@ -129,10 +115,8 @@ public abstract class Instance {
 			((BoxClass) boxClass).setContentsAtEnd(data);
 
 		}
-		if (boxClass instanceof BoxContainerClass) {
-			((BoxContainerClass) boxClass).setPrimaryAtEnd(data);
 
-		}
+
 		
 	}
 
@@ -142,11 +126,8 @@ public abstract class Instance {
 		if (boxClass instanceof BoxClass) {
 			return ((BoxClass) boxClass).size();
 		}
-		if (boxClass instanceof BoxContainerClass) {
 
-			return ((BoxContainerClass) boxClass).size();
-		}
-		
+
 		return -1;
 		
 		

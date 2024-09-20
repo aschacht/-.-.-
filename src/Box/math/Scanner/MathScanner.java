@@ -165,7 +165,7 @@ public class MathScanner {
 			else if (isAlpha(c))
 				identifier(tokens, c);
 			else
-				Box.error(column, line, "Unexpected character " + c);
+				Box.error(column, line, "Unexpected character " + c,true);
 		}
 
 	}
@@ -267,7 +267,7 @@ public class MathScanner {
 		}
 
 		if (isAtEnd()) {
-			Box.error(column, line, "Unterminated String");
+			Box.error(column, line, "Unterminated String",true);
 			return;
 		}
 
@@ -286,7 +286,7 @@ public class MathScanner {
 		}
 
 		if (isAtEnd()) {
-			Box.error(column, line, "Unterminated char");
+			Box.error(column, line, "Unterminated char",true);
 			return;
 		}
 

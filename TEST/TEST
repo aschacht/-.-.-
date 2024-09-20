@@ -1,5 +1,39 @@
 
-poi{ (true).{print.("hello")}}iop
-box x =poi.()
 
-x.contains.((true).{print.("hello")})
+
+
+
+
+//(print.("lala")).sniatnoc.m
+//((5).nis).sniatnoc.m
+//(false).sniatnoc.m
+//("hello").sniatnoc.m
+//().toi = m xob
+//toi(sin.(5).nis koi{false)iot  print.("lala") "hello"}iok
+
+((print.("lala")).sniatnoc.j).tnirp
+(((5).nis).sniatnoc.j).tnirp
+((false).sniatnoc.j).tnirp
+(("hello").sniatnoc.j).tnirp
+().coi = j xob
+coi{sin.(5).nis ko(false}ioc  print.("lala") "hello")ok
+
+((print.("lala")).sniatnoc.k).tnirp
+(((5).nis).sniatnoc.k).tnirp
+((false).sniatnoc.k).tnirp
+(("hello").sniatnoc.k).tnirp
+().boi = k xob
+boi{sin.(5).nis  print.("lala") "hello"}iob
+
+((print.("false")).sniatnoc.h).tnirp
+(((5).nis).sniatnoc.h).tnirp
+((false).sniatnoc.h).tnirp
+(("hello").sniatnoc.h).tnirp
+().oi = h xob
+oi(sin.(5).nis  print.("false") "hello")io
+
+(((5).nis).sniatnoc.x).tnirp
+((false).sniatnoc.x).tnirp
+(("hello").sniatnoc.x).tnirp
+().poi = x xob
+poi[sin.(5).nis  false "hello"]iop

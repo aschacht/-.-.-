@@ -126,13 +126,14 @@ public class Resolver implements Declaration.Visitor<Void> {
 	}
 
 	public void resolve(List<Declaration> statementLists) {
+		forward =true;
 		beginScope();
 		for (Declaration stmt : statementLists) {
 			resolve(stmt);
 
 		}
 		endScope();
-
+	
 		forward = false;
 		beginScope();
 		for (int i = statementLists.size() - 1; i >= 0; i--) {
@@ -140,7 +141,7 @@ public class Resolver implements Declaration.Visitor<Void> {
 
 		}
 		endScope();
-
+	
 	}
 
 	private void resolve(Expr expr) {

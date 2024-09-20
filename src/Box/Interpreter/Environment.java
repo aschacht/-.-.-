@@ -89,23 +89,8 @@ public class Environment {
 										((Expr.Box) exprValue));
 							}
 							
-						} else if (((Instance) objetToset).boxClass instanceof BoxContainerClass) {
-							Object lookUpVariable = null;
-							if (exprValue instanceof Expr.Variable) {
-								lookUpVariable = interpreter.lookUpVariable(((Expr.Variable) exprValue).name,
-										((Expr.Variable) exprValue));
-							}  else if (exprValue instanceof Expr.Cup) {
-								lookUpVariable = interpreter.lookUpVariable(((Expr.Cup) exprValue).identifier,
-										((Expr.Cup) exprValue));
-							} else if (exprValue instanceof Expr.Pocket) {
-								lookUpVariable = interpreter.lookUpVariable(((Expr.Pocket) exprValue).identifier,
-										((Expr.Pocket) exprValue));
-							} else if (exprValue instanceof Expr.Box) {
-								lookUpVariable = interpreter.lookUpVariable(((Expr.Box) exprValue).identifier,
-										((Expr.Box) exprValue));
-							}
-							
 						}
+
 					} else {
 						values.put(name.lexeme, value);
 					}

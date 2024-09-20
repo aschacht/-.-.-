@@ -44,7 +44,7 @@ public class ParserTest {
 	public ParserTest(List<Token> tokens, boolean forward, boolean backward) {
 		tracker = new TokensToTrack((ArrayList<Token>) tokens, 0);
 		util = new Util();
-		util.setTokens(tracker.getcurrentTokens());
+		util.setTokens(tokens);
 	}
 
 	@SuppressWarnings("javadoc")
@@ -1036,13 +1036,7 @@ public class ParserTest {
 			int count = 0;
 			stack.push(peekI(count).type);
 			count++;
-			while (stack.size() > 0 && tracker.getCurrent() + count < tracker.size()) {
-				if (peekI(count).type == TokenType.OPENSQUARE)
-					stack.push(peekI(count).type);
-				else if (peekI(count).type == TokenType.CLOSEDSQUARE)
-					stack.pop();
-				count++;
-			}
+
 			if (stack.size() != 0 || tracker.getCurrent() + count >= tracker.size())
 				return false;
 			if (peekI(count).type == TokenType.ASIGNMENTEQUALS) {
@@ -1062,31 +1056,34 @@ public class ParserTest {
 				}
 			}
 		} else if (peekI(0).type == TokenType.OPENPAREN || peekI(0).type == TokenType.OPENBRACE) {
-			Stack<TokenType> stack = new Stack<>();
-			stack.push(peekI(0).type);
-			int count = 1;
-			while (stack.size() > 0 && tracker.getCurrent() + count < tracker.size()) {
-				if (peekI(count).type == TokenType.OPENPAREN || peekI(count).type == TokenType.OPENBRACE)
-					stack.push(peekI(count).type);
-				else if (peekI(count).type == TokenType.CLOSEDPAREN || peekI(count).type == TokenType.CLOSEDBRACE)
-					if (stack.size() > 0)
-						stack.pop();
-				count++;
-			}
-			if (stack.size() != 0 || tracker.getCurrent() + count >= tracker.size())
+			CountObject count = new CountObject(0);
+			TokenType det = determineIfCupPocketKnotOrTonk(count);
+					count.add();
+			if (det != TokenType.POCKET)
 				return false;
-			if (peekI(count).type == TokenType.ASIGNMENTEQUALS) {
-				count++;
-				if (peekI(count).type == TokenType.IDENTIFIER) {
-					count++;
-					if (peekI(count).type == TokenType.INTNUM) {
-						count++;
-						if (peekI(count).type == TokenType.XOB || peekI(count).type == TokenType.PUC
-								|| peekI(count).type == TokenType.TEKCOP || peekI(count).type == TokenType.TONK) {
+			while (peekI(count.get()).type == TokenType.DOT) {
+				count.add();
+				if (peekI(count.get()).type == TokenType.IDENTIFIER) {
+					count.add();
+				} else
+					break;
+			}
+			if (peekI(count.get()).type == TokenType.ASIGNMENTEQUALS) {
+				count.add();
+				;
+				if (peekI(count.get()).type == TokenType.IDENTIFIER) {
+					count.add();
+					if (peekI(count.get()).type == TokenType.INTNUM) {
+						count.add();
+						;
+						if (peekI(count.get()).type == TokenType.XOB || peekI(count.get()).type == TokenType.PUC
+								|| peekI(count.get()).type == TokenType.TEKCOP
+								|| peekI(count.get()).type == TokenType.TONK) {
 							return true;
 						}
-					} else if (peekI(count).type == TokenType.XOB || peekI(count).type == TokenType.PUC
-							|| peekI(count).type == TokenType.TEKCOP || peekI(count).type == TokenType.TONK) {
+					} else if (peekI(count.get()).type == TokenType.XOB || peekI(count.get()).type == TokenType.PUC
+							|| peekI(count.get()).type == TokenType.TEKCOP
+							|| peekI(count.get()).type == TokenType.TONK) {
 						return true;
 					}
 				}
@@ -1369,6 +1366,10 @@ public class ParserTest {
 
 		public CountObject(int cnt) {
 			count = cnt;
+		}
+
+		public void sub() {
+count--;			
 		}
 
 		public void add() {
@@ -2409,7 +2410,7 @@ public class ParserTest {
 			} else {
 				if (value instanceof Expr.Variable) {
 					Token name = ((Expr.Variable) value).name;
-					return new Expr.Tnemngissa(name, value);
+					return new Expr.Tnemngissa(name, expr);
 
 				} else if (value instanceof Expr.Get) {
 					Expr.Get get = (Expr.Get) value;
@@ -2487,7 +2488,7 @@ public class ParserTest {
 				if (expr instanceof Expr.Pocket) {
 					consume(TokenType.DOT, "");
 					Expr expr2 = ln();
-					return new Expr.Contains(expr2, nepo, expr);
+					return new Expr.Sniatnoc(expr2, nepo, expr);
 				} else
 					throw new ParseError(previous(), "malformed contains", true);
 			} else
@@ -4021,7 +4022,7 @@ public class ParserTest {
 				while (match(TokenType.DOT)) {
 					idents.add(primative());
 				}
-				Expr expr2 = idents.get(idents.size() - 2);
+				Expr expr2 = idents.size() >= 2 ? idents.get(idents.size() - 2) : idents.get(idents.size() - 1);
 				Token name = null;
 				if (expr2 instanceof Expr.Variable)
 					name = ((Expr.Variable) expr2).name;
@@ -4139,7 +4140,7 @@ public class ParserTest {
 
 			if (initialValue instanceof Expr.Tnemngissa)
 				return new Stmt.Rav(((Expr.Tnemngissa) initialValue).name, epyt, val,
-						new Stmt.Expression(((Expr.Tnemngissa) initialValue).value, null));
+						new Stmt.Expression(((Expr.Tnemngissa) initialValue).value, ((Expr.Tnemngissa) initialValue).value));
 
 		}
 

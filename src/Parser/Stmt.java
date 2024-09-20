@@ -5,37 +5,33 @@ import java.util.ArrayList;
 import Box.Token.Token;
 import java.util.Objects;
 import Box.Token.TokenType;
+import com.fasterxml.jackson.annotation.*;
 
 public abstract class Stmt extends Declaration {
-	public abstract void reverse();
+public abstract void reverse();
+public static class Expression extends Stmt {
+	 public Expression(Expr expression , Expr noisserpxe) {
+	this.expression = expression;
+	this.noisserpxe = noisserpxe;
+	}
 
-	public static class Expression extends Stmt {
-		public Expression(Expr expression, Expr noisserpxe) {
-			this.expression = expression;
-			this.noisserpxe = noisserpxe;
-		}
+	public  Expression(Expression other) {
+	this.expression = other.expression;
+	this.noisserpxe = other.noisserpxe;
+	}
 
-		public Expression(Expression other) {
-			this.expression = other.expression;
-			this.noisserpxe = other.noisserpxe;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.expression != null)
-				str += this.expression.toString() + " ";
-			if (this.noisserpxe != null)
-				str += this.noisserpxe.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitExpressionStmt(this);
+	}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitExpressionStmt(this);
-		}
-
-		@Override
+	@Override
+	public void reverse() {
+	this.expression.reverse();
+	this.noisserpxe.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -45,53 +41,42 @@ public abstract class Stmt extends Declaration {
 			} else
 				return super.equals(obj);
 		}
+@Override			public String toString() {			String str = "";			if (this.expression != null)				str += this.expression.toString() + " ";			if (this.noisserpxe != null)str += this.noisserpxe.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.expression.reverse();
-			this.noisserpxe.reverse();
-		}
-
-		public Expr expression;
-		public Expr noisserpxe;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr expression;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr noisserpxe;
+	}
+public static class If extends Stmt {
+	 public If(Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup) {
+	this.ifPocket = ifPocket;
+	this.ifCup = ifCup;
+	this.elseIfStmt = elseIfStmt;
+	this.elseCup = elseCup;
 	}
 
-	public static class If extends Stmt {
-		public If(Expr ifPocket, Expr ifCup, Stmt elseIfStmt, Expr elseCup) {
-			this.ifPocket = ifPocket;
-			this.ifCup = ifCup;
-			this.elseIfStmt = elseIfStmt;
-			this.elseCup = elseCup;
-		}
+	public  If(If other) {
+	this.ifPocket = other.ifPocket;
+	this.ifCup = other.ifCup;
+	this.elseIfStmt = other.elseIfStmt;
+	this.elseCup = other.elseCup;
+	}
 
-		public If(If other) {
-			this.ifPocket = other.ifPocket;
-			this.ifCup = other.ifCup;
-			this.elseIfStmt = other.elseIfStmt;
-			this.elseCup = other.elseCup;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.ifPocket != null)
-				str += this.ifPocket.toString() + " ";
-			if (this.ifCup != null)
-				str += this.ifCup.toString() + " ";
-			if (this.elseIfStmt != null)
-				str += this.elseIfStmt.toString() + " ";
-			if (this.elseCup != null)
-				str += this.elseCup.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitIfStmt(this);
+	}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitIfStmt(this);
-		}
-
-		
-		@Override
+	@Override
+	public void reverse() {
+	this.ifPocket.reverse();
+	this.ifCup.reverse();
+	this.elseIfStmt.reverse();
+	this.elseCup.reverse();
+	}
+			@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -109,49 +94,39 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		
-		
-		@Override
-		public void reverse() {
-			this.ifPocket.reverse();
-			this.ifCup.reverse();
-			this.elseIfStmt.reverse();
-			this.elseCup.reverse();
-		}
+@Override			public String toString() {			String str = "";			if (this.ifPocket != null)				str += this.ifPocket.toString() + " ";			if (this.ifCup != null)				str += this.ifCup.toString() + " ";			if (this.elseIfStmt != null)				str += this.elseIfStmt.toString() + " ";			if (this.elseCup != null)				str += this.elseCup.toString() + " ";			return str;		}
 
-		public Expr ifPocket;
-		public Expr ifCup;
-		public Stmt elseIfStmt;
-		public Expr elseCup;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr ifPocket;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr ifCup;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Stmt elseIfStmt;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr elseCup;
+	}
+public static class Print extends Stmt {
+	 public Print(Token keyword , Expr expression) {
+	this.keyword = keyword;
+	this.expression = expression;
 	}
 
-	public static class Print extends Stmt {
-		public Print(Token keyword, Expr expression) {
-			this.keyword = keyword;
-			this.expression = expression;
-		}
+	public  Print(Print other) {
+	this.keyword = other.keyword;
+	this.expression = other.expression;
+	}
 
-		public Print(Print other) {
-			this.keyword = other.keyword;
-			this.expression = other.expression;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.expression != null)
-				str += this.expression.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitPrintStmt(this);
+	}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitPrintStmt(this);
-		}
-
-		@Override
+	@Override
+	public void reverse() {
+	this.expression.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -159,47 +134,38 @@ public abstract class Stmt extends Declaration {
 			} else
 				return obj instanceof Print && this.expression.equals(((Print) obj).expression);
 		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.expression != null)				str += this.expression.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.expression.reverse();
-		}
-
-		public Token keyword;
-		public Expr expression;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr expression;
+	}
+public static class Save extends Stmt {
+	 public Save(Token keyword , Expr filePathFileName , Expr objecttosave) {
+	this.keyword = keyword;
+	this.filePathFileName = filePathFileName;
+	this.objecttosave = objecttosave;
 	}
 
-	public static class Save extends Stmt {
-		public Save(Token keyword, Expr filePathFileName, Expr objecttosave) {
-			this.keyword = keyword;
-			this.filePathFileName = filePathFileName;
-			this.objecttosave = objecttosave;
-		}
+	public  Save(Save other) {
+	this.keyword = other.keyword;
+	this.filePathFileName = other.filePathFileName;
+	this.objecttosave = other.objecttosave;
+	}
 
-		public Save(Save other) {
-			this.keyword = other.keyword;
-			this.filePathFileName = other.filePathFileName;
-			this.objecttosave = other.objecttosave;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.filePathFileName != null)
-				str += this.filePathFileName.toString() + " ";
-			if (this.objecttosave != null)
-				str += this.objecttosave.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitSaveStmt(this);
+	}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitSaveStmt(this);
-		}
-
-		@Override
+	@Override
+	public void reverse() {
+	this.filePathFileName.reverse();
+	this.objecttosave.reverse();
+	}
+			@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -210,48 +176,40 @@ public abstract class Stmt extends Declaration {
 				return super.equals(obj);
 		}
 		
-		@Override
-		public void reverse() {
-			this.filePathFileName.reverse();
-			this.objecttosave.reverse();
-		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";if (this.filePathFileName != null)				str += this.filePathFileName.toString() + " ";			if (this.objecttosave != null)				str += this.objecttosave.toString() + " ";			return str;		}
 
-		public Token keyword;
-		public Expr filePathFileName;
-		public Expr objecttosave;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePathFileName;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr objecttosave;
+	}
+public static class Read extends Stmt {
+	 public Read(Token keyword , Expr filePath , Expr objectToReadInto) {
+	this.keyword = keyword;
+	this.filePath = filePath;
+	this.objectToReadInto = objectToReadInto;
 	}
 
-	public static class Read extends Stmt {
-		public Read(Token keyword, Expr filePath, Expr objectToReadInto) {
-			this.keyword = keyword;
-			this.filePath = filePath;
-			this.objectToReadInto = objectToReadInto;
-		}
+	public  Read(Read other) {
+	this.keyword = other.keyword;
+	this.filePath = other.filePath;
+	this.objectToReadInto = other.objectToReadInto;
+	}
 
-		public Read(Read other) {
-			this.keyword = other.keyword;
-			this.filePath = other.filePath;
-			this.objectToReadInto = other.objectToReadInto;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.filePath != null)
-				str += this.filePath.toString() + " ";
-			if (this.objectToReadInto != null)
-				str += this.objectToReadInto.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitReadStmt(this);
+	}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitReadStmt(this);
-		}
-
-		@Override
+	@Override
+	public void reverse() {
+	this.filePath.reverse();
+	this.objectToReadInto.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -261,45 +219,40 @@ public abstract class Stmt extends Declaration {
 			} else
 				return super.equals(obj);
 		}
-		
-		
-		@Override
-		public void reverse() {
-			this.filePath.reverse();
-			this.objectToReadInto.reverse();
-		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.filePath != null)				str += this.filePath.toString() + " ";			if (this.objectToReadInto != null)				str += this.objectToReadInto.toString() + " ";			return str;		}
 
-		public Token keyword;
-		public Expr filePath;
-		public Expr objectToReadInto;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePath;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr objectToReadInto;
+	}
+public static class Rename extends Stmt {
+	 public Rename(Token keyword , Expr filePathAndName , Expr filenewname) {
+	this.keyword = keyword;
+	this.filePathAndName = filePathAndName;
+	this.filenewname = filenewname;
 	}
 
-	public static class Rename extends Stmt {
-		public Rename(Token keyword, Expr filePathAndName, Expr filenewname) {
-			this.keyword = keyword;
-			this.filePathAndName = filePathAndName;
-			this.filenewname = filenewname;
-		}
+	public  Rename(Rename other) {
+	this.keyword = other.keyword;
+	this.filePathAndName = other.filePathAndName;
+	this.filenewname = other.filenewname;
+	}
 
-		public Rename(Rename other) {
-			this.keyword = other.keyword;
-			this.filePathAndName = other.filePathAndName;
-			this.filenewname = other.filenewname;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.filePathAndName != null)
-				str += this.filePathAndName.toString() + " ";
-			if (this.filenewname != null)
-				str += this.filenewname.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitRenameStmt(this);
+	}
 
-		@Override
+	@Override
+	public void reverse() {
+	this.filePathAndName.reverse();
+	this.filenewname.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -309,51 +262,40 @@ public abstract class Stmt extends Declaration {
 			} else
 				return super.equals(obj);
 		}
-		
-		
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitRenameStmt(this);
-		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.filePathAndName != null)				str += this.filePathAndName.toString() + " ";			if (this.filenewname != null)				str += this.filenewname.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.filePathAndName.reverse();
-			this.filenewname.reverse();
-		}
-
-		public Token keyword;
-		public Expr filePathAndName;
-		public Expr filenewname;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePathAndName;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filenewname;
+	}
+public static class Move extends Stmt {
+	 public Move(Token keyword , Expr OringialfilePathAndFile , Expr newfilePath) {
+	this.keyword = keyword;
+	this.OringialfilePathAndFile = OringialfilePathAndFile;
+	this.newfilePath = newfilePath;
 	}
 
-	public static class Move extends Stmt {
-		public Move(Token keyword, Expr OringialfilePathAndFile, Expr newfilePath) {
-			this.keyword = keyword;
-			this.OringialfilePathAndFile = OringialfilePathAndFile;
-			this.newfilePath = newfilePath;
-		}
+	public  Move(Move other) {
+	this.keyword = other.keyword;
+	this.OringialfilePathAndFile = other.OringialfilePathAndFile;
+	this.newfilePath = other.newfilePath;
+	}
 
-		public Move(Move other) {
-			this.keyword = other.keyword;
-			this.OringialfilePathAndFile = other.OringialfilePathAndFile;
-			this.newfilePath = other.newfilePath;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.OringialfilePathAndFile != null)
-				str += this.OringialfilePathAndFile.toString() + " ";
-			if (this.newfilePath != null)
-				str += this.newfilePath.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitMoveStmt(this);
+	}
 
-		
-		@Override
+	@Override
+	public void reverse() {
+	this.OringialfilePathAndFile.reverse();
+	this.newfilePath.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -364,54 +306,37 @@ public abstract class Stmt extends Declaration {
 				return super.equals(obj);
 		}
 		
-		
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitMoveStmt(this);
-		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.OringialfilePathAndFile != null)				str += this.OringialfilePathAndFile.toString() + " ";			if (this.newfilePath != null)				str += this.newfilePath.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.OringialfilePathAndFile.reverse();
-			this.newfilePath.reverse();
-		}
-
-		public Token keyword;
-		public Expr OringialfilePathAndFile;
-		public Expr newfilePath;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr OringialfilePathAndFile;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr newfilePath;
+	}
+public static class Return extends Stmt {
+	 public Return(Token keyword , Expr expression) {
+	this.keyword = keyword;
+	this.expression = expression;
 	}
 
-	public static class Return extends Stmt {
-		public Return(Token keyword, Expr expression) {
-			this.keyword = keyword;
-			this.expression = expression;
-		}
+	public  Return(Return other) {
+	this.keyword = other.keyword;
+	this.expression = other.expression;
+	}
 
-		public Return(Return other) {
-			this.keyword = other.keyword;
-			this.expression = other.expression;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.expression != null)
-				str += this.expression.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitReturnStmt(this);
+	}
 
-		
-		
-		
-		
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitReturnStmt(this);
-		}
-
-		@Override
+	@Override
+	public void reverse() {
+	this.expression.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -419,33 +344,39 @@ public abstract class Stmt extends Declaration {
 			} else
 				return super.equals(obj);
 		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.expression != null)				str += this.expression.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.expression.reverse();
-		}
-
-		public Token keyword;
-		public Expr expression;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr expression;
+	}
+public static class Var extends Stmt {
+	 public Var(Token name , Token type, int num , Expr initilizer) {
+	this.name = name;
+	this.type = type;
+	this.num = num;
+	this.initilizer = initilizer;
 	}
 
-	public static class Var extends Stmt {
-		public Var(Token name, Token type, int num, Expr initilizer) {
-			this.name = name;
-			this.type = type;
-			this.num = num;
-			this.initilizer = initilizer;
-		}
+	public  Var(Var other) {
+	this.name = other.name;
+	this.type = other.type;
+	this.num = other.num;
+	this.initilizer = other.initilizer;
+	}
 
-		public Var(Var other) {
-			this.name = other.name;
-			this.type = other.type;
-			this.num = other.num;
-			this.initilizer = other.initilizer;
-		}
 
-		
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitVarStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.initilizer.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -456,49 +387,38 @@ public abstract class Stmt extends Declaration {
 				return super.equals(obj);
 		}
 		
-		
-		
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.name != null)
-				str += this.name.lexeme + " ";
-			if (this.type != null)
-				str += this.type.lexeme + " ";
-			str += this.num + " ";
-			if (this.initilizer != null)
-				str += this.initilizer.toString() + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.name != null)				str += this.name.lexeme + " ";			if (this.type != null)				str += this.type.lexeme + " ";			str += this.num + " ";			if (this.initilizer != null)				str += this.initilizer.toString() + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitVarStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.initilizer.reverse();
-		}
-
-		public Token name;
-		public Token type;
-		public int num;
-		public Expr initilizer;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token name;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token type;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  int num;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr initilizer;
+	}
+public static class TemplatVar extends Stmt {
+	 public TemplatVar(Token name, Token superclass) {
+	this.name = name;
+	this.superclass = superclass;
 	}
 
-	public static class TemplatVar extends Stmt {
-		public TemplatVar(Token name, Token superclass) {
-			this.name = name;
-			this.superclass = superclass;
-		}
+	public  TemplatVar(TemplatVar other) {
+	this.name = other.name;
+	this.superclass = other.superclass;
+	}
 
-		public TemplatVar(TemplatVar other) {
-			this.name = other.name;
-			this.superclass = other.superclass;
-		}
 
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitTemplatVarStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -508,44 +428,38 @@ public abstract class Stmt extends Declaration {
 				return super.equals(obj);
 		}
 		
-		
-		
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.name != null)
-				str += this.name.lexeme + " ";
-			if (this.superclass != null)
-				str += this.superclass.lexeme + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.name != null)				str += this.name.lexeme + " ";			if (this.superclass != null)				str += this.superclass.lexeme + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitTemplatVarStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-		}
-
-		public Token name;
-		public Token superclass;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token name;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token superclass;
+	}
+public static class Expel extends Stmt {
+	 public Expel(Token keyword , Expr toExpell , Expr filePath) {
+	this.keyword = keyword;
+	this.toExpell = toExpell;
+	this.filePath = filePath;
 	}
 
-	public static class Expel extends Stmt {
-		public Expel(Token keyword, Expr toExpell, Expr filePath) {
-			this.keyword = keyword;
-			this.toExpell = toExpell;
-			this.filePath = filePath;
-		}
+	public  Expel(Expel other) {
+	this.keyword = other.keyword;
+	this.toExpell = other.toExpell;
+	this.filePath = other.filePath;
+	}
 
-		public Expel(Expel other) {
-			this.keyword = other.keyword;
-			this.toExpell = other.toExpell;
-			this.filePath = other.filePath;
-		}
-		@Override
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitExpelStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.toExpell.reverse();
+	this.filePath.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -555,49 +469,40 @@ public abstract class Stmt extends Declaration {
 			} else
 				return super.equals(obj);
 		}
-		
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.toExpell != null)
-				str += this.toExpell.toString() + " ";
-			if (this.filePath != null)
-				str += this.filePath.toString() + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.toExpell != null)				str += this.toExpell.toString() + " ";			if (this.filePath != null)				str += this.filePath.toString() + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitExpelStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.toExpell.reverse();
-			this.filePath.reverse();
-		}
-
-		public Token keyword;
-		public Expr toExpell;
-		public Expr filePath;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr toExpell;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePath;
+	}
+public static class Consume extends Stmt {
+	 public Consume(Token keyword , Expr boxToFill , Expr filePath) {
+	this.keyword = keyword;
+	this.boxToFill = boxToFill;
+	this.filePath = filePath;
 	}
 
-	public static class Consume extends Stmt {
-		public Consume(Token keyword, Expr boxToFill, Expr filePath) {
-			this.keyword = keyword;
-			this.boxToFill = boxToFill;
-			this.filePath = filePath;
-		}
+	public  Consume(Consume other) {
+	this.keyword = other.keyword;
+	this.boxToFill = other.boxToFill;
+	this.filePath = other.filePath;
+	}
 
-		public Consume(Consume other) {
-			this.keyword = other.keyword;
-			this.boxToFill = other.boxToFill;
-			this.filePath = other.filePath;
-		}
 
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitConsumeStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.boxToFill.reverse();
+	this.filePath.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -607,63 +512,38 @@ public abstract class Stmt extends Declaration {
 			} else
 				return super.equals(obj);
 		}
-		
-		
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.boxToFill != null)
-				str += this.boxToFill.toString() + " ";
-			if (this.filePath != null)
-				str += this.filePath.toString() + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.boxToFill != null)				str += this.boxToFill.toString() + " ";			if (this.filePath != null)				str += this.filePath.toString() + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitConsumeStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.boxToFill.reverse();
-			this.filePath.reverse();
-		}
-
-		public Token keyword;
-		public Expr boxToFill;
-		public Expr filePath;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr boxToFill;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePath;
+	}
+public static class Ifi extends Stmt {
+	 public Ifi(Expr ifPocket , Stmt elseIf) {
+	this.ifPocket = ifPocket;
+	this.elseIf = elseIf;
 	}
 
-	public static class Ifi extends Stmt {
-		public Ifi(Expr ifPocket, Stmt elseIf) {
-			this.ifPocket = ifPocket;
-			this.elseIf = elseIf;
-		}
+	public  Ifi(Ifi other) {
+	this.ifPocket = other.ifPocket;
+	this.elseIf = other.elseIf;
+	}
 
-		public Ifi(Ifi other) {
-			this.ifPocket = other.ifPocket;
-			this.elseIf = other.elseIf;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.ifPocket != null)
-				str += this.ifPocket.toString() + " ";
-			if (this.elseIf != null)
-				str += this.elseIf.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitIfiStmt(this);
+	}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitIfiStmt(this);
-		}
-
-		@Override
+	@Override
+	public void reverse() {
+	this.ifPocket.reverse();
+	this.elseIf.reverse();
+	}
+	@Override
 	    public boolean equals(Object obj) {
 	        if (obj instanceof StmtDecl) {
 	            Stmt stmt = ((StmtDecl) obj).statement;
@@ -674,35 +554,37 @@ public abstract class Stmt extends Declaration {
 	        }
 	        return super.equals(obj);
 	    }
+@Override			public String toString() {			String str = "";			if (this.ifPocket != null)				str += this.ifPocket.toString() + " ";			if (this.elseIf != null)				str += this.elseIf.toString() + " ";			return str;		}
 
-		
-		
-		@Override
-		public void reverse() {
-			this.ifPocket.reverse();
-			this.elseIf.reverse();
-		}
-
-		public Expr ifPocket;
-		public Stmt elseIf;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr ifPocket;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Stmt elseIf;
+	}
+public static class StmttmtS extends Stmt {
+	 public StmttmtS(Token keywordForward , Expr expression , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.expression = expression;
+	this.keywordBackward = keywordBackward;
 	}
 
-	public static class StmttmtS extends Stmt {
-		public StmttmtS(Token keywordForward, Expr expression, Token keywordBackward) {
-			this.keywordForward = keywordForward;
-			this.expression = expression;
-			this.keywordBackward = keywordBackward;
-		}
+	public  StmttmtS(StmttmtS other) {
+	this.keywordForward = other.keywordForward;
+	this.expression = other.expression;
+	this.keywordBackward = other.keywordBackward;
+	}
 
-		public StmttmtS(StmttmtS other) {
-			this.keywordForward = other.keywordForward;
-			this.expression = other.expression;
-			this.keywordBackward = other.keywordBackward;
-		}
 
-		
-		
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitStmttmtSStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -715,49 +597,42 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keywordForward != null)
-				str += this.keywordForward.lexeme + " ";
-			if (this.expression != null)
-				str += this.expression.toString() + " ";
-			if (this.keywordBackward != null)
-				str += this.keywordBackward.lexeme + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.keywordForward != null)				str += this.keywordForward.lexeme + " ";			if (this.expression != null)				str += this.expression.toString() + " ";			if (this.keywordBackward != null)				str += this.keywordBackward.lexeme + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitStmttmtSStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.expression.reverse();
-		}
-
-		public Token keywordForward;
-		public Expr expression;
-		public Token keywordBackward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordForward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr expression;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordBackward;
+	}
+public static class Saveevas extends Stmt {
+	 public Saveevas(Token keywordForward , Expr filePathFileName , Expr objecttosave , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.filePathFileName = filePathFileName;
+	this.objecttosave = objecttosave;
+	this.keywordBackward = keywordBackward;
 	}
 
-	public static class Saveevas extends Stmt {
-		public Saveevas(Token keywordForward, Expr filePathFileName, Expr objecttosave, Token keywordBackward) {
-			this.keywordForward = keywordForward;
-			this.filePathFileName = filePathFileName;
-			this.objecttosave = objecttosave;
-			this.keywordBackward = keywordBackward;
-		}
+	public  Saveevas(Saveevas other) {
+	this.keywordForward = other.keywordForward;
+	this.filePathFileName = other.filePathFileName;
+	this.objecttosave = other.objecttosave;
+	this.keywordBackward = other.keywordBackward;
+	}
 
-		public Saveevas(Saveevas other) {
-			this.keywordForward = other.keywordForward;
-			this.filePathFileName = other.filePathFileName;
-			this.objecttosave = other.objecttosave;
-			this.keywordBackward = other.keywordBackward;
-		}
-		
-		@Override
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitSaveevasStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathFileName.reverse();
+	this.objecttosave.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -771,68 +646,44 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
+@Override			public String toString() {			String str = "";			if (this.keywordForward != null)				str += this.keywordForward.lexeme + " ";			if (this.filePathFileName != null)				str += this.filePathFileName.toString() + " ";			if (this.objecttosave != null)				str += this.objecttosave.toString() + " ";			if (this.keywordBackward != null)				str += this.keywordBackward.lexeme + " ";			return str;		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keywordForward != null)
-				str += this.keywordForward.lexeme + " ";
-			if (this.filePathFileName != null)
-				str += this.filePathFileName.toString() + " ";
-			if (this.objecttosave != null)
-				str += this.objecttosave.toString() + " ";
-			if (this.keywordBackward != null)
-				str += this.keywordBackward.lexeme + " ";
-			return str;
-		}
-
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitSaveevasStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.filePathFileName.reverse();
-			this.objecttosave.reverse();
-		}
-
-		public Token keywordForward;
-		public Expr filePathFileName;
-		public Expr objecttosave;
-		public Token keywordBackward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordForward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePathFileName;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr objecttosave;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordBackward;
+	}
+public static class Readdaer extends Stmt {
+	 public Readdaer(Token keywordForward , Expr filePath , Expr objectToReadInto , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.filePath = filePath;
+	this.objectToReadInto = objectToReadInto;
+	this.keywordBackward = keywordBackward;
 	}
 
-	public static class Readdaer extends Stmt {
-		public Readdaer(Token keywordForward, Expr filePath, Expr objectToReadInto, Token keywordBackward) {
-			this.keywordForward = keywordForward;
-			this.filePath = filePath;
-			this.objectToReadInto = objectToReadInto;
-			this.keywordBackward = keywordBackward;
-		}
+	public  Readdaer(Readdaer other) {
+	this.keywordForward = other.keywordForward;
+	this.filePath = other.filePath;
+	this.objectToReadInto = other.objectToReadInto;
+	this.keywordBackward = other.keywordBackward;
+	}
 
-		public Readdaer(Readdaer other) {
-			this.keywordForward = other.keywordForward;
-			this.filePath = other.filePath;
-			this.objectToReadInto = other.objectToReadInto;
-			this.keywordBackward = other.keywordBackward;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keywordForward != null)
-				str += this.keywordForward.lexeme + " ";
-			if (this.filePath != null)
-				str += this.filePath.toString() + " ";
-			if (this.objectToReadInto != null)
-				str += this.objectToReadInto.toString() + " ";
-			if (this.keywordBackward != null)
-				str += this.keywordBackward.lexeme + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitReaddaerStmt(this);
+	}
 
-		@Override
+	@Override
+	public void reverse() {
+	this.filePath.reverse();
+	this.objectToReadInto.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -846,40 +697,44 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitReaddaerStmt(this);
-		}
+@Override			public String toString() {			String str = "";			if (this.keywordForward != null)				str += this.keywordForward.lexeme + " ";			if (this.filePath != null)				str += this.filePath.toString() + " ";			if (this.objectToReadInto != null)				str += this.objectToReadInto.toString() + " ";			if (this.keywordBackward != null)				str += this.keywordBackward.lexeme + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.filePath.reverse();
-			this.objectToReadInto.reverse();
-		}
-
-		public Token keywordForward;
-		public Expr filePath;
-		public Expr objectToReadInto;
-		public Token keywordBackward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordForward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePath;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr objectToReadInto;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordBackward;
+	}
+public static class Renameemaner extends Stmt {
+	 public Renameemaner(Token keywordForward , Expr filePathAndName , Expr filenewname , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.filePathAndName = filePathAndName;
+	this.filenewname = filenewname;
+	this.keywordBackward = keywordBackward;
 	}
 
-	public static class Renameemaner extends Stmt {
-		public Renameemaner(Token keywordForward, Expr filePathAndName, Expr filenewname, Token keywordBackward) {
-			this.keywordForward = keywordForward;
-			this.filePathAndName = filePathAndName;
-			this.filenewname = filenewname;
-			this.keywordBackward = keywordBackward;
-		}
+	public  Renameemaner(Renameemaner other) {
+	this.keywordForward = other.keywordForward;
+	this.filePathAndName = other.filePathAndName;
+	this.filenewname = other.filenewname;
+	this.keywordBackward = other.keywordBackward;
+	}
 
-		public Renameemaner(Renameemaner other) {
-			this.keywordForward = other.keywordForward;
-			this.filePathAndName = other.filePathAndName;
-			this.filenewname = other.filenewname;
-			this.keywordBackward = other.keywordBackward;
-		}
 
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitRenameemanerStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathAndName.reverse();
+	this.filenewname.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -893,57 +748,44 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		
-		
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keywordForward != null)
-				str += this.keywordForward.lexeme + " ";
-			if (this.filePathAndName != null)
-				str += this.filePathAndName.toString() + " ";
-			if (this.filenewname != null)
-				str += this.filenewname.toString() + " ";
-			if (this.keywordBackward != null)
-				str += this.keywordBackward.lexeme + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.keywordForward != null)				str += this.keywordForward.lexeme + " ";			if (this.filePathAndName != null)				str += this.filePathAndName.toString() + " ";			if (this.filenewname != null)				str += this.filenewname.toString() + " ";			if (this.keywordBackward != null)				str += this.keywordBackward.lexeme + " ";			return str;}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitRenameemanerStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.filePathAndName.reverse();
-			this.filenewname.reverse();
-		}
-
-		public Token keywordForward;
-		public Expr filePathAndName;
-		public Expr filenewname;
-		public Token keywordBackward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordForward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePathAndName;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filenewname;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordBackward;
+	}
+public static class Moveevom extends Stmt {
+	 public Moveevom(Token keywordForward , Expr OringialfilePathAndFile , Expr newfilePath , Token keywordBackward) {
+	this.keywordForward = keywordForward;
+	this.OringialfilePathAndFile = OringialfilePathAndFile;
+	this.newfilePath = newfilePath;
+	this.keywordBackward = keywordBackward;
 	}
 
-	public static class Moveevom extends Stmt {
-		public Moveevom(Token keywordForward, Expr OringialfilePathAndFile, Expr newfilePath, Token keywordBackward) {
-			this.keywordForward = keywordForward;
-			this.OringialfilePathAndFile = OringialfilePathAndFile;
-			this.newfilePath = newfilePath;
-			this.keywordBackward = keywordBackward;
-		}
+	public  Moveevom(Moveevom other) {
+	this.keywordForward = other.keywordForward;
+	this.OringialfilePathAndFile = other.OringialfilePathAndFile;
+	this.newfilePath = other.newfilePath;
+	this.keywordBackward = other.keywordBackward;
+	}
 
-		public Moveevom(Moveevom other) {
-			this.keywordForward = other.keywordForward;
-			this.OringialfilePathAndFile = other.OringialfilePathAndFile;
-			this.newfilePath = other.newfilePath;
-			this.keywordBackward = other.keywordBackward;
-		}
 
-		
-		
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitMoveevomStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.OringialfilePathAndFile.reverse();
+	this.newfilePath.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -957,52 +799,41 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keywordForward != null)
-				str += this.keywordForward.lexeme + " ";
-			if (this.OringialfilePathAndFile != null)
-				str += this.OringialfilePathAndFile.toString() + " ";
-			if (this.newfilePath != null)
-				str += this.newfilePath.toString() + " ";
-			if (this.keywordBackward != null)
-				str += this.keywordBackward.lexeme + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.keywordForward != null)				str += this.keywordForward.lexeme + " ";			if (this.OringialfilePathAndFile != null)				str += this.OringialfilePathAndFile.toString() + " ";			if (this.newfilePath != null)				str += this.newfilePath.toString() + " ";			if (this.keywordBackward != null)				str += this.keywordBackward.lexeme + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitMoveevomStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.OringialfilePathAndFile.reverse();
-			this.newfilePath.reverse();
-		}
-
-		public Token keywordForward;
-		public Expr OringialfilePathAndFile;
-		public Expr newfilePath;
-		public Token keywordBackward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordForward;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr OringialfilePathAndFile;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr newfilePath;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keywordBackward;
+	}
+public static class Stmtnoisserpxe extends Stmt {
+	 public Stmtnoisserpxe(Token statementToken , Expr expression , Token noisserpxeToken) {
+	this.statementToken = statementToken;
+	this.expression = expression;
+	this.noisserpxeToken = noisserpxeToken;
 	}
 
-	public static class Stmtnoisserpxe extends Stmt {
-		public Stmtnoisserpxe(Token statementToken, Expr expression, Token noisserpxeToken) {
-			this.statementToken = statementToken;
-			this.expression = expression;
-			this.noisserpxeToken = noisserpxeToken;
-		}
+	public  Stmtnoisserpxe(Stmtnoisserpxe other) {
+	this.statementToken = other.statementToken;
+	this.expression = other.expression;
+	this.noisserpxeToken = other.noisserpxeToken;
+	}
 
-		public Stmtnoisserpxe(Stmtnoisserpxe other) {
-			this.statementToken = other.statementToken;
-			this.expression = other.expression;
-			this.noisserpxeToken = other.noisserpxeToken;
-		}
 
-		
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitStmtnoisserpxeStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.expression.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -1016,52 +847,41 @@ public abstract class Stmt extends Declaration {
 		    return super.equals(obj);
 		}
 		
-		
-		
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.statementToken != null)
-				str += this.statementToken.lexeme + " ";
-			if (this.expression != null)
-				str += this.expression.toString() + " ";
-			if (this.noisserpxeToken != null)
-				str += this.noisserpxeToken.lexeme + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.statementToken != null)				str += this.statementToken.lexeme + " ";			if (this.expression != null)str += this.expression.toString() + " ";			if (this.noisserpxeToken != null)				str += this.noisserpxeToken.lexeme + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitStmtnoisserpxeStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.expression.reverse();
-		}
-
-		public Token statementToken;
-		public Expr expression;
-		public Token noisserpxeToken;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token statementToken;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr expression;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token noisserpxeToken;
+	}
+public static class Rav extends Stmt {
+	 public Rav(Token name , Token type, int num , Stmt initilizer) {
+	this.name = name;
+	this.type = type;
+	this.num = num;
+	this.initilizer = initilizer;
 	}
 
-	public static class Rav extends Stmt {
-		public Rav(Token name, Token type, int num, Stmt initilizer) {
-			this.name = name;
-			this.type = type;
-			this.num = num;
-			this.initilizer = initilizer;
-		}
+	public  Rav(Rav other) {
+	this.name = other.name;
+	this.type = other.type;
+	this.num = other.num;
+	this.initilizer = other.initilizer;
+	}
 
-		public Rav(Rav other) {
-			this.name = other.name;
-			this.type = other.type;
-			this.num = other.num;
-			this.initilizer = other.initilizer;
-		}
 
-		
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitRavStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.initilizer.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -1076,63 +896,39 @@ public abstract class Stmt extends Declaration {
 		    return super.equals(obj);
 		}
 		
-		
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.name != null)
-				str += this.name.lexeme + " ";
-			if (this.type != null)
-				str += this.type.lexeme + " ";
-			str += this.num + " ";
-			if (this.initilizer != null)
-				str += this.initilizer.toString() + " ";
-			return str;
-		}
+@Override			public String toString() {			String str = "";			if (this.name != null)				str += this.name.lexeme + " ";			if (this.type != null)				str += this.type.lexeme + " ";			str += this.num + " ";			if (this.initilizer != null)				str += this.initilizer.toString() + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitRavStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.initilizer.reverse();
-		}
-
-		public Token name;
-		public Token type;
-		public int num;
-		public Stmt initilizer;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token name;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token type;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  int num;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Stmt initilizer;
+	}
+public static class Nruter extends Stmt {
+	 public Nruter(Token keyword , Expr expression) {
+	this.keyword = keyword;
+	this.expression = expression;
 	}
 
-	public static class Nruter extends Stmt {
-		public Nruter(Token keyword, Expr expression) {
-			this.keyword = keyword;
-			this.expression = expression;
-		}
+	public  Nruter(Nruter other) {
+	this.keyword = other.keyword;
+	this.expression = other.expression;
+	}
 
-		public Nruter(Nruter other) {
-			this.keyword = other.keyword;
-			this.expression = other.expression;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.expression != null)
-				str += this.expression.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitNruterStmt(this);
+	}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitNruterStmt(this);
-		}
-
-		@Override
+	@Override
+	public void reverse() {
+	this.expression.reverse();
+	}
+			@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -1141,28 +937,38 @@ public abstract class Stmt extends Declaration {
 				return super.equals(null);
 		}
 
-		@Override
-		public void reverse() {
-			this.expression.reverse();
-		}
+@Override			public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.expression != null)				str += this.expression.toString() + " ";			return str;		}
 
-		public Token keyword;
-		public Expr expression;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr expression;
+	}
+public static class Evom extends Stmt {
+	 public Evom(Token keyword , Expr OringialfilePathAndFile , Expr newfilePath) {
+	this.keyword = keyword;
+	this.OringialfilePathAndFile = OringialfilePathAndFile;
+	this.newfilePath = newfilePath;
 	}
 
-	public static class Evom extends Stmt {
-		public Evom(Token keyword, Expr OringialfilePathAndFile, Expr newfilePath) {
-			this.keyword = keyword;
-			this.OringialfilePathAndFile = OringialfilePathAndFile;
-			this.newfilePath = newfilePath;
-		}
+	public  Evom(Evom other) {
+	this.keyword = other.keyword;
+	this.OringialfilePathAndFile = other.OringialfilePathAndFile;
+	this.newfilePath = other.newfilePath;
+	}
 
-		public Evom(Evom other) {
-			this.keyword = other.keyword;
-			this.OringialfilePathAndFile = other.OringialfilePathAndFile;
-			this.newfilePath = other.newfilePath;
-		}
-		@Override
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitEvomStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.OringialfilePathAndFile.reverse();
+	this.newfilePath.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -1175,59 +981,40 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.OringialfilePathAndFile != null)
-				str += this.OringialfilePathAndFile.toString() + " ";
-			if (this.newfilePath != null)
-				str += this.newfilePath.toString() + " ";
-			return str;
-		}
+@Override		public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.OringialfilePathAndFile != null)				str += this.OringialfilePathAndFile.toString() + " ";			if (this.newfilePath != null)				str += this.newfilePath.toString() + " ";			return str;		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitEvomStmt(this);
-		}
-
-		@Override
-		public void reverse() {
-			this.OringialfilePathAndFile.reverse();
-			this.newfilePath.reverse();
-		}
-
-		public Token keyword;
-		public Expr OringialfilePathAndFile;
-		public Expr newfilePath;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr OringialfilePathAndFile;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr newfilePath;
+	}
+public static class Emaner extends Stmt {
+	 public Emaner(Token keyword , Expr filePathAndName , Expr filenewname) {
+	this.keyword = keyword;
+	this.filePathAndName = filePathAndName;
+	this.filenewname = filenewname;
 	}
 
-	public static class Emaner extends Stmt {
-		public Emaner(Token keyword, Expr filePathAndName, Expr filenewname) {
-			this.keyword = keyword;
-			this.filePathAndName = filePathAndName;
-			this.filenewname = filenewname;
-		}
+	public  Emaner(Emaner other) {
+	this.keyword = other.keyword;
+	this.filePathAndName = other.filePathAndName;
+	this.filenewname = other.filenewname;
+	}
 
-		public Emaner(Emaner other) {
-			this.keyword = other.keyword;
-			this.filePathAndName = other.filePathAndName;
-			this.filenewname = other.filenewname;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.filePathAndName != null)
-				str += this.filePathAndName.toString() + " ";
-			if (this.filenewname != null)
-				str += this.filenewname.toString() + " ";
-			return str;
-		}
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitEmanerStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathAndName.reverse();
+	this.filenewname.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -1240,47 +1027,40 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitEmanerStmt(this);
-		}
+@Override		public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.filePathAndName != null)				str += this.filePathAndName.toString() + " ";			if (this.filenewname != null)				str += this.filenewname.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.filePathAndName.reverse();
-			this.filenewname.reverse();
-		}
-
-		public Token keyword;
-		public Expr filePathAndName;
-		public Expr filenewname;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePathAndName;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filenewname;
+	}
+public static class Daer extends Stmt {
+	 public Daer(Token keyword , Expr filePath , Expr objectToReadInto) {
+	this.keyword = keyword;
+	this.filePath = filePath;
+	this.objectToReadInto = objectToReadInto;
 	}
 
-	public static class Daer extends Stmt {
-		public Daer(Token keyword, Expr filePath, Expr objectToReadInto) {
-			this.keyword = keyword;
-			this.filePath = filePath;
-			this.objectToReadInto = objectToReadInto;
-		}
+	public  Daer(Daer other) {
+	this.keyword = other.keyword;
+	this.filePath = other.filePath;
+	this.objectToReadInto = other.objectToReadInto;
+	}
 
-		public Daer(Daer other) {
-			this.keyword = other.keyword;
-			this.filePath = other.filePath;
-			this.objectToReadInto = other.objectToReadInto;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.filePath != null)
-				str += this.filePath.toString() + " ";
-			if (this.objectToReadInto != null)
-				str += this.objectToReadInto.toString() + " ";
-			return str;
-		}
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitDaerStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePath.reverse();
+	this.objectToReadInto.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -1293,47 +1073,40 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitDaerStmt(this);
-		}
+@Override		public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.filePath != null)				str += this.filePath.toString() + " ";			if (this.objectToReadInto != null)				str += this.objectToReadInto.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.filePath.reverse();
-			this.objectToReadInto.reverse();
-		}
-
-		public Token keyword;
-		public Expr filePath;
-		public Expr objectToReadInto;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePath;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr objectToReadInto;
+	}
+public static class Evas extends Stmt {
+	 public Evas(Token keyword , Expr filePathFileName , Expr objecttosave) {
+	this.keyword = keyword;
+	this.filePathFileName = filePathFileName;
+	this.objecttosave = objecttosave;
 	}
 
-	public static class Evas extends Stmt {
-		public Evas(Token keyword, Expr filePathFileName, Expr objecttosave) {
-			this.keyword = keyword;
-			this.filePathFileName = filePathFileName;
-			this.objecttosave = objecttosave;
-		}
+	public  Evas(Evas other) {
+	this.keyword = other.keyword;
+	this.filePathFileName = other.filePathFileName;
+	this.objecttosave = other.objecttosave;
+	}
 
-		public Evas(Evas other) {
-			this.keyword = other.keyword;
-			this.filePathFileName = other.filePathFileName;
-			this.objecttosave = other.objecttosave;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.filePathFileName != null)
-				str += this.filePathFileName.toString() + " ";
-			if (this.objecttosave != null)
-				str += this.objecttosave.toString() + " ";
-			return str;
-		}
-		@Override
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitEvasStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.filePathFileName.reverse();
+	this.objecttosave.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -1346,49 +1119,37 @@ public abstract class Stmt extends Declaration {
 		    }
 		    return super.equals(obj);
 		}
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitEvasStmt(this);
-		}
+@Override		public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.filePathFileName != null)				str += this.filePathFileName.toString() + " ";			if (this.objecttosave != null)				str += this.objecttosave.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.filePathFileName.reverse();
-			this.objecttosave.reverse();
-		}
-
-		public Token keyword;
-		public Expr filePathFileName;
-		public Expr objecttosave;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr filePathFileName;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr objecttosave;
+	}
+public static class Tnirp extends Stmt {
+	 public Tnirp(Token keyword , Expr expression) {
+	this.keyword = keyword;
+	this.expression = expression;
 	}
 
-	public static class Tnirp extends Stmt {
-		public Tnirp(Token keyword, Expr expression) {
-			this.keyword = keyword;
-			this.expression = expression;
-		}
+	public  Tnirp(Tnirp other) {
+	this.keyword = other.keyword;
+	this.expression = other.expression;
+	}
 
-		public Tnirp(Tnirp other) {
-			this.keyword = other.keyword;
-			this.expression = other.expression;
-		}
 
-		@Override
-		public String toString() {
-			String str = "";
-			if (this.keyword != null)
-				str += this.keyword.lexeme + " ";
-			if (this.expression != null)
-				str += this.expression.toString() + " ";
-			return str;
-		}
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitTnirpStmt(this);
+	}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitTnirpStmt(this);
-		}
-
-		@Override
+	@Override
+	public void reverse() {
+	this.expression.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 			if (obj instanceof StmtDecl) {
 				Stmt stmt = ((StmtDecl) obj).statement;
@@ -1396,31 +1157,42 @@ public abstract class Stmt extends Declaration {
 			} else
 				return super.equals(null);
 		}
+@Override		public String toString() {			String str = "";			if (this.keyword != null)				str += this.keyword.lexeme + " ";			if (this.expression != null)				str += this.expression.toString() + " ";			return str;		}
 
-		@Override
-		public void reverse() {
-			this.expression.reverse();
-		}
-
-		public Token keyword;
-		public Expr expression;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Token keyword;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr expression;
+	}
+public static class Fi extends Stmt {
+	 public Fi(Expr ifPocket , Expr ifCup , Stmt elseIfStmt , Expr elseCup) {
+	this.ifPocket = ifPocket;
+	this.ifCup = ifCup;
+	this.elseIfStmt = elseIfStmt;
+	this.elseCup = elseCup;
 	}
 
-	public static class Fi extends Stmt {
-		public Fi(Expr ifPocket, Expr ifCup, Stmt elseIfStmt, Expr elseCup) {
-			this.ifPocket = ifPocket;
-			this.ifCup = ifCup;
-			this.elseIfStmt = elseIfStmt;
-			this.elseCup = elseCup;
-		}
+	public  Fi(Fi other) {
+	this.ifPocket = other.ifPocket;
+	this.ifCup = other.ifCup;
+	this.elseIfStmt = other.elseIfStmt;
+	this.elseCup = other.elseCup;
+	}
 
-		public Fi(Fi other) {
-			this.ifPocket = other.ifPocket;
-			this.ifCup = other.ifCup;
-			this.elseIfStmt = other.elseIfStmt;
-			this.elseCup = other.elseCup;
-		}
-		@Override
+
+	@Override
+	public <R> R accept(Visitor<R> visitor) {
+	 	return visitor.visitFiStmt(this);
+	}
+
+	@Override
+	public void reverse() {
+	this.ifPocket.reverse();
+	this.ifCup.reverse();
+	this.elseIfStmt.reverse();
+	this.elseCup.reverse();
+	}
+	@Override
 		public boolean equals(Object obj) {
 		    if (obj instanceof StmtDecl) {
 		        Stmt stmt = ((StmtDecl) obj).statement;
@@ -1448,23 +1220,15 @@ public abstract class Stmt extends Declaration {
 			return str;
 		}
 
-		@Override
-		public <R> R accept(Visitor<R> visitor) {
-			return visitor.visitFiStmt(this);
-		}
 
-		@Override
-		public void reverse() {
-			this.ifPocket.reverse();
-			this.ifCup.reverse();
-			this.elseIfStmt.reverse();
-			this.elseCup.reverse();
-		}
-
-		public Expr ifPocket;
-		public Expr ifCup;
-		public Stmt elseIfStmt;
-		public Expr elseCup;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr ifPocket;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr ifCup;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Stmt elseIfStmt;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	public  Expr elseCup;
 	}
 
 }

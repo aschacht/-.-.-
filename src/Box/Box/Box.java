@@ -21,11 +21,11 @@ import Parser.ParserTest;
 import resolver.Resolver;
 
 public class Box extends Thread {
-	private static final Interpreter interpreter = new Interpreter();
+	private  final Interpreter interpreter = new Interpreter();
 	static boolean hadError = false;
 	static boolean hadRuntimeError = false;
-	private static ByteArrayOutputStream baos;
-	private static Observer promptOb;
+	private static  ByteArrayOutputStream baos;
+	private  Observer promptOb;
 
 	public static void main(String[] args) {
 
@@ -44,7 +44,7 @@ public class Box extends Thread {
 		}
 
 		if (content.toString().length() > 0)
-			box.run(content.toString(), true, false);
+			box.run(content.toString(), false);
 
 	}
 
@@ -162,7 +162,7 @@ public class Box extends Thread {
 //
 //
 
-	public static void runPrompt() throws IOException {
+	public  void runPrompt() throws IOException {
 
 		System.out.flush();
 		String string = baos.toString();
@@ -174,27 +174,28 @@ public class Box extends Thread {
 
 	}
 
-	private static void runFile(String string, boolean forward, boolean backward) throws IOException {
+	private  void runFile(String string, boolean forward, boolean backward) throws IOException {
 		byte[] bytes = Files.readAllBytes(Paths.get(string));
-		run(new String(bytes, Charset.defaultCharset()), forward, backward);
+		run(new String(bytes, Charset.defaultCharset()), forward);
 		if (hadError)
 			System.exit(65);
 		if (hadRuntimeError)
 			System.exit(70);
 	}
 
-	private static void run(String string, boolean forward, boolean backward) {
+	public void run(String string, boolean forward) {
 		Scanner scanner = new Scanner(string);
 		List<Token> tokens = scanner.scanTokensFirstPass();
 
 		Grouper grouper = new Grouper((ArrayList<Token>) tokens);
 		ArrayList<Token> toks = grouper.scanTokensSecondPass();
 
-		ParserTest parser = new ParserTest(toks, forward, backward);
+		ParserTest parser = new ParserTest(toks, true, false);
 		List<Declaration> statements = parser.parse();
 
-		interpreter.setForward(true);
 
+		//interpreter.setForward(!forward);
+		interpreter.setForward(forward);
 		Resolver resolver = new Resolver(interpreter);
 		resolver.resolve(statements);
 
@@ -205,11 +206,11 @@ public class Box extends Thread {
 
 	}
 
-	public static void error(int column, int line, String message, boolean report) {
+	public static  void error(int column, int line, String message, boolean report) {
 		report(column, line, "", message, report);
 	}
 
-	public static void error(Token token, String message, boolean report) {
+	public static  void error(Token token, String message, boolean report) {
 		if (token != null) {
 			if (token.type == TokenType.EOF)
 				report(token.column, token.line, " at end", message, report);
@@ -220,19 +221,21 @@ public class Box extends Thread {
 
 	}
 
-	private static void report(int column, int line, String where, String message, boolean report) {
+	private static  void report(int column, int line, String where, String message, boolean report) {
 		if (report) {
 			System.err.println("[column " + column + ", line " + line + "] Error " + where + ": " + message);
+			System.out.println("[column " + column + ", line " + line + "] Error " + where + ": " + message);
 			hadError = true;
 		}
 	}
 	
-	public static void resetHadError() {
+	public static  void resetHadError() {
 		hadError = false;
 	}
 
 	public static void runtimeError(RuntimeError e) {
 		System.err.println(e.getMessage() + " \n[line: " + e.token.line + " column: " + e.token.column + "]");
+		System.out.println(e.getMessage() + " \n[line: " + e.token.line + " column: " + e.token.column + "]");
 		hadRuntimeError = true;
 	}
 
@@ -243,7 +246,7 @@ public class Box extends Thread {
 	}
 
 	public void notify(String string) {
-		run(string, true, false);
+		run(string, true);
 		System.out.flush();
 		hadError = false;
 

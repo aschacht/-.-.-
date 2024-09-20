@@ -596,51 +596,6 @@
 <eslafToken> ::= "eslaf";
 
 
-<stgTypeToken> ::= "stg";
-
-
-<charTypeToken> ::= "chr";
-
-
-<booTypeToken> :: ="boo";
-
-
-<intTypeToken> ::= "int";
-
-
-<dblTypeToken> ::= "dbl";
-
-
-<binTypeToken> ::= "bin";
-
-
-<nulTypeToken> ::= "nul"; 
-
-
-<nilTypeToken> ::= "nil";
-
-
-<lcpTypeToken> ::= "lcp";
-
-<NILLToken> ::= "NIL";
-
-
-<NULLToken> ::= "NUL";
-<rcpTypeToken> ::= "rcp";
-
-
-<lpkTypeToken> ::= "lpk";
-
-
-<rpkTypeToken> ::= "rpk";
-
-
-<lbxTypeToken> ::= "lbx";
-
-
-<rbxTypeToken> ::= "rbx";
-
-
 <NILLToken> ::= "NIL";
 
 

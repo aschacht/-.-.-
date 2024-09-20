@@ -3,7 +3,6 @@ package Box.Syntax;
 import java.util.List;
 import java.util.ArrayList;
 import Box.Token.Token;
-import Box.Parser.LogicalOrStorage;
 
 public abstract class FunOLD extends DeclarationOLD {
 public static class Function extends FunOLD {

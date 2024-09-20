@@ -249,7 +249,11 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 			return total;
 		}
-
+		if(object instanceof String ) {
+			return ((String)object).replaceAll("\\\\n","\n");
+			
+		}
+		
 		return object.toString();
 	}
 
@@ -340,7 +344,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		Object value = "";
 		if (forward) {
 			value = evaluate(stmt.expression);
-			System.out.println(stringify(value));
+			System.out.print(stringify(value));
 		}
 		return value;
 	}
@@ -5050,41 +5054,27 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public Object visitContainsExpr(Contains expr) {
 		if (forward) {
 			if (expr.container instanceof Expr.Variable) {
-				
+
 				Object lookUpVariable = lookUpVariable(((Expr.Variable) expr.container).name, expr.container);
 				Instance lookUpContainer = (Instance) lookUpVariable;
-				System.out.println("hey");
-				Pocket poc =((Expr.Pocket)expr.contents);
-				if(poc.expression.size()<3) {
+				Pocket poc = ((Expr.Pocket) expr.contents);
+				if (poc.expression.size() < 3) {
 					throw new RuntimeException("expected one parameter found none");
-				}else if(poc.expression.size()>3) {
+				} else if (poc.expression.size() > 3) {
 					throw new RuntimeException("expected one parameter found more then one");
 				}
 				Stmt stmt = poc.expression.get(1);
-				
-				
+
 				if (lookUpContainer instanceof BoxInstance) {
-
+					return ((BoxInstance) lookUpContainer).contains(stmt);
 				} else if (lookUpContainer instanceof PocketInstance) {
-
-					boolean contains = ((PocketInstance)lookUpContainer).contains(stmt);
-					if (contains) {
-					}
+					return ((PocketInstance) lookUpContainer).contains(stmt);
 				} else if (lookUpContainer instanceof CupInstance) {
-
-					boolean contains = ((CupInstance)lookUpContainer).contains(stmt);
-					if (contains) {
-					}
+					return ((CupInstance) lookUpContainer).contains(stmt);
 				} else if (lookUpContainer instanceof KnotInstance) {
-
-					boolean contains = ((KnotInstance)lookUpContainer).contains( stmt);
-					if (contains) {
-					}
+					return ((KnotInstance) lookUpContainer).contains(stmt);
 				} else if (lookUpContainer instanceof TonkInstance) {
-
-					boolean contains = ((TonkInstance)lookUpContainer).contains(stmt);
-					if (contains) {
-					}
+					return ((TonkInstance) lookUpContainer).contains(stmt);
 				}
 			}
 		}
@@ -5240,7 +5230,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		Object value = "";
 		if (!forward) {
 			value = evaluate(stmt.expression);
-			System.out.println(stringify(value));
+			System.out.print(stringify(value));
 		}
 		return value;
 	}
@@ -5840,17 +5830,17 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	private Token getNameForExpr(Expr expression) {
 		if (expression instanceof Expr.Knot) {
-			return ((Expr.Knot) expression).identifier.identifierToken;
+			return ((Expr.Knot) expression).identifier;
 		} else if (expression instanceof Expr.Cup) {
-			return ((Expr.Cup) expression).identifier.identifierToken;
+			return ((Expr.Cup) expression).identifier;
 		} else if (expression instanceof Expr.Pocket) {
-			return ((Expr.Pocket) expression).identifier.identifierToken;
+			return ((Expr.Pocket) expression).identifier;
 		} else if (expression instanceof Expr.Box) {
-			return ((Expr.Box) expression).identifier.identifierToken;
+			return ((Expr.Box) expression).identifier;
 		} else if (expression instanceof Expr.Variable) {
 			return ((Expr.Variable) expression).name;
 		} else if (expression instanceof Expr.Tonk) {
-			return ((Expr.Tonk) expression).identifier.identifierToken;
+			return ((Expr.Tonk) expression).identifier;
 		}
 		return null;
 	}
@@ -5919,7 +5909,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
 				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
-				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				Token reverseName = new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column,
+						stmt.name.line, stmt.name.start, stmt.name.finish);
 				environment.assign(stmt.name, null, evaluate);
 				environment.assign(reverseName, null, evaluate);
 			} else if (evaluate instanceof PocketInstance) {
@@ -5941,7 +5932,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
 				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
-				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				Token reverseName = new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column,
+						stmt.name.line, stmt.name.start, stmt.name.finish);
 				environment.assign(stmt.name, null, evaluate);
 				environment.assign(reverseName, null, evaluate);
 			} else if (evaluate instanceof BoxInstance) {
@@ -5963,19 +5955,22 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				}
 				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
 				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
-				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				Token reverseName = new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column,
+						stmt.name.line, stmt.name.start, stmt.name.finish);
 				environment.assign(stmt.name, null, evaluate);
 				environment.assign(reverseName, null, evaluate);
 			} else if (evaluate instanceof KnotInstance) {
 				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
 				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
-				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				Token reverseName = new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column,
+						stmt.name.line, stmt.name.start, stmt.name.finish);
 				environment.assign(stmt.name, null, evaluate);
 				environment.assign(reverseName, null, evaluate);
 			} else if (evaluate instanceof TonkInstance) {
 				environment.define(stmt.name.lexeme, stmt.type, stmt.num, evaluate, this);
 				environment.define(reverse, stmt.type, stmt.num, evaluate, this);
-				Token reverseName=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				Token reverseName = new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column,
+						stmt.name.line, stmt.name.start, stmt.name.finish);
 				environment.assign(stmt.name, null, evaluate);
 				environment.assign(reverseName, null, evaluate);
 			} else {
@@ -5997,21 +5992,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			nstr = ch + nstr; // adds each character in front of the existing string
 		}
 		return nstr;
-	}
-
-	private void mapVarNameToInitilizer(Token name, Expr evaluate) {
-		if (evaluate instanceof Expr.Box) {
-			nameMap.put(name.lexeme, ((Expr.Box) evaluate).identifier.lexeme);
-		} else if (evaluate instanceof Expr.Pocket) {
-			nameMap.put(name.lexeme, ((Expr.Pocket) evaluate).identifier.lexeme);
-		} else if (evaluate instanceof Expr.Cup) {
-			nameMap.put(name.lexeme, ((Expr.Cup) evaluate).identifier.lexeme);
-		} else if (evaluate instanceof Expr.Knot) {
-			nameMap.put(name.lexeme, ((Expr.Knot) evaluate).identifier.lexeme);
-		} else if (evaluate instanceof Expr.Tonk) {
-			nameMap.put(name.lexeme, ((Expr.Tonk) evaluate).identifier.lexeme);
-		}
-
 	}
 
 	@Override
@@ -6132,7 +6112,37 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	@Override
 	public Object visitSniatnocExpr(Sniatnoc expr) {
 		if (!forward) {
+
+			if (expr.container instanceof Expr.Variable) {
+
+				Object lookUpVariable = lookUpVariable(((Expr.Variable) expr.container).name, expr.container);
+				Instance lookUpContainer = (Instance) lookUpVariable;
+				Pocket poc = ((Expr.Pocket) expr.contents);
+				if (poc.expression.size() < 3) {
+					throw new RuntimeException("expected one parameter found none");
+				} else if (poc.expression.size() > 3) {
+					throw new RuntimeException("expected one parameter found more then one");
+				}
+				Stmt stmt = poc.expression.get(1);
+
+				if (lookUpContainer instanceof BoxInstance) {
+					return ((BoxInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof PocketInstance) {
+
+					return ((PocketInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof CupInstance) {
+					return ((CupInstance) lookUpContainer).contains(stmt);
+
+				} else if (lookUpContainer instanceof KnotInstance) {
+
+					return ((KnotInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof TonkInstance) {
+
+					return ((TonkInstance) lookUpContainer).contains(stmt);
+				}
+			}
 		}
+
 		return null;
 	}
 
@@ -6145,10 +6155,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 				return ((Instance) object).get(expr.name);
 			}
 
-			if (object instanceof BoxClass) {
-				Instance call = (Instance) ((BoxClass) object).call(this, new ArrayList<>());
-				return call.get(expr.name);
-			}
+			
 
 			return object;
 		}
@@ -6516,7 +6523,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (forward) {
 			if (!templates.contains(stmt.name.lexeme) && templates.contains(stmt.superclass.lexeme)) {
 				Expr.Variable supclass = new Expr.Variable(stmt.superclass);
-				BoxCallable superBoxClass = (BoxCallable)lookUpVariable(supclass.name,supclass);
+				BoxCallable superBoxClass = (BoxCallable) lookUpVariable(supclass.name, supclass);
 				Object call = superBoxClass.call(this, new ArrayList<>());
 				String reverse = reverse(stmt.name.lexeme);
 				environment.define(stmt.name.lexeme, null, null);
@@ -6556,14 +6563,15 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 						}
 					}
 				}
-				Token reifi=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				Token reifi = new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column,
+						stmt.name.line, stmt.name.start, stmt.name.finish);
 				environment.assign(stmt.name, null, call);
 				environment.assign(reifi, null, call);
 			}
 		} else {
 			if (templates.contains(stmt.name.lexeme) && !templates.contains(stmt.superclass.lexeme)) {
 				Expr.Variable supclass = new Expr.Variable(stmt.name);
-				BoxCallable superBoxClass = (BoxCallable)lookUpVariable(supclass.name,supclass);
+				BoxCallable superBoxClass = (BoxCallable) lookUpVariable(supclass.name, supclass);
 				Object call = superBoxClass.call(this, new ArrayList<>());
 				String reverse = reverse(stmt.superclass.lexeme);
 				environment.define(stmt.superclass.lexeme, null, null);
@@ -6603,7 +6611,8 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 						}
 					}
 				}
-				Token reifi=new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column, stmt.name.line, stmt.name.start, stmt.name.finish);
+				Token reifi = new Token(TokenType.IDENTIFIER, reverse, null, null, null, stmt.name.column,
+						stmt.name.line, stmt.name.start, stmt.name.finish);
 				environment.assign(stmt.superclass, null, call);
 				environment.assign(reifi, null, call);
 			}
@@ -6778,7 +6787,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					List<Token> fparamtypes = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersType;
 					List<Token> fparamsNames = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersNames;
 					BoxFunction boxFunction1 = new BoxFunction(null, fname, fparamtypes, fparamsNames, environment,
-							false,true);
+							false, true);
 					methods.put(fname, boxFunction1);
 				}
 				if (((Function) ((Declaration.FunDecl) method).function).backwardIdentifier != null) {
@@ -6787,15 +6796,14 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					List<Token> bparamsNames = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersNames;
 
 					BoxFunction boxFunction0 = new BoxFunction(null, bname, bparamtypes, bparamsNames, environment,
-							false,true);
+							false, true);
 					methods.put(bname, boxFunction0);
 
 				}
 			}
 		}
 		BoxClass boxClass = new BoxClass(((Expr.Cup) expr).identifier.lexeme, null, null, methods,
-				TokenType.CUPCONTAINER, false, null, environment, expr,true);
-
+				TokenType.CUPCONTAINER, false, null, environment, expr, true);
 
 		environment.assign(((Expr.Cup) expr).identifier, null, boxClass);
 		environment.assign(((Expr.Cup) expr).reifitnedi, null, boxClass);
@@ -6843,7 +6851,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Tonk) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
-				TokenType.CUPCONTAINER, false, null, environment, expr,false);
+				TokenType.CUPCONTAINER, false, null, environment, expr, false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -6898,7 +6906,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Knot) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
-				TokenType.CUPCONTAINER, false, null, environment, expr,false);
+				TokenType.CUPCONTAINER, false, null, environment, expr, false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -6950,7 +6958,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Expr.Box) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
-				TokenType.POCKETCONTAINER, false, null, environment, expr,false);
+				TokenType.POCKETCONTAINER, false, null, environment, expr, false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -7002,7 +7010,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Pocket) expr).identifier.lexeme, (BoxClass) superclass, primarys, null,
-				TokenType.POCKETCONTAINER, false, null, environment, expr,false);
+				TokenType.POCKETCONTAINER, false, null, environment, expr, false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -7059,7 +7067,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					List<Token> fparamtypes = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersType;
 					List<Token> fparamsNames = ((Function) ((Declaration.FunDecl) method).function).forwardPrametersNames;
 					BoxFunction boxFunction1 = new BoxFunction(body, fname, fparamtypes, fparamsNames, environment,
-							false,false);
+							false, false);
 					methods.put(fname, boxFunction1);
 				}
 				if (((Function) ((Declaration.FunDecl) method).function).backwardIdentifier != null) {
@@ -7069,7 +7077,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 					List<Token> bparamsNames = ((Function) ((Declaration.FunDecl) method).function).backwardPrametersNames;
 
 					BoxFunction boxFunction0 = new BoxFunction(body, bname, bparamtypes, bparamsNames, environment,
-							false,false);
+							false, false);
 					methods.put(bname, boxFunction0);
 
 				}
@@ -7083,7 +7091,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		}
 
 		BoxClass boxClass = new BoxClass(((Expr.Cup) expr).identifier.lexeme, (BoxClass) superclass, primarys, methods,
-				TokenType.CUPCONTAINER, false, null, environment, expr,false);
+				TokenType.CUPCONTAINER, false, null, environment, expr, false);
 
 		if (superclass != null) {
 			environment = environment.enclosing;
@@ -7597,7 +7605,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 			return function.call(this, arguments);
-		}else {
+		} else {
 			Object callee = evaluate(expr.calleeBackward);
 			List<Object> arguments = new ArrayList<>();
 			for (Expr argument : expr.arguments) {
@@ -7615,12 +7623,9 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 			}
 
 			return function.call(this, arguments);
-					
-			
-			
-			
+
 		}
-		
+
 	}
 
 	@Override
@@ -7632,7 +7637,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		} else {
 			if (expr.tnemetatsToken.type == TokenType.TNIRP) {
 				Object value = findMono(expr);
-				System.out.println(stringify(value));
 				return value;
 			} else if (expr.tnemetatsToken.type == TokenType.NRUTER) {
 				Object value = null;
@@ -7714,7 +7718,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (forward) {
 			if (stmt.keywordForward.type == TokenType.PRINT) {
 				Object value = evaluate(stmt.expression);
-				System.out.println(stringify(value));
 				return value;
 			} else if (stmt.keywordForward.type == TokenType.RETURN) {
 				Object value = null;
@@ -7725,7 +7728,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		} else {
 			if (stmt.keywordBackward.type == TokenType.TNIRP) {
 				Object value = evaluate(stmt.expression);
-				System.out.println(stringify(value));
 				return value;
 			} else if (stmt.keywordBackward.type == TokenType.NRUTER) {
 				Object value = null;
@@ -7742,7 +7744,6 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 		if (forward) {
 			if (stmt.statementToken.type == TokenType.PRINT) {
 				Object value = findOnomStmt(stmt);
-				System.out.println(stringify(value));
 				return value;
 			} else if (stmt.statementToken.type == TokenType.RETURN) {
 				Object value = null;
@@ -7855,7 +7856,7 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 	public void executeCupExpr(Cup cup, Environment environment1) {
 
 		environment = environment1;
-		for (int i = 0; i < cup.expression.size(); i = i + 1) {
+		for (int i = forward?0:cup.expression.size()-1; i>=0 && i < cup.expression.size(); i = forward?i + 1:i-1) {
 			execute(cup.expression.get(i));
 		}
 
@@ -8934,6 +8935,76 @@ public class Interpreter extends Thread implements Declaration.Visitor<Object> {
 
 	@Override
 	public Object visitContainssniatnocExpr(Containssniatnoc expr) {
+		
+		if (forward) {
+			if (expr.contForward instanceof Expr.Variable) {
+
+				Object lookUpVariable = lookUpVariable(((Expr.Variable) expr.contForward).name, expr.contForward);
+				Instance lookUpContainer = (Instance) lookUpVariable;
+				Pocket poc = ((Expr.Pocket) expr.contentsShared);
+				if (poc.expression.size() < 3) {
+					throw new RuntimeException("expected one parameter found none");
+				} else if (poc.expression.size() > 3) {
+					throw new RuntimeException("expected one parameter found more then one");
+				}
+				Stmt stmt = poc.expression.get(1);
+
+				if (lookUpContainer instanceof BoxInstance) {
+					return ((BoxInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof PocketInstance) {
+					return ((PocketInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof CupInstance) {
+					return ((CupInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof KnotInstance) {
+					return ((KnotInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof TonkInstance) {
+					return ((TonkInstance) lookUpContainer).contains(stmt);
+				}
+			}
+		}else {
+			
+
+			if (expr.contBackward instanceof Expr.Variable) {
+
+				Object lookUpVariable = lookUpVariable(((Expr.Variable) expr.contBackward).name, expr.contBackward);
+				Instance lookUpContainer = (Instance) lookUpVariable;
+				Pocket poc = ((Expr.Pocket) expr.contentsShared);
+				if (poc.expression.size() < 3) {
+					throw new RuntimeException("expected one parameter found none");
+				} else if (poc.expression.size() > 3) {
+					throw new RuntimeException("expected one parameter found more then one");
+				}
+				Stmt stmt = poc.expression.get(1);
+
+				if (lookUpContainer instanceof BoxInstance) {
+					return ((BoxInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof PocketInstance) {
+
+					return ((PocketInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof CupInstance) {
+					return ((CupInstance) lookUpContainer).contains(stmt);
+
+				} else if (lookUpContainer instanceof KnotInstance) {
+
+					return ((KnotInstance) lookUpContainer).contains(stmt);
+				} else if (lookUpContainer instanceof TonkInstance) {
+
+					return ((TonkInstance) lookUpContainer).contains(stmt);
+				}
+			}
+
+			
+			
+			
+			
+			
+			
+		}
+
+		
+		
+		
+		
 		return null;
 	}
 

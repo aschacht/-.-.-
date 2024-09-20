@@ -3,6 +3,7 @@ package Parser;
 import java.util.List;
 import java.util.ArrayList;
 import Box.Token.Token;
+import com.fasterxml.jackson.annotation.*;
 import Parser.Fun.*;
 import Parser.Stmt.*;
 import Parser.Expr.*;
@@ -62,7 +63,6 @@ public abstract class Declaration {
 	R visitPocketExpr(Pocket expr);
 	R visitBoxExpr(Box expr);
 	R visitMonoonomExpr(Monoonom expr);
-	R visitContainssniatnocExpr(Containssniatnoc expr);
 	R visitAddittiddaExpr(Addittidda expr);
 	R visitParCoOppOoCraPExpr(ParCoOppOoCraP expr);
 	R visitNoPaCoOOoCaPoNExpr(NoPaCoOOoCaPoN expr);
@@ -77,8 +77,6 @@ public abstract class Declaration {
 	R visitVariableExpr(Variable expr);
 	R visitLiteralCharExpr(LiteralChar expr);
 	R visitLiteralExpr(Literal expr);
-	R visitLiteralBoolExpr(LiteralBool expr);
-	R visitLiteralLoobExpr(LiteralLoob expr);
 	R visitPocketOpenExpr(PocketOpen expr);
 	R visitPocketClosedExpr(PocketClosed expr);
 	R visitCupOpenExpr(CupOpen expr);
@@ -101,6 +99,9 @@ public abstract class Declaration {
 	R visitEvitiddaExpr(Evitidda expr);
 	R visitSniatnocExpr(Sniatnoc expr);
 	R visitTnemngissaExpr(Tnemngissa expr);
+	R visitContainssniatnocExpr(Containssniatnoc expr);
+	R visitLiteralBoolExpr(LiteralBool expr);
+	R visitLiteralLoobExpr(LiteralLoob expr);
 	}
 public static class FunDecl extends Declaration {
 	 public FunDecl(Fun function) {
@@ -113,20 +114,13 @@ public static class FunDecl extends Declaration {
 
 
 	@Override
-	public String toString() {
-		String str = "";
-if (this.function!=null)
-	str+=this.function.toString()+" ";
-	return str;
-	}
-
-
-	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitFunDeclDeclaration(this);
 	}
 
 
+
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  Fun function;
 	}
 public static class StmtDecl extends Declaration {
@@ -138,20 +132,6 @@ public static class StmtDecl extends Declaration {
 	this.statement = other.statement;
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		
-		
-		return obj instanceof StmtDecl && this.statement.equals(((StmtDecl)obj).statement);
-	}
-	@Override
-	public String toString() {
-		String str = "";
-if (this.statement!=null)
-	str+=this.statement.toString()+" ";
-	return str;
-	}
-
 
 	@Override
 	public <R> R accept(Visitor<R> visitor) {
@@ -159,6 +139,8 @@ if (this.statement!=null)
 	}
 
 
+
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  Stmt statement;
 	}
 

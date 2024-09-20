@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import Box.Token.Token;
 import java.util.Objects;
 import Box.Token.TokenType;
+import com.fasterxml.jackson.annotation.*;
 
 public abstract class Fun extends Declaration {
 public abstract void reverse();
@@ -31,27 +32,6 @@ public static class Function extends Fun {
 
 
 	@Override
-	public String toString() {
-		String str = "";
-if (this.forwardIdentifier!=null)
-	str+=this.forwardIdentifier.lexeme+" ";
-if (this.forwardPrametersType!=null)
-	str+=this.forwardPrametersType.toString()+" ";
-if (this.forwardPrametersNames!=null)
-	str+=this.forwardPrametersNames.toString()+" ";
-if (this.sharedCup!=null)
-	str+=this.sharedCup.toString()+" ";
-if (this.backwardPrametersType!=null)
-	str+=this.backwardPrametersType.toString()+" ";
-if (this.backwardPrametersNames!=null)
-	str+=this.backwardPrametersNames.toString()+" ";
-if (this.backwardIdentifier!=null)
-	str+=this.backwardIdentifier.lexeme+" ";
-	return str;
-	}
-
-
-	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitFunctionFun(this);
 	}
@@ -61,12 +41,19 @@ if (this.backwardIdentifier!=null)
 	this.sharedCup.reverse();
 	}
 
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  Token forwardIdentifier;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  ArrayList<Token> forwardPrametersType;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  ArrayList<Token> forwardPrametersNames;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  Expr sharedCup;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  ArrayList<Token> backwardPrametersType;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  ArrayList<Token> backwardPrametersNames;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  Token backwardIdentifier;
 	}
 public static class FunctionLink extends Fun {
@@ -90,25 +77,6 @@ public static class FunctionLink extends Fun {
 
 
 	@Override
-	public String toString() {
-		String str = "";
-if (this.forwardIdentifier!=null)
-	str+=this.forwardIdentifier.lexeme+" ";
-if (this.forwardPrametersType!=null)
-	str+=this.forwardPrametersType.toString()+" ";
-if (this.forwardPrametersNames!=null)
-	str+=this.forwardPrametersNames.toString()+" ";
-if (this.backwardPrametersType!=null)
-	str+=this.backwardPrametersType.toString()+" ";
-if (this.backwardPrametersNames!=null)
-	str+=this.backwardPrametersNames.toString()+" ";
-if (this.backwardIdentifier!=null)
-	str+=this.backwardIdentifier.lexeme+" ";
-	return str;
-	}
-
-
-	@Override
 	public <R> R accept(Visitor<R> visitor) {
 	 	return visitor.visitFunctionLinkFun(this);
 	}
@@ -117,11 +85,17 @@ if (this.backwardIdentifier!=null)
 	public void reverse() {
 	}
 
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  Token forwardIdentifier;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  ArrayList<Token> forwardPrametersType;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  ArrayList<Token> forwardPrametersNames;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  ArrayList<Token> backwardPrametersType;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  ArrayList<Token> backwardPrametersNames;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public  Token backwardIdentifier;
 	}
 

@@ -9,21 +9,82 @@ import Parser.Declaration;
 import Parser.Expr;
 import Parser.Expr.Literal;
 import Parser.Stmt;
+import Parser.Declaration.StmtDecl;
 
 public class KnotInstance extends Instance {
 
 	List<Object> body;
+	private Interpreter interpreter;
 
 	public KnotInstance(BoxCallable boxClass, List<Object> body, Expr expr, Interpreter interpreter) {
 		super(boxClass, expr);
 		// TODO Auto-generated constructor stub
 		this.body = body;
+		this.interpreter = interpreter;
+		evaluateBody();
+	
+	}
+	private void evaluateBody() {
+		ArrayList<Object> temp = new ArrayList<>();
+		for (int i = 0; i < body.size(); i++) {
+			Object object = body.get(i);
+			if (!isControl(object)) {
+				if(isExpression(object)) {
+						temp.add(interpreter.execute((Stmt)object));
+					}else
+						temp.add(object);
+			
+			
+			}else
+				temp.add(object);
+				
+		}
+body=temp;
+	}
+
+	private boolean isExpression(Object object) {
+		if (object instanceof Stmt.Expression) {
+				return true;
+		} else if (object instanceof StmtDecl) {
+			Stmt state = ((StmtDecl) object).statement;
+			if (state instanceof Stmt.Expression) {
+					return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isControl(Object object) {
+		if (object instanceof Stmt.Expression) {
+			Expr expr2 = ((Stmt.Expression) object).expression;
+			if (expr2 instanceof Expr.PocketOpen || expr2 instanceof Expr.PocketClosed || expr2 instanceof Expr.CupOpen
+					|| expr2 instanceof Expr.CupClosed || expr2 instanceof Expr.BoxOpen
+					|| expr2 instanceof Expr.BoxClosed) {
+
+				return true;
+			}
+		} else if (object instanceof StmtDecl) {
+			Stmt state = ((StmtDecl) object).statement;
+			if (state instanceof Stmt.Expression) {
+				Expr expr2 = ((Stmt.Expression) state).expression;
+				if (expr2 instanceof Expr.PocketOpen || expr2 instanceof Expr.PocketClosed
+						|| expr2 instanceof Expr.CupOpen || expr2 instanceof Expr.CupClosed
+						|| expr2 instanceof Expr.BoxOpen || expr2 instanceof Expr.BoxClosed) {
+
+					return true;
+				}
+
+			}
+		}
+
+		return false;
 	}
 
 	public void add(Token operator, Object toadd) {
-		if (toadd instanceof Stmt || toadd instanceof Expr)
+		if (toadd instanceof Stmt || toadd instanceof Expr) {
 			body.add(body.size() - 1, toadd);
-		else
+		evaluateBody();
+	}else
 			throw new RuntimeError(operator, "not of acceptable type");
 	}
 
@@ -140,7 +201,7 @@ public class KnotInstance extends Instance {
 
 	public void push(Token operator, Expr toadd) {
 		body.add(1, toadd);
-
+		evaluateBody();
 	}
 
 	public void setat(Literal index, Expr toset) {
@@ -149,6 +210,7 @@ public class KnotInstance extends Instance {
 			if (i >= 1 && i <= bodySizeExclude() - 1 && !isIndexControl((int) i)) {
 				body.add((int) i, toset);
 				body.remove(i + 1);
+				evaluateBody();
 			} else
 				throw new RuntimeError(new Token(TokenType.SETAT, "", null, null, null, -1, -1, -1, -1), "index out of bounds or index is control");
 		} else
@@ -181,8 +243,33 @@ public class KnotInstance extends Instance {
 	}
 
 	public boolean contains(Declaration contents) {
-		// TODO Auto-generated method stub
-		return false;
+		if(contents instanceof Stmt.Expression) {
+			Object value = ((Stmt.Expression)contents).expression;
+			if(value instanceof Literal) {
+				Object value2 = ((Literal)value).value;
+				for (Object object : body) {
+					
+						if(value2.equals(object))return true;
+					
+				}
+				return false;
+			}else {
+				Object execute = interpreter.execute(contents);
+				return body.contains(execute);
+			}
+		}else {
+			for (Object obj : body) {
+				
+					if(contents.equals(obj))return true;
+				 
+			}
+			return false;
+		}
+		
+
+
 	}
+
+
 
 }

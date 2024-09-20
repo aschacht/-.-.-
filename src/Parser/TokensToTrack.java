@@ -17,7 +17,7 @@ public class TokensToTrack {
 	private int backTrackingCount = 0;
 	private boolean expressionTracking = true;
 
-	TokensToTrack(ArrayList<Token> baseTokens, int baseCurrent) {
+	public TokensToTrack(ArrayList<Token> baseTokens, int baseCurrent) {
 		if (baseTokens.size() > 0) {
 			Token eofToken = baseTokens.get(baseTokens.size() - 1);
 			ArrayList<Token> newBaseToken = new ArrayList<Token>();

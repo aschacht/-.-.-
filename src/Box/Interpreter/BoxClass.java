@@ -112,11 +112,8 @@ public class BoxClass implements BoxCallable {
 		return contains;
 	}
 
-	public boolean compairPrimarys(BoxContainerClass boxContainerClass) {
-		boolean contains = false;
-		
-		return contains;
-	}
+	
+
 
 	public int size() {
 
@@ -137,7 +134,7 @@ public class BoxClass implements BoxCallable {
 			instance = new PocketInstance(this, new ArrayList<>(((Expr.Pocket) body).expression), body,interpreter);
 
 		} else if (body instanceof Expr.Tonk) {
-			instance = new KnotInstance(this, new ArrayList<>(((Expr.Tonk) body).expression), body,interpreter);
+			instance = new TonkInstance(this, new ArrayList<>(((Expr.Tonk) body).expression), body,interpreter);
 
 		} else if (body instanceof Expr.Box) {
 			instance = new BoxInstance(this, new ArrayList<>(((Expr.Box) body).expression), body,interpreter);
