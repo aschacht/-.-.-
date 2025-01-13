@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import Box.Grouper.Grouper;
 import Box.Interpreter.Interpreter;
 import Box.Interpreter.RuntimeError;
@@ -183,7 +183,7 @@ public class Box extends Thread {
 			System.exit(70);
 	}
 
-	public void run(String string, boolean forward) {
+	public void runJson(String string, boolean forward) {
 		Scanner scanner = new Scanner(string);
 		List<Token> tokens = scanner.scanTokensFirstPass();
 
@@ -204,6 +204,25 @@ public class Box extends Thread {
 
 		interpreter.interpret(statements);
 
+	}
+	public void run(String string, boolean forward) {
+		Scanner scanner = new Scanner(string);
+		List<Token> tokens = scanner.scanTokensFirstPass();
+		
+		Grouper grouper = new Grouper((ArrayList<Token>) tokens);
+		ArrayList<Token> toks = grouper.scanTokensSecondPass();
+		
+		ParserTest parser = new ParserTest(toks, true, false);
+		List<Declaration> statements = parser.parse();
+		
+		
+		ObjectMapper om = new ObjectMapper();
+		try {
+            String jsonResult = om.writeValueAsString(statements);
+            System.out.println(jsonResult);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 
 	public static  void error(int column, int line, String message, boolean report) {

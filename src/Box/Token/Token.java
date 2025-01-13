@@ -1,17 +1,32 @@
 package Box.Token;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 public class Token {
 
+	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public TokenType type;
+	@JsonIgnore
 	public String lexeme;
+	@JsonIgnore
 	public Token identifierToken=null;
+	@JsonIgnore
 	public Token reifitnediToken=null;
+	@JsonIgnore
 	public int line;
+	@JsonIgnore
 	public int column;
+	@JsonIgnore
 	public int start;
+	@JsonIgnore
 	public int finish;
+	@JsonIgnore
 	public Object literal;
+	@JsonIgnore
 	public Object literalUnGrouped;
+	@JsonIgnore
 	public Object literalGroupedBackwards;
 
 	public Token(TokenType type, String lexeme, Object literalGrouped,Object literalUnGrouped, Object literalGroupedBackwards, int column, int line, int start, int current) {
