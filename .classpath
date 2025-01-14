@@ -20,5 +20,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Sprites"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="con" path="com.gwtplugins.gwt.eclipse.core.GWT_CONTAINER"/>
+	<classpathentry kind="con" path="com.gwtplugins.gwt.eclipse.core.GWT_CONTAINER/GWT 2.11.0"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
